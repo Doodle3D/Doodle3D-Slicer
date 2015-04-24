@@ -1,0 +1,89 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>Doedel Drie Dee || Slice Test</title>
+<!--<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>-->
+<script src="library/jquery.js"></script>
+<script src="library/three.js"></script>
+
+<script src="script/utils.js"></script>
+<script src="script/box.js"></script>
+<script src="script/printer.js"></script>
+<script src="script/slicer.js"></script>
+
+<script src="gcode/testgcode.js"></script>
+<script src="gcode/easterbunny.js"></script>
+
+</head>
+<body>
+<canvas id="3d-preview" height="480" width="720"></canvas>
+<canvas id="canvas" width="200" height="200"></canvas>
+
+<script>
+var localIp = location.hash.substring(1);
+var doodleBox = new D3D.Box(localIp);
+
+doodleBox.onload = function () {
+	"use strict";
+
+	var gcode = slicer.getGcode(doodleBox.printer);
+
+	var print = $(document.createElement("button")).text("Print").on("click", function () {
+		doodleBox.print(gcode);
+	});
+	var stop = $(document.createElement("button")).text("Stop").on("click", function () {
+		doodleBox.stop();
+	});
+	$("body").append(print, stop);
+};
+
+var scene = new THREE.Scene();
+
+var renderer = new THREE.WebGLRenderer({canvas: document.getElementById("3d-preview")});
+renderer.setClearColor(0xffffff, 1);
+
+var camera = new THREE.PerspectiveCamera(75, renderer.domElement.width/renderer.domElement.height, 1, 10000);
+
+applyMouseControls(renderer, camera, 1000);
+
+var material = new THREE.MeshBasicMaterial({color: 0x000000, wireframe: true});
+var geometry = new THREE.TorusGeometry(20, 10, 20, 20);
+//var geometry = new THREE.BoxGeometry(10, 10, 10, 1, 1, 1);
+//var geometry = new THREE.SphereGeometry(5, 32, 32);
+var mesh = new THREE.Mesh(geometry, material);
+scene.add(mesh);
+
+var slicer = new D3D.Slicer(geometry);
+
+/*var slices = slicer.slice(20, 0.2);
+
+var canvas = document.getElementById("canvas");
+var context = canvas.getContext("2d");
+
+for (var layer = 0; layer < slices.length; layer ++) {
+	var slice = slices[layer];
+
+	for (var i = 0; i < slice.length; i ++) {
+		var shape = slice[i];
+
+		context.beginPath();
+		for (var j = 0; j < shape.length; j ++) {
+			var point = shape[(j % shape.length)];
+
+			context.lineTo((point.x-100) * 3 + 100, (point.y-100) * 3 + 100);
+		}
+		context.closePath();
+		context.strokeStyle = "rgb(" + Math.round(Math.random()*255) + ", " + Math.round(Math.random()*255) + ", " + Math.round(Math.random()*255) + ")";
+		context.stroke();
+	}
+}*/
+
+(function animate () {
+	requestAnimationFrame(animate);
+
+	renderer.render(scene, camera);
+})();
+</script>
+
+</body>
+</html> 
