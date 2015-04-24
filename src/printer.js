@@ -9,7 +9,9 @@ D3D.Printer = function (config) {
 	"use strict";
 	
 	for (var i in config) {
-		this[i] = config[i];
+		if (i.indexOf("printer") === 0) {
+			this[i] = config[i];
+		}
 	}
 };
 D3D.Printer.prototype.getStartCode = function () {

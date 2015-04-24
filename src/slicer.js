@@ -142,23 +142,22 @@ D3D.Slicer.prototype.getGcode = function (printer) {
 	var travelSpeed = doodleBox.printer["printer.travelSpeed"];
 	var filamentThickness = doodleBox.printer["printer.filamentThickness"];
 	var wallThickness = doodleBox.printer["printer.wallThickness"];
-	var screenToMillimeterScale = doodleBox.printer["printer.screenToMillimeterScale"];
 	var layerHeight = doodleBox.printer["printer.layerHeight"];
-	var useSubLayers = doodleBox.printer["printer.useSubLayers"];
 	var enableTraveling = doodleBox.printer["printer.enableTraveling"];
 	var retractionEnabled = doodleBox.printer["printer.retraction.enabled"];
-	var retractionspeed = doodleBox.printer["printer.retraction.speed"];
+	var retractionSpeed = doodleBox.printer["printer.retraction.speed"];
 	var retractionminDistance = doodleBox.printer["printer.retraction.minDistance"];
-	var retractionamount = doodleBox.printer["printer.retraction.amount"];
+	var retractionAmount = doodleBox.printer["printer.retraction.amount"];
+	var dimensionsZ = doodleBox.printer["printer.dimensions.z"];
 
 	var gcode = doodleBox.printer.getStartCode();
 
 	var extruder = 0.0;
-	var speed = (bottomSpeed*60).toFixed(3);
+	var speed = firstLayerSlow ? (bottomSpeed*60).toFixed(3) : (normalSpeed*60).toFixed(3);
 	var flowRate = bottomFlowRate;
 	var filamentSurfaceArea = Math.pow((filamentThickness/2), 2) * Math.PI;
 
-	var slices = this.slice(200, layerHeight);
+	var slices = this.slice(dimensionsZ, layerHeight);
 
 	for (var layer = 0; layer < slices.length; layer ++) {
 		var slice = slices[layer];
@@ -184,11 +183,11 @@ D3D.Slicer.prototype.getGcode = function (printer) {
 				if (j === 0) {
 					//TODO
 					//add retraction
-					if (extruder > retractionamount && retractionEnabled) {
+					if (extruder > retractionAmount && retractionEnabled) {
 						gcode.push([
 							"G0", 
-							"E" + (extruder - retractionamount).toFixed(3),
-							"F" + (retractionspeed * 60).toFixed(3)
+							"E" + (extruder - retractionAmount).toFixed(3),
+							"F" + (retractionSpeed * 60).toFixed(3)
 						].join(" "));
 					}
 
@@ -198,11 +197,11 @@ D3D.Slicer.prototype.getGcode = function (printer) {
 						"F" + (travelSpeed*60)
 					].join(" "));
 
-					if (extruder > retractionamount && retractionEnabled) {
+					if (extruder > retractionAmount && retractionEnabled) {
 						gcode.push([
 							"G0", 
 							"E" + extruder.toFixed(3),
-							"F" + (retractionspeed * 60).toFixed(3)
+							"F" + (retractionSpeed * 60).toFixed(3)
 						].join(" "));
 					}
 				}

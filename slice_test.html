@@ -6,10 +6,10 @@
 <script src="library/jquery.js"></script>
 <script src="library/three.js"></script>
 
-<script src="script/utils.js"></script>
-<script src="script/box.js"></script>
-<script src="script/printer.js"></script>
-<script src="script/slicer.js"></script>
+<script src="src/utils.js"></script>
+<script src="src/box.js"></script>
+<script src="src/printer.js"></script>
+<script src="src/slicer.js"></script>
 
 <script src="gcode/testgcode.js"></script>
 <script src="gcode/easterbunny.js"></script>
@@ -55,9 +55,10 @@ scene.add(mesh);
 
 var slicer = new D3D.Slicer(geometry);
 
-/*var slices = slicer.slice(20, 0.2);
+var slices = slicer.slice(200, 0.2);
+//document.write(JSON.stringify(slices));
 
-var canvas = document.getElementById("canvas");
+/*var canvas = document.getElementById("canvas");
 var context = canvas.getContext("2d");
 
 for (var layer = 0; layer < slices.length; layer ++) {
