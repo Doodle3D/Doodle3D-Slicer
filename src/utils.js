@@ -11,6 +11,13 @@ var D3D = {
 	"contact": "develop@doodle3d.com"
 };
 
+THREE.Vector2.prototype.normal = function () {
+	var x = this.y;
+	var y = -this.x;
+
+	return this.set(x, y);
+};
+
 function sendAPI (url, data, callback) {
 	"use strict";
 
