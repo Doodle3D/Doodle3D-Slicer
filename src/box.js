@@ -29,6 +29,12 @@ D3D.Box = function (localIp) {
 	getAPI(self.api + "config/all", function (data) {
 		//self.config = data;
 
+		for (var i in data) {
+			if (i.indexOf("doodle3d") === 0) {
+				self[i] = data[i];
+			}
+		}
+
 		self.printer = new D3D.Printer(data);
 		self.update();
 
@@ -59,15 +65,15 @@ D3D.Box.prototype.updateState = function () {
 
 	//que api calls so they don't overload the d3d box
 	getAPI(this.api + "printer/state", function (data) {
-		self.state = data.state;
+		self.printer.state = data.state;
 
 		if (data.state !== "connecting" && data.state !== "disconnected") {
 			
 			getAPI(self.api + "printer/temperature", function (data) {
-				self.temperature = data;
+				self.printer.temperature = data;
 
 				getAPI(self.api + "printer/progress", function (data) {
-					self.progress = data;
+					self.printer.progress = data;
 
 					//finish updating state
 					self.update();
@@ -140,6 +146,6 @@ D3D.Box.prototype.stop = function () {
 		"gcode": finishMove.join("\n")
 		//"gcode": {}
 	}, function (data) {
-		console.log(data);
+		console.log("Printer stop command sent");
 	});
 };

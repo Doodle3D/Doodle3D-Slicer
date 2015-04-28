@@ -28,13 +28,17 @@ doodleBox.onload = function () {
 
 	var gcode = slicer.getGcode(doodleBox.printer);
 
-	var print = $(document.createElement("button")).text("Print").on("click", function () {
+	var print = $(document.createElement("a")).html("Print").on("click", function () {
 		doodleBox.print(gcode);
 	});
-	var stop = $(document.createElement("button")).text("Stop").on("click", function () {
+	var stop = $(document.createElement("a")).html("Stop").on("click", function () {
 		doodleBox.stop();
 	});
-	$("body").append(print, stop);
+	var download = $(document.createElement("a")).html("Download").attr({
+		download: "test.gcode",
+		href: "data:text/plain," + encodeURIComponent(gcode.join("\n"))
+	});
+	$("body").append(print, stop, download);
 };
 
 var scene = new THREE.Scene();
@@ -46,19 +50,18 @@ var camera = new THREE.PerspectiveCamera(75, renderer.domElement.width/renderer.
 
 applyMouseControls(renderer, camera, 1000);
 
-var material = new THREE.MeshBasicMaterial({color: 0x000000, wireframe: true});
-var geometry = new THREE.TorusGeometry(20, 10, 20, 20);
+var material = new THREE.MeshLambertMaterial({color: 0x000000, wireframe: true});
+var geometry = new THREE.TorusGeometry(20, 10, 4, 6);
 //var geometry = new THREE.BoxGeometry(10, 10, 10, 1, 1, 1);
-//var geometry = new THREE.SphereGeometry(5, 32, 32);
+//var geometry = new THREE.SphereGeometry(40, 10, 10);
 var mesh = new THREE.Mesh(geometry, material);
 scene.add(mesh);
 
-var slicer = new D3D.Slicer(geometry);
+var slicer = new D3D.Slicer().setGeometry(geometry);
+//var slices = slicer.slice(200, 0.2);
+var slices = slicer.slice(1, 1);
 
-var slices = slicer.slice(200, 0.2);
-//document.write(JSON.stringify(slices));
-
-/*var canvas = document.getElementById("canvas");
+var canvas = document.getElementById("canvas");
 var context = canvas.getContext("2d");
 
 for (var layer = 0; layer < slices.length; layer ++) {
@@ -68,16 +71,16 @@ for (var layer = 0; layer < slices.length; layer ++) {
 		var shape = slice[i];
 
 		context.beginPath();
-		for (var j = 0; j < shape.length; j ++) {
+		for (var j = 0; j <= shape.length; j ++) {
 			var point = shape[(j % shape.length)];
 
 			context.lineTo((point.x-100) * 3 + 100, (point.y-100) * 3 + 100);
 		}
-		context.closePath();
+		//context.closePath();
 		context.strokeStyle = "rgb(" + Math.round(Math.random()*255) + ", " + Math.round(Math.random()*255) + ", " + Math.round(Math.random()*255) + ")";
 		context.stroke();
 	}
-}*/
+}
 
 (function animate () {
 	requestAnimationFrame(animate);

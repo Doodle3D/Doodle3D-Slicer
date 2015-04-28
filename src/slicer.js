@@ -8,14 +8,23 @@
 *
 ******************************************************/
 
-D3D.Slicer = function (geometry) {
+D3D.Slicer = function () {
+	"use strict";
+
+	this.geometry;
+
+	this.lines = [];
+	this.lineLookup = {};
+};
+D3D.Slicer.prototype.setGeometry = function (geometry) {
 	"use strict";
 
 	this.geometry = geometry;
 	this.geometry.mergeVertices();
 
-	this.lines = [];
-	this.lineLookup = {};
+	this.createLines();
+
+	return this;
 };
 D3D.Slicer.prototype.addLine = function (a, b) {
 	"use stict";
@@ -52,6 +61,8 @@ D3D.Slicer.prototype.createLines = function () {
 		var c = this.addLine(face.c, face.a);
 
 		//set connecting lines (based on face)
+
+
 		this.lines[a].connects.push(b, c);
 		this.lines[b].connects.push(a, c);
 		this.lines[c].connects.push(a, b);
@@ -65,8 +76,6 @@ D3D.Slicer.prototype.createLines = function () {
 D3D.Slicer.prototype.slice = function (height, step) {
 	"use strict";
 
-	this.createLines();
-
 	var slices = [];
 
 	var	plane = new THREE.Plane();
@@ -75,7 +84,6 @@ D3D.Slicer.prototype.slice = function (height, step) {
 		plane.set(new THREE.Vector3(0, -1, 0), z);
 
 		var slice = [];
-		slices.push(slice);
 
 		var intersections = [];
 
@@ -98,7 +106,7 @@ D3D.Slicer.prototype.slice = function (height, step) {
 		var done = [];
 		for (var i = 0; i < intersections.length; i ++) {
 
-			if (done.indexOf(i) === -1 && intersections[i]) {
+			if (intersections[i] && done.indexOf(i) === -1) {
 				var index = i;
 
 				var shape = [];
@@ -113,7 +121,9 @@ D3D.Slicer.prototype.slice = function (height, step) {
 					for (var j = 0; j < connects.length; j ++) {
 						index = connects[j];
 
-						if (done.indexOf(index) === -1 && intersections[index]) {
+						console.log(j, intersections[index]);
+
+						if (intersections[index] && done.indexOf(index) === -1) {
 							break;
 						}
 						else {
@@ -127,6 +137,13 @@ D3D.Slicer.prototype.slice = function (height, step) {
 					slice.push(shape);
 				}
 			}
+		}
+
+		if (slice.length > 0) {
+			slices.push(slice);
+		}
+		else {
+			break;
 		}
 	}
 

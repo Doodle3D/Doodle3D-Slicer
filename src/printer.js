@@ -7,6 +7,10 @@
 
 D3D.Printer = function (config) {
 	"use strict";
+
+	this.state = "connecting";
+	this.temperature = {};
+	this.progress = {};
 	
 	for (var i in config) {
 		if (i.indexOf("printer") === 0) {

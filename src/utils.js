@@ -61,6 +61,13 @@ function getAPI (url, callback) {
 	});
 }
 
+function downloadFile (file, data) {
+	$(document.createElement("a")).attr({
+		download: file,
+		href: "data:text/plain," + data
+	})[0].click();
+}
+
 Array.prototype.clone = function () {
 	"use strict";
 	
