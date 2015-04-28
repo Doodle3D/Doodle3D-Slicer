@@ -61,21 +61,23 @@ var geometry = new THREE.TorusGeometry(20, 10, 10, 10);
 var mesh = new THREE.Mesh(geometry, material);
 scene.add(mesh);
 
-var slicer = new D3D.Slicer().setGeometry(geometry);
-//var slices = slicer.slice(200, 0.2);
-var slices = slicer.slice(1, 1);
+(function () {
+	var slicer = new D3D.Slicer().setGeometry(geometry);
+	var slices = slicer.slice(200, 0.2);
+	//var slices = slicer.slice(1, 1);
 
-CAL.Scene.setCanvas(document.getElementById("canvas"));
+	CAL.Scene.setCanvas(document.getElementById("canvas"));
 
+	//error at layer 0;
+	//maybe because of geomety
+	var layer = 4;
 
-var shapes = [];
+	var shapes = [];
 
-for (var layer = 0; layer < slices.length; layer ++) {
 	var slice = slices[layer];
 
 	for (var i = 0; i < slice.length; i ++) {
 		var shape = new CAL.Shape({shapeColor: false});
-		CAL.Scene.add(shape);
 		shapes.push(shape);
 
 		for (var j = 0; j < slice[i].length; j ++) {
@@ -83,22 +85,21 @@ for (var layer = 0; layer < slices.length; layer ++) {
 			shape.addPoint(new CAL.Vector((point.x-100) * 5 + 200, (point.y-100) * 5 + 200));
 		}
 	}
-}
 
-CAL.Scene.draw();
+	for (var i = 0; i < shapes.length; i ++) {
+		var shape = shapes[i];
 
-CAL.Scene.context.strokeStyle = "#FF0000";
+		shape.draw(CAL.Scene.context);
+		CAL.Scene.context.strokeStyle = "#FF0000";
 
-for (var i = 0; i < shapes.length; i ++) {
-	var shape = shapes[i];
+		for (var j = 0; j < shape.points.length; j ++) {
+			var normal = shape.getNormal(j).scale(20);
+			var point = shape.points[j];
 
-	for (var j = 0; j < shape.points.length; j ++) {
-		var normal = shape.getNormal(j).scale(20);
-		var point = shape.points[j];
-
-		normal.draw(CAL.Scene.context, point.x, point.y);
+			normal.draw(CAL.Scene.context, point.x, point.y);
+		}
 	}
-}
+})();
 
 (function animate () {
 	requestAnimationFrame(animate);

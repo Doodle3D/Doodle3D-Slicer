@@ -87,7 +87,6 @@ D3D.Slicer.prototype.slice = function (height, step) {
 	var	plane = new THREE.Plane();
 
 	for (var z = 0; z < height; z += step) {
-		z += 1;
 		plane.set(new THREE.Vector3(0, -1, 0), z);
 
 		var slice = [];
@@ -133,7 +132,7 @@ D3D.Slicer.prototype.slice = function (height, step) {
 							var normal = new THREE.Vector2().copy(intersection).sub(intersections[index]).normal().normalize();
 							var faceNormal = faceNormals[j];
 
-							if (normal.dot(faceNormal) < 0) {
+							if (normal.dot(faceNormal) > 0) {
 								break;
 							}
 							else {
