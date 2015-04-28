@@ -64,25 +64,10 @@ D3D.Box.prototype.updateState = function () {
 	var self = this;
 
 	//que api calls so they don't overload the d3d box
-	getAPI(this.api + "printer/state", function (data) {
-		self.printer.state = data.state;
+	getAPI(this.api + "info/status", function (data) {
+		self.printer.data = data;
 
-		if (data.state !== "connecting" && data.state !== "disconnected") {
-			
-			getAPI(self.api + "printer/temperature", function (data) {
-				self.printer.temperature = data;
-
-				getAPI(self.api + "printer/progress", function (data) {
-					self.printer.progress = data;
-
-					//finish updating state
-					self.update();
-				});
-			});
-		}
-		else {
-			self.update();
-		}
+		self.update();
 	});
 };
 D3D.Box.prototype.print = function (gcode) {

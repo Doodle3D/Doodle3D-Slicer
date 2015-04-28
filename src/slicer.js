@@ -62,7 +62,7 @@ D3D.Slicer.prototype.createLines = function () {
 
 		//set connecting lines (based on face)
 
-
+		//something wrong here, 3 face can go in different direction
 		this.lines[a].connects.push(b, c);
 		this.lines[b].connects.push(a, c);
 		this.lines[c].connects.push(a, b);
@@ -81,6 +81,7 @@ D3D.Slicer.prototype.slice = function (height, step) {
 	var	plane = new THREE.Plane();
 
 	for (var z = 0; z < height; z += step) {
+		z += 1;
 		plane.set(new THREE.Vector3(0, -1, 0), z);
 
 		var slice = [];
@@ -121,8 +122,6 @@ D3D.Slicer.prototype.slice = function (height, step) {
 					for (var j = 0; j < connects.length; j ++) {
 						index = connects[j];
 
-						console.log(j, intersections[index]);
-
 						if (intersections[index] && done.indexOf(index) === -1) {
 							break;
 						}
@@ -130,6 +129,8 @@ D3D.Slicer.prototype.slice = function (height, step) {
 							index = -1;
 						}
 					}
+
+					console.log(j);
 				}
 
 				//think this check is not nescesary, always higher as 0

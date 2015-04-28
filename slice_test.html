@@ -5,6 +5,7 @@
 <!--<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>-->
 <script src="library/jquery.js"></script>
 <script src="library/three.js"></script>
+<script src="library/cal.js"></script>
 
 <script src="src/utils.js"></script>
 <script src="src/box.js"></script>
@@ -14,10 +15,13 @@
 <script src="gcode/testgcode.js"></script>
 <script src="gcode/easterbunny.js"></script>
 
+<style>
+canvas {border: 1px solid black;}
+</style>
 </head>
 <body>
-<canvas id="3d-preview" height="480" width="720"></canvas>
-<canvas id="canvas" width="200" height="200"></canvas>
+<canvas id="3d-preview" height="400" width="400"></canvas>
+<canvas id="canvas" width="400" height="400"></canvas>
 
 <script>
 var localIp = location.hash.substring(1);
@@ -26,7 +30,7 @@ var doodleBox = new D3D.Box(localIp);
 doodleBox.onload = function () {
 	"use strict";
 
-	var gcode = slicer.getGcode(doodleBox.printer);
+	/*var gcode = slicer.getGcode(doodleBox.printer);
 
 	var print = $(document.createElement("a")).html("Print").on("click", function () {
 		doodleBox.print(gcode);
@@ -38,7 +42,7 @@ doodleBox.onload = function () {
 		download: "test.gcode",
 		href: "data:text/plain," + encodeURIComponent(gcode.join("\n"))
 	});
-	$("body").append(print, stop, download);
+	$("body").append(print, stop, download);*/
 };
 
 var scene = new THREE.Scene();
@@ -61,24 +65,41 @@ var slicer = new D3D.Slicer().setGeometry(geometry);
 //var slices = slicer.slice(200, 0.2);
 var slices = slicer.slice(1, 1);
 
-var canvas = document.getElementById("canvas");
-var context = canvas.getContext("2d");
+CAL.Scene.setCanvas(document.getElementById("canvas"));
+
+
+var shapes = [];
 
 for (var layer = 0; layer < slices.length; layer ++) {
 	var slice = slices[layer];
 
 	for (var i = 0; i < slice.length; i ++) {
-		var shape = slice[i];
+		var shape = new CAL.Shape({shapeColor: false});
+		CAL.Scene.add(shape);
+		shapes.push(shape);
 
-		context.beginPath();
-		for (var j = 0; j <= shape.length; j ++) {
-			var point = shape[(j % shape.length)];
-
-			context.lineTo((point.x-100) * 3 + 100, (point.y-100) * 3 + 100);
+		for (var j = 0; j < slice[i].length; j ++) {
+			var point = slice[i][j];
+			shape.addPoint(new CAL.Vector((point.x-100) * 5 + 200, (point.y-100) * 5 + 200));
 		}
-		//context.closePath();
-		context.strokeStyle = "rgb(" + Math.round(Math.random()*255) + ", " + Math.round(Math.random()*255) + ", " + Math.round(Math.random()*255) + ")";
-		context.stroke();
+	}
+}
+
+CAL.Scene.draw();
+
+CAL.Scene.context.strokeStyle = "#FF0000";
+
+
+for (var i = 0; i < shapes.length; i ++) {
+	var shape = shapes[i];
+
+	console.log(shape.points.length);
+
+	for (var j = 0; j < shape.points.length; j ++) {
+		var normal = shape.getNormal(j).scale(20);
+		var point = shape.points[j];
+
+		normal.draw(CAL.Scene.context, point.x, point.y);
 	}
 }
 
