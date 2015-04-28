@@ -55,7 +55,7 @@ var camera = new THREE.PerspectiveCamera(75, renderer.domElement.width/renderer.
 applyMouseControls(renderer, camera, 1000);
 
 var material = new THREE.MeshLambertMaterial({color: 0x000000, wireframe: true});
-var geometry = new THREE.TorusGeometry(20, 10, 4, 6);
+var geometry = new THREE.TorusGeometry(20, 10, 10, 10);
 //var geometry = new THREE.BoxGeometry(10, 10, 10, 1, 1, 1);
 //var geometry = new THREE.SphereGeometry(40, 10, 10);
 var mesh = new THREE.Mesh(geometry, material);
@@ -89,11 +89,8 @@ CAL.Scene.draw();
 
 CAL.Scene.context.strokeStyle = "#FF0000";
 
-
 for (var i = 0; i < shapes.length; i ++) {
 	var shape = shapes[i];
-
-	console.log(shape.points.length);
 
 	for (var j = 0; j < shape.points.length; j ++) {
 		var normal = shape.getNormal(j).scale(20);

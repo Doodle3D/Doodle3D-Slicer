@@ -39,7 +39,8 @@ D3D.Slicer.prototype.addLine = function (a, b) {
 
 		this.lines.push({
 			line: new THREE.Line3(this.geometry.vertices[a], this.geometry.vertices[b]),
-			connects: []
+			connects: [],
+			normals: []
 		});
 	}
 
@@ -53,6 +54,7 @@ D3D.Slicer.prototype.createLines = function () {
 
 	for (var i = 0; i < this.geometry.faces.length; i ++) {
 		var face = this.geometry.faces[i];
+		var normal = new THREE.Vector2().set(face.normal.x, face.normal.z).normalize();
 
 		//check for only adding unique lines
 		//returns index of said line
@@ -64,8 +66,12 @@ D3D.Slicer.prototype.createLines = function () {
 
 		//something wrong here, 3 face can go in different direction
 		this.lines[a].connects.push(b, c);
-		this.lines[b].connects.push(a, c);
+		this.lines[b].connects.push(c, a);
 		this.lines[c].connects.push(a, b);
+
+		this.lines[a].normals.push(normal, normal);
+		this.lines[b].normals.push(normal, normal);
+		this.lines[c].normals.push(normal, normal);
 	}
 
 	//sort lines on min height
@@ -119,18 +125,25 @@ D3D.Slicer.prototype.slice = function (height, step) {
 					done.push(index);
 
 					var connects = this.lines[index].connects;
+					var faceNormals = this.lines[index].normals;
 					for (var j = 0; j < connects.length; j ++) {
 						index = connects[j];
 
 						if (intersections[index] && done.indexOf(index) === -1) {
-							break;
+							var normal = new THREE.Vector2().copy(intersection).sub(intersections[index]).normal().normalize();
+							var faceNormal = faceNormals[j];
+
+							if (normal.dot(faceNormal) < 0) {
+								break;
+							}
+							else {
+								index = -1;
+							}
 						}
 						else {
 							index = -1;
 						}
 					}
-
-					console.log(j);
 				}
 
 				//think this check is not nescesary, always higher as 0
