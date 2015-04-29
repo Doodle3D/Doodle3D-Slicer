@@ -8,14 +8,23 @@
 *
 ******************************************************/
 
-D3D.Slicer = function (geometry) {
+D3D.Slicer = function () {
+	"use strict";
+
+	this.geometry;
+
+	this.lines = [];
+	this.lineLookup = {};
+};
+D3D.Slicer.prototype.setGeometry = function (geometry) {
 	"use strict";
 
 	this.geometry = geometry;
 	this.geometry.mergeVertices();
 
-	this.lines = [];
-	this.lineLookup = {};
+	this.createLines();
+
+	return this;
 };
 D3D.Slicer.prototype.addLine = function (a, b) {
 	"use stict";
@@ -30,7 +39,8 @@ D3D.Slicer.prototype.addLine = function (a, b) {
 
 		this.lines.push({
 			line: new THREE.Line3(this.geometry.vertices[a], this.geometry.vertices[b]),
-			connects: []
+			connects: [],
+			normals: []
 		});
 	}
 
@@ -44,6 +54,7 @@ D3D.Slicer.prototype.createLines = function () {
 
 	for (var i = 0; i < this.geometry.faces.length; i ++) {
 		var face = this.geometry.faces[i];
+		var normal = new THREE.Vector2().set(face.normal.x, face.normal.z).normalize();
 
 		//check for only adding unique lines
 		//returns index of said line
@@ -52,9 +63,15 @@ D3D.Slicer.prototype.createLines = function () {
 		var c = this.addLine(face.c, face.a);
 
 		//set connecting lines (based on face)
+
+		//something wrong here, 3 face can go in different direction
 		this.lines[a].connects.push(b, c);
-		this.lines[b].connects.push(a, c);
+		this.lines[b].connects.push(c, a);
 		this.lines[c].connects.push(a, b);
+
+		this.lines[a].normals.push(normal, normal);
+		this.lines[b].normals.push(normal, normal);
+		this.lines[c].normals.push(normal, normal);
 	}
 
 	//sort lines on min height
@@ -65,8 +82,6 @@ D3D.Slicer.prototype.createLines = function () {
 D3D.Slicer.prototype.slice = function (height, step) {
 	"use strict";
 
-	this.createLines();
-
 	var slices = [];
 
 	var	plane = new THREE.Plane();
@@ -75,7 +90,6 @@ D3D.Slicer.prototype.slice = function (height, step) {
 		plane.set(new THREE.Vector3(0, -1, 0), z);
 
 		var slice = [];
-		slices.push(slice);
 
 		var intersections = [];
 
@@ -98,7 +112,7 @@ D3D.Slicer.prototype.slice = function (height, step) {
 		var done = [];
 		for (var i = 0; i < intersections.length; i ++) {
 
-			if (done.indexOf(i) === -1 && intersections[i]) {
+			if (intersections[i] && done.indexOf(i) === -1) {
 				var index = i;
 
 				var shape = [];
@@ -110,11 +124,20 @@ D3D.Slicer.prototype.slice = function (height, step) {
 					done.push(index);
 
 					var connects = this.lines[index].connects;
+					var faceNormals = this.lines[index].normals;
 					for (var j = 0; j < connects.length; j ++) {
 						index = connects[j];
 
-						if (done.indexOf(index) === -1 && intersections[index]) {
-							break;
+						if (intersections[index] && done.indexOf(index) === -1) {
+							var normal = new THREE.Vector2().copy(intersection).sub(intersections[index]).normal().normalize();
+							var faceNormal = faceNormals[j];
+
+							if (normal.dot(faceNormal) > 0) {
+								break;
+							}
+							else {
+								index = -1;
+							}
 						}
 						else {
 							index = -1;
@@ -127,6 +150,13 @@ D3D.Slicer.prototype.slice = function (height, step) {
 					slice.push(shape);
 				}
 			}
+		}
+
+		if (slice.length > 0) {
+			slices.push(slice);
+		}
+		else {
+			break;
 		}
 	}
 

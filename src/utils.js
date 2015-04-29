@@ -11,6 +11,13 @@ var D3D = {
 	"contact": "develop@doodle3d.com"
 };
 
+THREE.Vector2.prototype.normal = function () {
+	var x = this.y;
+	var y = -this.x;
+
+	return this.set(x, y);
+};
+
 function sendAPI (url, data, callback) {
 	"use strict";
 
@@ -59,6 +66,13 @@ function getAPI (url, callback) {
 		console.warn("failed connecting to " + url);
 		getAPI(url, callback);
 	});
+}
+
+function downloadFile (file, data) {
+	$(document.createElement("a")).attr({
+		download: file,
+		href: "data:text/plain," + data
+	})[0].click();
 }
 
 Array.prototype.clone = function () {

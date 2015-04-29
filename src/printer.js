@@ -7,7 +7,9 @@
 
 D3D.Printer = function (config) {
 	"use strict";
-	
+
+	this.data = {};
+
 	for (var i in config) {
 		if (i.indexOf("printer") === 0) {
 			this[i] = config[i];
