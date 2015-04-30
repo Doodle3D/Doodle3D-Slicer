@@ -6,6 +6,7 @@
 <script src="library/jquery.js"></script>
 <script src="library/three.js"></script>
 <script src="library/cal.js"></script>
+<script src="library/clipper.js"></script>
 
 <script src="src/utils.js"></script>
 <script src="src/box.js"></script>
@@ -27,22 +28,46 @@ canvas {border: 1px solid black;}
 var localIp = location.hash.substring(1);
 var doodleBox = new D3D.Box(localIp);
 
+var gcode;
 doodleBox.onload = function () {
-	"use strict";
+	doodleBox.printer.config["printer.bottomFlowRate"] = 1.0;
+	doodleBox.printer.config["printer.layerHeight"] = 0.3;
+	doodleBox.printer.config["printer.retraction.enabled"] = false;
 
-	/*var gcode = slicer.getGcode(doodleBox.printer);
+	gcode = slicer.getGcode(doodleBox.printer.config);
 
-	var print = $(document.createElement("a")).html("Print").on("click", function () {
-		doodleBox.print(gcode);
-	});
-	var stop = $(document.createElement("a")).html("Stop").on("click", function () {
-		doodleBox.stop();
-	});
-	var download = $(document.createElement("a")).html("Download").attr({
-		download: "test.gcode",
-		href: "data:text/plain," + encodeURIComponent(gcode.join("\n"))
-	});
-	$("body").append(print, stop, download);*/
+	var canvas = document.getElementById("canvas");
+	var context = canvas.getContext("2d");
+
+	function drawPolygons (paths, color) {
+		context.fillStyle = color;
+		context.strokeStyle = color;
+		context.beginPath();
+
+		for (var i = 0; i < paths.length; i ++) {
+			var path = paths[i];
+
+			context.moveTo((path[0].X- 100) * 8.0 + 200, (path[0].Y- 100) * 8.0 + 200);
+
+			for (var j = 0; j < path.length; j ++) {
+				var point = path[j];
+				context.lineTo((point.X- 100) * 8.0 + 200, (point.Y- 100) * 8.0 + 200);
+			}
+			context.closePath();
+		}
+		context.stroke();
+	}
+
+	//for (var layer = 0; layer < gcode.length; layer ++) {
+		var layer = 0;
+		var slice = gcode[layer];
+
+		console.log(gcode.length);
+
+		drawPolygons(slice.outerLayer, "red");
+		drawPolygons(slice.innerLayer, "green");
+		drawPolygons(slice.fill, "blue");
+	//}*/
 };
 
 var scene = new THREE.Scene();
@@ -54,27 +79,61 @@ var camera = new THREE.PerspectiveCamera(75, renderer.domElement.width/renderer.
 
 applyMouseControls(renderer, camera, 1000);
 
+var geometry = (function () {
+	var circle = new THREE.Shape();
+	circle.absarc(0, 0, 20, 0, Math.PI*2, false);
+
+	var hole = new THREE.Path();
+	hole.absarc(0, 0, 10, 0, Math.PI*2, true );
+
+	circle.holes.push(hole);
+
+	var matrix = new THREE.Matrix4();
+	matrix.makeRotationX(Math.PI*1.5);
+
+	var geometry = new THREE.ExtrudeGeometry(circle, {
+		amount: 1, 
+		bevelEnabled: false, 
+		steps: 1
+	});
+	geometry.applyMatrix(matrix);
+
+	return geometry;
+})();
+
 var material = new THREE.MeshLambertMaterial({color: 0x000000, wireframe: true});
-var geometry = new THREE.TorusGeometry(20, 10, 10, 10);
+//var geometry = new THREE.TorusGeometry(40, 20, 10, 10);
 //var geometry = new THREE.BoxGeometry(10, 10, 10, 1, 1, 1);
-//var geometry = new THREE.SphereGeometry(40, 10, 10);
+//var geometry = new THREE.SphereGeometry(10, 10, 10);
 var mesh = new THREE.Mesh(geometry, material);
 scene.add(mesh);
 
+var slicer = new D3D.Slicer().setGeometry(geometry);
+
+var canvas = document.getElementById("canvas");
+var context = canvas.getContext("2d");
+
+var slicer = new D3D.Slicer().setGeometry(geometry);
+//slicer.draw(1, context);
+
+/*
 (function () {
 	var slicer = new D3D.Slicer().setGeometry(geometry);
 	var slices = slicer.slice(200, 0.2);
+	slices.shift();
 	//var slices = slicer.slice(1, 1);
 
 	CAL.Scene.setCanvas(document.getElementById("canvas"));
 
 	//error at layer 0;
 	//maybe because of geomety
-	var layer = 4;
+	var layer = 0;
 
 	var shapes = [];
 
 	var slice = slices[layer];
+
+	//downloadFile("slice.json", JSON.stringify(slice));
 
 	for (var i = 0; i < slice.length; i ++) {
 		var shape = new CAL.Shape({shapeColor: false});
@@ -82,7 +141,7 @@ scene.add(mesh);
 
 		for (var j = 0; j < slice[i].length; j ++) {
 			var point = slice[i][j];
-			shape.addPoint(new CAL.Vector((point.x-100) * 5 + 200, (point.y-100) * 5 + 200));
+			shape.addPoint(new CAL.Vector(point.X, point.Y));
 		}
 	}
 
@@ -100,6 +159,7 @@ scene.add(mesh);
 		}
 	}
 })();
+*/
 
 (function animate () {
 	requestAnimationFrame(animate);

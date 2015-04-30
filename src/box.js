@@ -20,6 +20,8 @@ D3D.Box = function (localIp) {
 	this.localIp = localIp;
 	this.api = "http://" + localIp + "/d3dapi/";
 
+	this.config = {};
+
 	this.printBatches = [];
 	this.currentBatch = 0;
 
@@ -31,7 +33,7 @@ D3D.Box = function (localIp) {
 
 		for (var i in data) {
 			if (i.indexOf("doodle3d") === 0) {
-				self[i] = data[i];
+				self.config[i] = data[i];
 			}
 		}
 
@@ -65,7 +67,7 @@ D3D.Box.prototype.updateState = function () {
 
 	//que api calls so they don't overload the d3d box
 	getAPI(this.api + "info/status", function (data) {
-		self.printer.data = data;
+		self.printer.status = data;
 
 		self.update();
 	});

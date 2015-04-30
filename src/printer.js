@@ -8,18 +8,19 @@
 D3D.Printer = function (config) {
 	"use strict";
 
-	this.data = {};
+	this.status = {};
+	this.config = {};
 
 	for (var i in config) {
 		if (i.indexOf("printer") === 0) {
-			this[i] = config[i];
+			this.config[i] = config[i];
 		}
 	}
 };
 D3D.Printer.prototype.getStartCode = function () {
 	"use strict";
 	
-	var gcode = this["printer.startcode"];
+	var gcode = this.config["printer.startcode"];
 	gcode = this.subsituteVariables(gcode);
 
 	return gcode.split("\n");
@@ -27,7 +28,7 @@ D3D.Printer.prototype.getStartCode = function () {
 D3D.Printer.prototype.getEndCode = function () {
 	"use strict";
 	
-	var gcode = this["printer.endcode"];
+	var gcode = this.config["printer.endcode"];
 	gcode = this.subsituteVariables(gcode);
 
 	return gcode.split("\n");
@@ -35,12 +36,12 @@ D3D.Printer.prototype.getEndCode = function () {
 D3D.Printer.prototype.subsituteVariables = function (gcode) {
 	"use strict";
 
-	var temperature = this["printer.temperature"];
-	var bedTemperature = this["printer.bed.temperature"];
-	var preheatTemperature = this["printer.heatup.temperature"];
-	var preheatBedTemperature = this["printer.heatup.bed.temperature"];
-	var printerType = this["printer.type"];
-	var heatedbed = this["printer.heatedbed"];
+	var temperature = this.config["printer.temperature"];
+	var bedTemperature = this.config["printer.bed.temperature"];
+	var preheatTemperature = this.config["printer.heatup.temperature"];
+	var preheatBedTemperature = this.config["printer.heatup.bed.temperature"];
+	var printerType = this.config["printer.type"];
+	var heatedbed = this.config["printer.heatedbed"];
 
 	switch (printerType) {
 		case "makerbot_replicator2": printerType = "r2"; break; 
