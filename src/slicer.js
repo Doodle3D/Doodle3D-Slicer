@@ -11,7 +11,6 @@
 * voor laag 5 = 5 diff (3 && 4 && 6 && 7))
 *
 ******************************************************/
-var use_deprecated = true;
 
 D3D.Slicer = function () {
 	"use strict";
@@ -134,7 +133,9 @@ D3D.Slicer.prototype.slice = function (height, step) {
 						index = connects[j];
 
 						if (intersections[index] && done.indexOf(index) === -1) {
-							var normal = new THREE.Vector2().copy(intersection).sub(intersections[index]).normal().normalize();
+							var a = new THREE.Vector2().set(intersection.x, intersection.y);
+							var b = intersections[index];
+							var normal = a.sub(b).normal().normalize();
 							var faceNormal = faceNormals[Math.floor(j/2)];
 
 							if (normal.dot(faceNormal) > 0) {
@@ -179,6 +180,8 @@ D3D.Slicer.prototype.getInset = function (slice, offset) {
 	return solution;
 };
 D3D.Slicer.prototype.getFillTemplate = function (dimension, size, even, uneven) {
+	"use strict";
+
 	var paths = new ClipperLib.Paths();
 
 	if (even) {
@@ -195,6 +198,8 @@ D3D.Slicer.prototype.getFillTemplate = function (dimension, size, even, uneven) 
 	return paths;
 };
 D3D.Slicer.prototype.slicesToData = function (slices, config) {
+	"use strict";
+
 	var data = [];
 
 	//scale because of clipper crap
@@ -202,7 +207,7 @@ D3D.Slicer.prototype.slicesToData = function (slices, config) {
 
 	var layerHeight = config["printer.layerHeight"] * scale;
 	var dimensionsZ = config["printer.dimensions.z"] * scale;
-	//should come from config???
+	//variables should come from config
 	//aan rick voorleggen
 	var nozzleSize = 0.4 * scale;
 	var shellThickness = 0.8 * scale;
@@ -232,45 +237,67 @@ D3D.Slicer.prototype.slicesToData = function (slices, config) {
 		var highFill;
 
 		var fillAbove;
-		//for (var i = 1; i < shellThickness/layerHeight; i ++) {
-			var newLayer = ClipperLib.JS.Clone(slices[layer + 1] || []);
+		for (var i = 1; i < shellThickness/layerHeight; i ++) {
+			var newLayer = ClipperLib.JS.Clone(slices[layer + i]);
 			ClipperLib.JS.ScaleUpPaths(newLayer, scale);
-			fillAbove = newLayer;
-		//}
+
+			if (newLayer.length === 0) {
+				fillAbove = [];
+
+				break;
+			}
+			else if (fillAbove === undefined) {
+
+			}
+			else {
+
+			}
+
+			if (fillAbove === undefined) {
+				fillAbove = newLayer;
+			}
+			else {
+			//	var c = new ClipperLib.Clipper();
+			//	var solution = new ClipperLib.Paths();
+			//	c.AddPaths(fillArea, ClipperLib.PolyType.ptSubject, true);
+			//	c.AddPaths(fillAbove, ClipperLib.PolyType.ptClip, true);
+			//	c.Execute(ClipperLib.ClipType.ctDifference, solution);
+			}
+		}
 		//kijkt alleen nog naar boven
 		//omliggende lagen hebben inhoud van lowFill;
 		//inset moet opgevult worden;
 		//verschill tussen lowFill en inset moet vol, rest is raster
 
-		var c = new ClipperLib.Clipper();
+		var clipper = new ClipperLib.Clipper();
 		var highFillArea = new ClipperLib.Paths();
-		c.AddPaths(fillArea, ClipperLib.PolyType.ptSubject, true);
-		c.AddPaths(fillAbove, ClipperLib.PolyType.ptClip, true);
-		c.Execute(ClipperLib.ClipType.ctDifference, highFillArea);
+		clipper.AddPaths(fillArea, ClipperLib.PolyType.ptSubject, true);
+		clipper.AddPaths(fillAbove, ClipperLib.PolyType.ptClip, true);
+		clipper.Execute(ClipperLib.ClipType.ctDifference, highFillArea);
 
-		var c = new ClipperLib.Clipper();
+		var clipper = new ClipperLib.Clipper();
 		var lowFillArea = new ClipperLib.Paths();
-		c.AddPaths(fillArea, ClipperLib.PolyType.ptSubject, true);
-		c.AddPaths(highFillArea, ClipperLib.PolyType.ptClip, true);
-		c.Execute(ClipperLib.ClipType.ctDifference, lowFillArea);
+		clipper.AddPaths(fillArea, ClipperLib.PolyType.ptSubject, true);
+		clipper.AddPaths(highFillArea, ClipperLib.PolyType.ptClip, true);
+		clipper.Execute(ClipperLib.ClipType.ctDifference, lowFillArea);
 
 		var fill = [];
 
-		var c = new ClipperLib.Clipper();
-		var solution = new ClipperLib.Paths();
-		c.AddPaths(lowFillTemplate, ClipperLib.PolyType.ptSubject, false);
-		c.AddPaths(lowFillArea, ClipperLib.PolyType.ptClip, true);
-		c.Execute(ClipperLib.ClipType.ctIntersection, solution);
+		var clipper = new ClipperLib.Clipper();
+		var lowFillStrokes = new ClipperLib.Paths();
+		clipper.AddPaths(lowFillTemplate, ClipperLib.PolyType.ptSubject, false);
+		clipper.AddPaths(lowFillArea, ClipperLib.PolyType.ptClip, true);
+		clipper.Execute(ClipperLib.ClipType.ctIntersection, lowFillStrokes);
 
-		fill = fill.concat(solution);
+		fill = fill.concat(lowFillStrokes);
 
-		var c = new ClipperLib.Clipper();
-		var solution = new ClipperLib.Paths();
-		c.AddPaths(highFillTemplate, ClipperLib.PolyType.ptSubject, false);
-		c.AddPaths(highFillArea, ClipperLib.PolyType.ptClip, true);
-		c.Execute(ClipperLib.ClipType.ctIntersection, solution);		
+		var clipper = new ClipperLib.Clipper();
+		var highFillStrokes = new ClipperLib.Paths();
+		clipper.AddPaths(highFillTemplate, ClipperLib.PolyType.ptSubject, false);
+		clipper.AddPaths(highFillArea, ClipperLib.PolyType.ptClip, true);
+		clipper.Execute(ClipperLib.ClipType.ctIntersection, highFillStrokes);		
 
-		fill = fill.concat(solution);
+		fill = fill.concat(highFillStrokes);
 
 		ClipperLib.JS.ScaleDownPaths(outerLayer, scale);
 		ClipperLib.JS.ScaleDownPaths(innerLayer, scale);
@@ -380,7 +407,7 @@ D3D.Slicer.prototype.getGcode = function (config) {
 	//var slices = [slices.shift()];
 	
 	var data = this.slicesToData(slices, config);
-	//return data;
+	return data;
 
 	for (var layer = 0; layer < data.length; layer ++) {
 		var slice = data[layer];
