@@ -3100,7 +3100,7 @@
       if (this.m_ExecuteLocked)
         return false;
       if (this.m_HasOpenPaths)
-        ClipperLib.Error("Error: PolyTree struct is need for open path clipping.");
+        //ClipperLib.Error("Error: PolyTree struct is need for open path clipping.");
       this.m_ExecuteLocked = true;
       ClipperLib.Clear(solution);
       this.m_SubjFillType = subjFillType;

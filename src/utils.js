@@ -11,6 +11,7 @@ var D3D = {
 	"contact": "develop@doodle3d.com"
 };
 
+//add normal function to Three.js Vector class
 THREE.Vector2.prototype.normal = function () {
 	var x = this.y;
 	var y = -this.x;
@@ -86,7 +87,6 @@ Array.prototype.clone = function () {
 
 	return array;
 };
-
 
 function applyMouseControls (renderer, camera, maxDistance) {
 	"use strict";
