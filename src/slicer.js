@@ -199,26 +199,24 @@ D3D.Slicer.prototype.getFillTemplate = function (dimension, size, even, uneven) 
 D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 	"use strict";
 
-	var data = [];
-
 	//scale because of clipper crap
 	var scale = 100;
 
 	var layerHeight = printer.config["printer.layerHeight"] * scale;
 	var dimensionsZ = printer.config["printer.dimensions.z"] * scale;
-	//variables should come from config
-	//aan rick voorleggen
-	var nozzleSize = 0.4 * scale;
-	var shellThickness = 0.8 * scale;
-	var fillSize = 5 * scale;
-	var brimOffset = 5 * scale;
+	var wallThickness = printer.config["printer.wallThickness"] * scale;
+	var shellThickness = printer.config["printer.shellThickness"] * scale;
+	var fillSize = printer.config["printer.fillSize"] * scale;
+	var brimOffset = printer.config["printer.brimOffset"] * scale;
+
+	var data = [];
 
 	var lowFillTemplate = this.getFillTemplate(dimensionsZ, fillSize, true, true);
-	
 
 	for (var layer = 0; layer < slices.length; layer ++) {
 		var slice = slices[layer];
-		var highFillTemplate = this.getFillTemplate(dimensionsZ, nozzleSize, (layer % 2 === 0), (layer % 2 === 1));
+
+		var highFillTemplate = this.getFillTemplate(dimensionsZ, wallThickness, (layer % 2 === 0), (layer % 2 === 1));
 
 		//var outerLayer = ClipperLib.JS.Clean(slice, 1.0);
 		var outerLayer = slice.clone();
@@ -226,17 +224,17 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 
 		var innerLayer = [];
 
-		for (var i = nozzleSize; i < shellThickness; i += nozzleSize) {
+		for (var i = wallThickness; i < shellThickness; i += wallThickness) {
 			var inset = this.getInset(outerLayer, i);
 
 			innerLayer = innerLayer.concat(inset);
 		}
 
-		var fillArea = this.getInset((inset || outerLayer), nozzleSize);
+		var fillArea = this.getInset((inset || outerLayer), wallThickness);
 
 		var highFill;
 
-		var fillAbove;
+		var fillAbove = undefined;
 		for (var i = 1; i < shellThickness/layerHeight; i ++) {
 			var newLayer = ClipperLib.JS.Clone(slices[layer + i]);
 			ClipperLib.JS.ScaleUpPaths(newLayer, scale);
@@ -247,21 +245,16 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 				break;
 			}
 			else if (fillAbove === undefined) {
-
-			}
-			else {
-
-			}
-
-			if (fillAbove === undefined) {
 				fillAbove = newLayer;
 			}
 			else {
-			//	var c = new ClipperLib.Clipper();
-			//	var solution = new ClipperLib.Paths();
-			//	c.AddPaths(fillArea, ClipperLib.PolyType.ptSubject, true);
-			//	c.AddPaths(fillAbove, ClipperLib.PolyType.ptClip, true);
-			//	c.Execute(ClipperLib.ClipType.ctDifference, solution);
+				var c = new ClipperLib.Clipper();
+				var solution = new ClipperLib.Paths();
+				c.AddPaths(fillArea, ClipperLib.PolyType.ptSubject, true);
+				c.AddPaths(fillAbove, ClipperLib.PolyType.ptClip, true);
+				c.Execute(ClipperLib.ClipType.ctIntersection, solution);
+
+				fillAbove = solution;
 			}
 		}
 		//kijkt alleen nog naar boven
