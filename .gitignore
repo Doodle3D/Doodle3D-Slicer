@@ -14,3 +14,5 @@ src/library/.DS_Store
 src/script/.DS_Store
 
 src/.DS_Store
+
+bower_components/
