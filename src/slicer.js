@@ -233,7 +233,8 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 		var highFill;
 
 		var fillAbove = undefined;
-		for (var i = 1; i < shellThickness/layerHeight; i ++) {
+		//for (var i = 1; i < shellThickness/layerHeight; i ++) {
+		for (var i = 1; i < shellThickness/layerHeight + 4; i ++) {
 			var newLayer = ClipperLib.JS.Clone(slices[layer + i]);
 			ClipperLib.JS.ScaleUpPaths(newLayer, scale);
 
@@ -283,7 +284,7 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 		fill = fill.concat(lowFillStrokes);
 
 		//optimize
-		//make as big as bounding box of highfillArea
+		//make as big as bounding box of highFillArea
 		var highFillTemplate = this.getFillTemplate(dimensionsZ, wallThickness, (layer % 2 === 0), (layer % 2 === 1));
 
 		var clipper = new ClipperLib.Clipper();
@@ -295,10 +296,10 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 		fill = fill.concat(highFillStrokes);
 
 		//create brim
-		if (layer === 0) {
+		/*if (layer === 0) {
 			var brim = this.getInset(outerLayer, -brimOffset);
 			outerLayer = brim.concat(outerLayer);
-		}
+		}*/
 
 		ClipperLib.JS.ScaleDownPaths(outerLayer, scale);
 		ClipperLib.JS.ScaleDownPaths(innerLayer, scale);
@@ -417,6 +418,55 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 
 	gcode = gcode.concat(printer.getEndCode());
 	return gcode;
+};
+D3D.Slicer.prototype.drawPaths = function (printer, min, max) {
+	"use strict";
+
+	var canvas = document.createElement("canvas");
+	canvas.width = 400;
+	canvas.height = 400;
+	var context = canvas.getContext("2d");
+
+	var layerHeight = printer.config["printer.layerHeight"];
+	var dimensionsZ = printer.config["printer.dimensions.z"];
+
+	function drawPolygons (paths, color) {
+		"use strict";
+
+		context.fillStyle = color;
+		context.strokeStyle = color;
+		context.beginPath();
+
+		for (var i = 0; i < paths.length; i ++) {
+			var path = paths[i];
+
+			context.moveTo((path[0].X- 100) * 6.0 + 200, (path[0].Y- 100) * 6.0 + 200);
+
+			for (var j = 0; j < path.length; j ++) {
+				var point = path[j];
+				context.lineTo((point.X- 100) * 6.0 + 200, (point.Y- 100) * 6.0 + 200);
+			}
+			context.closePath();
+		}
+		context.stroke();
+	}
+
+	var slices = this.slice(dimensionsZ, layerHeight);
+	slices.shift();
+
+	var data = this.slicesToData(slices, printer);
+
+	for (var layer = min; layer < max; layer ++) {
+		var layer = 0;
+		context.clearRect(0, 0, 400, 400);
+		var slice = data[layer % data.length];
+
+		drawPolygons(slice.outerLayer, "red");
+		drawPolygons(slice.innerLayer, "green");
+		drawPolygons(slice.fill, "blue");
+	}
+
+	return canvas;
 };
 D3D.Slicer.prototype.getGcode = function (printer) {
 	"use strict";

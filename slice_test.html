@@ -92,7 +92,7 @@ var geometry = (function () {
 	matrix.makeRotationX(Math.PI*1.5);
 
 	var geometry = new THREE.ExtrudeGeometry(circle, {
-		amount: 1, 
+		amount: 10, 
 		bevelEnabled: false, 
 		steps: 1
 	});
@@ -114,57 +114,19 @@ var canvas = document.getElementById("canvas");
 var context = canvas.getContext("2d");
 
 var slicer = new D3D.Slicer().setGeometry(geometry);
-//slicer.draw(1, context);
 
 var gcode = slicer.getGcode(printer);
 
-/*
-var canvas = document.getElementById("canvas");
+/*var canvas = document.getElementById("canvas");
 var context = canvas.getContext("2d");
 
-function drawPolygons (paths, color) {
-	"use strict";
-
-	context.fillStyle = color;
-	context.strokeStyle = color;
-	context.beginPath();
-
-	for (var i = 0; i < paths.length; i ++) {
-		var path = paths[i];
-
-		context.moveTo((path[0].X- 100) * 6.0 + 200, (path[0].Y- 100) * 6.0 + 200);
-
-		for (var j = 0; j < path.length; j ++) {
-			var point = path[j];
-			context.lineTo((point.X- 100) * 6.0 + 200, (point.Y- 100) * 6.0 + 200);
-		}
-		context.closePath();
-	}
-	context.stroke();
-}
-
-var layer = 0;
-setInterval(function () {
-	context.clearRect(0, 0, 400, 400);
-//for (var layer = 0; layer < gcode.length; layer ++) {
-	//var layer = 31;
-	var slice = gcode[layer % gcode.length];
-
-	//drawPolygons(slice.outerLayer, "red");
-	//drawPolygons(slice.innerLayer, "green");
-	drawPolygons(slice.fill, "blue");
-
-	context.fillText("layer: " + layer, 10, 10);
-//}
-	layer ++;
-}, 100);
-*/
+var img = slicer.drawPaths(printer, 0, 1);
+context.drawImage(img, 0, 0);*/
 
 (function animate () {
 	"use strict";
 
 	requestAnimationFrame(animate);
-
 	renderer.render(scene, camera);
 })();
 </script>
