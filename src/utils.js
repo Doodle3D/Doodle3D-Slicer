@@ -31,8 +31,6 @@ function sendAPI (url, data, callback) {
 		dataType: "json",
 		timeout: 10000,
 		success: function (response) {
-			"use strict";
-
 			if (response.status === "success") {
 				if (callback !== undefined) {
 					callback(response.data);
@@ -43,8 +41,6 @@ function sendAPI (url, data, callback) {
 			}
 		}
 	}).fail(function () {
-		"use strict";
-
 		console.warn("failed connecting to " + url);
 		sendAPI(url, data, callback);
 	});
@@ -58,8 +54,6 @@ function getAPI (url, callback) {
 		dataType: "json",
 		timeout: 5000,
 		success: function (response) {
-			"use strict";
-
 			if (response.status === "success") {
 				if (callback !== undefined) {
 					callback(response.data);
@@ -70,8 +64,6 @@ function getAPI (url, callback) {
 			}
 		}
 	}).fail(function () {
-		"use strict";
-
 		console.warn("failed connecting to " + url);
 		getAPI(url, callback);
 	});
@@ -110,8 +102,6 @@ function applyMouseControls (renderer, camera, maxDistance) {
 	var moveCamera = false;
 
 	function updateCamera () {
-		"use strict";
-
 		camera.position.x = Math.cos(rotY)*Math.sin(rotX)*distance;
 		camera.position.y = Math.sin(rotY)*distance;
 		camera.position.z = Math.cos(rotY)*Math.cos(rotX)*distance;
@@ -119,11 +109,8 @@ function applyMouseControls (renderer, camera, maxDistance) {
 	}
 
 	$(renderer.domElement).on("mousedown", function (e) {
-		"use strict";
-
 		moveCamera = true;
 	}).on("wheel", function (e) {
-		"use strict";
 		var event = e.originalEvent;
 
 		event.preventDefault();
@@ -133,11 +120,8 @@ function applyMouseControls (renderer, camera, maxDistance) {
 	});
 
 	$(window).on("mouseup", function (e) {
-		"use strict";
-
 		moveCamera = false;
 	}).on("mousemove", function (e) {
-		"use strict";
 		var event = e.originalEvent;
 
 		if (moveCamera === true) {
@@ -155,8 +139,6 @@ var requestAnimFrame = (function () {
 	"use strict";
 
 	return requestAnimationFrame || webkitRequestAnimationFrame || mozRequestAnimationFrame || function (callback) {
-		"use strict";
-
 		setTimeout(callback, 1000/60);
 	};
 })();

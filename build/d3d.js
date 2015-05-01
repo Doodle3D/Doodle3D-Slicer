@@ -1,5 +1,350 @@
 /******************************************************
 *
+* Utils
+* requires jQuery, Three.js
+*
+******************************************************/
+
+var D3D = {
+	"version": "0.1",
+	"website": "http://www.doodle3d.com/",
+	"contact": "develop@doodle3d.com"
+};
+
+//add normal function to Three.js Vector class
+THREE.Vector2.prototype.normal = function () {
+	"use strict";
+
+	var x = this.y;
+	var y = -this.x;
+
+	return this.set(x, y);
+};
+
+function sendAPI (url, data, callback) {
+	"use strict";
+
+	$.ajax({
+		url: url,
+		type: "POST",
+		data: data,
+		dataType: "json",
+		timeout: 10000,
+		success: function (response) {
+			if (response.status === "success") {
+				if (callback !== undefined) {
+					callback(response.data);
+				}
+			}
+			else {
+				console.warn(response.msg);
+			}
+		}
+	}).fail(function () {
+		console.warn("failed connecting to " + url);
+		sendAPI(url, data, callback);
+	});
+}
+
+function getAPI (url, callback) {
+	"use strict";
+
+	$.ajax({
+		url: url,
+		dataType: "json",
+		timeout: 5000,
+		success: function (response) {
+			if (response.status === "success") {
+				if (callback !== undefined) {
+					callback(response.data);
+				}
+			}
+			else {
+				console.warn(response.msg);
+			}
+		}
+	}).fail(function () {
+		console.warn("failed connecting to " + url);
+		getAPI(url, callback);
+	});
+}
+
+function downloadFile (file, data) {
+	"use strict";
+	
+	$(document.createElement("a")).attr({
+		download: file,
+		href: "data:text/plain," + data
+	})[0].click();
+}
+
+Array.prototype.clone = function () {
+	"use strict";
+	
+	var array = [];
+
+	for (var i = 0; i < this.length; i ++) {
+		array[i] = this[i];
+	}
+
+	return array;
+};
+
+function applyMouseControls (renderer, camera, maxDistance) {
+	"use strict";
+	//TODO
+	//impliment touch controls
+	//windows mouse wheel fix
+
+	var distance = 20;
+	var rotX = 0;
+	var rotY = 0;
+	var moveCamera = false;
+
+	function updateCamera () {
+		camera.position.x = Math.cos(rotY)*Math.sin(rotX)*distance;
+		camera.position.y = Math.sin(rotY)*distance;
+		camera.position.z = Math.cos(rotY)*Math.cos(rotX)*distance;
+		camera.lookAt(new THREE.Vector3(0, 0, 0));
+	}
+
+	$(renderer.domElement).on("mousedown", function (e) {
+		moveCamera = true;
+	}).on("wheel", function (e) {
+		var event = e.originalEvent;
+
+		event.preventDefault();
+		distance = THREE.Math.clamp(distance - event.wheelDelta, 1, maxDistance);
+
+		updateCamera();
+	});
+
+	$(window).on("mouseup", function (e) {
+		moveCamera = false;
+	}).on("mousemove", function (e) {
+		var event = e.originalEvent;
+
+		if (moveCamera === true) {
+			rotX = (rotX - event.webkitMovementX/100) % (2*Math.PI);
+			rotY = THREE.Math.clamp(rotY + event.webkitMovementY/100, -Math.PI/2, Math.PI/2);
+
+			updateCamera();
+		}
+	});
+	
+	updateCamera();
+}
+
+var requestAnimFrame = (function () {
+	"use strict";
+
+	return requestAnimationFrame || webkitRequestAnimationFrame || mozRequestAnimationFrame || function (callback) {
+		setTimeout(callback, 1000/60);
+	};
+})();
+/******************************************************
+*
+* Box
+* Representation of de Doodle3DBox
+* Handles all communication with the doodle box
+*
+******************************************************/
+
+//TODO
+//Als meerdere clients met box zouden verbinden zal de api te veel requests krijgen waardoor hij crasht
+//implimentatie van het veranderen van onder andere naam, netwerkverbinding etc
+
+D3D.Box = function (localIp) {
+	"use strict";
+	var self = this;
+
+	this.batchSize = 512;
+	this.maxBufferedLines = 4096;
+
+	this.localIp = localIp;
+	this.api = "http://" + localIp + "/d3dapi/";
+
+	this.config = {};
+
+	this.printBatches = [];
+	this.currentBatch = 0;
+
+	this.loaded = false;
+	this.onload;
+
+	getAPI(self.api + "config/all", function (data) {
+		//self.config = data;
+
+		for (var i in data) {
+			if (i.indexOf("doodle3d") === 0) {
+				self.config[i] = data[i];
+			}
+		}
+
+		self.printer = new D3D.Printer(data);
+		self.update();
+
+		self.loaded = true;
+		if (self.onload !== undefined) {
+			self.onload();
+		}
+	});
+};
+D3D.Box.prototype.update = function () {
+	"use strict";
+	//TODO
+	//Code is zo op gezet dat maar api call te gelijk is
+	//Bij error wordt gelijk zelfde data opnieuw gestuurd
+	//Als DoodleBox ontkoppeld wordt komt er een error in de loop waardoor pagina breekt en ververst moet worden
+
+	//if (this.printBatches.length > 0 && (this.progress["buffered_lines"] + this.batchSize) <= this.maxBufferedLines) {
+	if (this.printBatches.length > 0 ) {
+		this.printBatch();
+	}
+	else {
+		this.updateState();
+	}
+};
+D3D.Box.prototype.updateState = function () {
+	"use strict";
+	var self = this;
+
+	//que api calls so they don't overload the d3d box
+	getAPI(this.api + "info/status", function (data) {
+		self.printer.status = data;
+
+		self.update();
+	});
+};
+D3D.Box.prototype.print = function (gcode) {
+	"use strict";
+
+	this.currentBatch = 0;
+
+	//clone gcode to remove array links
+	gcode = gcode.clone();
+
+	//gcode split in batches
+	while (gcode.length > 0) {
+		var gcodeBatch = gcode.splice(0, Math.min(this.batchSize, gcode.length));
+		this.printBatches.push(gcodeBatch);
+	}
+};
+D3D.Box.prototype.printBatch = function () {
+	"use strict";
+	var self = this;
+
+	var gcode = this.printBatches.shift();
+
+	sendAPI(this.api + "printer/print", {
+		"start": ((this.currentBatch === 0) ? "true" : "false"),
+		"first": ((this.currentBatch === 0) ? "true" : "false"),
+		"gcode": gcode.join("\n")
+	}, function (data) {
+
+		console.log("batch sent: " + self.currentBatch, data);
+		if (self.printBatches.length > 0) {
+			//sent new batch
+			self.currentBatch ++;
+		}
+		else {
+			//finish printing
+		}
+
+		self.updateState();
+	});
+};
+D3D.Box.prototype.stop = function () {
+	"use strict";
+
+	this.printBatches = [];
+	this.currentBatch = 0;
+
+	var finishMove = [
+		"M107 ;fan off", 
+		"G91 ;relative positioning", 
+		"G1 E-1 F300 ;retract the filament a bit before lifting the nozzle, to release some of the pressure", 
+		"G1 Z+0.5 E-5 X-20 Y-20 F9000 ;move Z up a bit and retract filament even more", 
+		"G28 X0 Y0 ;move X/Y to min endstops, so the head is out of the way", 
+		"M84 ;disable axes / steppers", 
+		"G90 ;absolute positioning", 
+		"M104 S180", 
+		";M140 S70", 
+		"M117 Done                 ;display message (20 characters to clear whole screen)"
+	];
+
+	sendAPI(this.api + "printer/stop", {
+		"gcode": finishMove.join("\n")
+		//"gcode": {}
+	}, function (data) {
+		console.log("Printer stop command sent");
+	});
+};
+/******************************************************
+*
+* Printer
+* Representation of the connected printer
+*
+******************************************************/
+
+D3D.Printer = function (config) {
+	"use strict";
+
+	this.status = {};
+	this.config = {};
+
+	for (var i in config) {
+		if (i.indexOf("printer") === 0) {
+			this.config[i] = config[i];
+		}
+	}
+};
+D3D.Printer.prototype.getStartCode = function () {
+	"use strict";
+	
+	var gcode = this.config["printer.startcode"];
+	gcode = this.subsituteVariables(gcode);
+
+	return gcode.split("\n");
+};
+D3D.Printer.prototype.getEndCode = function () {
+	"use strict";
+	
+	var gcode = this.config["printer.endcode"];
+	gcode = this.subsituteVariables(gcode);
+
+	return gcode.split("\n");
+};
+D3D.Printer.prototype.subsituteVariables = function (gcode) {
+	"use strict";
+
+	var temperature = this.config["printer.temperature"];
+	var bedTemperature = this.config["printer.bed.temperature"];
+	var preheatTemperature = this.config["printer.heatup.temperature"];
+	var preheatBedTemperature = this.config["printer.heatup.bed.temperature"];
+	var printerType = this.config["printer.type"];
+	var heatedbed = this.config["printer.heatedbed"];
+
+	switch (printerType) {
+		case "makerbot_replicator2": printerType = "r2"; break; 
+		case "makerbot_replicator2x": printerType = "r2x"; break;
+		case "makerbot_thingomatic": printerType = "t6"; break;
+		case "makerbot_generic": printerType = "r2"; break;
+		case "_3Dison_plus": printerType = "r2"; break;
+	}
+	var heatedBedReplacement = heatedbed ? "" : ";";
+
+	gcode = gcode.replace(/{printingTemp}/gi, temperature);
+	gcode = gcode.replace(/{printingBedTemp}/gi, bedTemperature);
+	gcode = gcode.replace(/{preheatTemp}/gi, preheatTemperature);
+	gcode = gcode.replace(/{preheatBedTemp}/gi, preheatBedTemperature);
+	gcode = gcode.replace(/{printerType}/gi, printerType);
+	gcode = gcode.replace(/{if heatedBed}/gi, heatedBedReplacement);
+
+	return gcode;
+};
+/******************************************************
+*
 * Slicer
 *
 * TODO (optimalisatie)
@@ -420,23 +765,10 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 D3D.Slicer.prototype.drawPaths = function (printer, min, max) {
 	"use strict";
 
-<<<<<<< HEAD
-	var canvas = document.createElement("canvas");
-	canvas.width = 400;
-	canvas.height = 400;
-	var context = canvas.getContext("2d");
-
-=======
->>>>>>> development
 	var layerHeight = printer.config["printer.layerHeight"];
 	var dimensionsZ = printer.config["printer.dimensions.z"];
 
 	function drawPolygons (paths, color) {
-<<<<<<< HEAD
-		"use strict";
-
-=======
->>>>>>> development
 		context.fillStyle = color;
 		context.strokeStyle = color;
 		context.beginPath();
@@ -460,14 +792,11 @@ D3D.Slicer.prototype.drawPaths = function (printer, min, max) {
 
 	var data = this.slicesToData(slices, printer);
 
-<<<<<<< HEAD
-=======
 	var canvas = document.createElement("canvas");
 	canvas.width = 400;
 	canvas.height = 400;
 	var context = canvas.getContext("2d");
 
->>>>>>> development
 	for (var layer = min; layer < max; layer ++) {
 		var layer = 0;
 		context.clearRect(0, 0, 400, 400);
