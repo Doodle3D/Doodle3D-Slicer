@@ -216,8 +216,6 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 	for (var layer = 0; layer < slices.length; layer ++) {
 		var slice = slices[layer];
 
-		var highFillTemplate = this.getFillTemplate(dimensionsZ, wallThickness, (layer % 2 === 0), (layer % 2 === 1));
-
 		//var outerLayer = ClipperLib.JS.Clean(slice, 1.0);
 		var outerLayer = slice.clone();
 		ClipperLib.JS.ScaleUpPaths(outerLayer, scale);
@@ -283,6 +281,10 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 		clipper.Execute(ClipperLib.ClipType.ctIntersection, lowFillStrokes);
 
 		fill = fill.concat(lowFillStrokes);
+
+		//optimize
+		//make as big as bounding box of highfillArea
+		var highFillTemplate = this.getFillTemplate(dimensionsZ, wallThickness, (layer % 2 === 0), (layer % 2 === 1));
 
 		var clipper = new ClipperLib.Clipper();
 		var highFillStrokes = new ClipperLib.Paths();
