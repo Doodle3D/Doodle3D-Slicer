@@ -230,11 +230,9 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 
 		var fillArea = this.getInset((inset || outerLayer), wallThickness);
 
-		var highFill;
-
-		var fillAbove = undefined;
+		var fillAbove = false;
 		//for (var i = 1; i < shellThickness/layerHeight; i ++) {
-		for (var i = 1; i < shellThickness/layerHeight + 4; i ++) {
+		for (var i = 1; i < shellThickness/layerHeight; i ++) {
 			var newLayer = ClipperLib.JS.Clone(slices[layer + i]);
 			ClipperLib.JS.ScaleUpPaths(newLayer, scale);
 
@@ -243,13 +241,13 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 
 				break;
 			}
-			else if (fillAbove === undefined) {
+			else if (fillAbove === false) {
 				fillAbove = newLayer;
 			}
 			else {
 				var c = new ClipperLib.Clipper();
 				var solution = new ClipperLib.Paths();
-				c.AddPaths(fillArea, ClipperLib.PolyType.ptSubject, true);
+				c.AddPaths(newLayer, ClipperLib.PolyType.ptSubject, true);
 				c.AddPaths(fillAbove, ClipperLib.PolyType.ptClip, true);
 				c.Execute(ClipperLib.ClipType.ctIntersection, solution);
 
@@ -453,8 +451,6 @@ D3D.Slicer.prototype.drawPaths = function (printer, min, max) {
 	var context = canvas.getContext("2d");
 
 	for (var layer = min; layer < max; layer ++) {
-		var layer = 0;
-		context.clearRect(0, 0, 400, 400);
 		var slice = data[layer % data.length];
 
 		drawPolygons(slice.outerLayer, "red");

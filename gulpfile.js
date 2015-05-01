@@ -13,13 +13,14 @@ var files = [
 	"src/slicer.js"
 ];
 
-var DEST = 'build/';
+var destination = 'build/';
 
 gulp.task('default', function () {
 	return gulp.src(files)
+//		.pipe(watch(files))
 		.pipe(concat('d3d.js'))
-		.pipe(gulp.dest(DEST))
+		.pipe(gulp.dest(destination))
 		.pipe(uglify())
 		.pipe(rename({extname: '.min.js'}))
-		.pipe(gulp.dest(DEST));
+		.pipe(gulp.dest(destination));
 });

@@ -57,7 +57,6 @@ var printerConfig = {
 	"printer.wallThickness": 0.4,
 
 	//variabele toevoegen;
-	//overleg met rick;
 	//-snelheid, retraction etc voor verschillende types (outerlayer, innerlayer, fill)
 	"printer.shellThickness": 0.8, 
 	"printer.fillSize": 5, //dit is het raster aan de binnen kant van de geometry
@@ -67,6 +66,7 @@ var printer = new D3D.Printer(printerConfig);
 
 var localIp = location.hash.substring(1);
 var doodleBox = new D3D.Box(localIp);
+//var printer = doodleBox.printer;
 
 var scene = new THREE.Scene();
 
@@ -117,11 +117,12 @@ var slicer = new D3D.Slicer().setGeometry(geometry);
 
 var gcode = slicer.getGcode(printer);
 
-/*var canvas = document.getElementById("canvas");
+var canvas = document.getElementById("canvas");
 var context = canvas.getContext("2d");
 
-var img = slicer.drawPaths(printer, 0, 1);
-context.drawImage(img, 0, 0);*/
+var layer = 90;
+var img = slicer.drawPaths(printer, layer, layer + 1);
+context.drawImage(img, 0, 0);
 
 (function animate () {
 	"use strict";
