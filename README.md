@@ -16,7 +16,7 @@ doodleBox.onload = function () {
   var geometry = new THREE.TorusGeometry(40, 20, 10, 10);
 
   var slicer = new D3D.Slicer().setGeometry(geometry);
-  var gcode = slicer.getGcode(doodlBox.printer.config);
+  var gcode = slicer.getGcode(doodleBox.printer);
   
   doodleBox.print(gcode);
 };

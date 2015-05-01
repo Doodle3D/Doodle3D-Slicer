@@ -36,7 +36,6 @@ D3D.Slicer.prototype.addLine = function (a, b) {
 	//think lookup can only be b_a, a_b is only possible when face is flipped
 	var index = this.lineLookup[a + "_" + b] || this.lineLookup[b + "_" + a];
 
-	//if (!index) {
 	if (index === undefined) {
 		index = this.lines.length;
 		this.lineLookup[a + "_" + b] = index;
@@ -197,28 +196,25 @@ D3D.Slicer.prototype.getFillTemplate = function (dimension, size, even, uneven) 
 	
 	return paths;
 };
-D3D.Slicer.prototype.slicesToData = function (slices, config) {
+D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 	"use strict";
-
-	var data = [];
 
 	//scale because of clipper crap
 	var scale = 100;
 
-	var layerHeight = config["printer.layerHeight"] * scale;
-	var dimensionsZ = config["printer.dimensions.z"] * scale;
-	//variables should come from config
-	//aan rick voorleggen
-	var nozzleSize = 0.4 * scale;
-	var shellThickness = 0.8 * scale;
-	var fillSize = 5 * scale;
+	var layerHeight = printer.config["printer.layerHeight"] * scale;
+	var dimensionsZ = printer.config["printer.dimensions.z"] * scale;
+	var wallThickness = printer.config["printer.wallThickness"] * scale;
+	var shellThickness = printer.config["printer.shellThickness"] * scale;
+	var fillSize = printer.config["printer.fillSize"] * scale;
+	var brimOffset = printer.config["printer.brimOffset"] * scale;
+
+	var data = [];
 
 	var lowFillTemplate = this.getFillTemplate(dimensionsZ, fillSize, true, true);
-	
 
 	for (var layer = 0; layer < slices.length; layer ++) {
 		var slice = slices[layer];
-		var highFillTemplate = this.getFillTemplate(dimensionsZ, nozzleSize*2, (layer % 2 === 0), (layer % 2 === 1));
 
 		//var outerLayer = ClipperLib.JS.Clean(slice, 1.0);
 		var outerLayer = slice.clone();
@@ -226,42 +222,37 @@ D3D.Slicer.prototype.slicesToData = function (slices, config) {
 
 		var innerLayer = [];
 
-		for (var i = nozzleSize; i < shellThickness; i += nozzleSize) {
+		for (var i = wallThickness; i < shellThickness; i += wallThickness) {
 			var inset = this.getInset(outerLayer, i);
 
 			innerLayer = innerLayer.concat(inset);
 		}
 
-		var fillArea = this.getInset((inset || outerLayer), nozzleSize);
+		var fillArea = this.getInset((inset || outerLayer), wallThickness);
 
 		var highFill;
 
-		var fillAbove;
+		var fillAbove = undefined;
 		for (var i = 1; i < shellThickness/layerHeight; i ++) {
 			var newLayer = ClipperLib.JS.Clone(slices[layer + i]);
 			ClipperLib.JS.ScaleUpPaths(newLayer, scale);
 
-			if (newLayer.length === 0) {
+			if (newLayer.length === 0 || (fillAbove && fillAbove.length === 0)) {
 				fillAbove = [];
 
 				break;
 			}
 			else if (fillAbove === undefined) {
-
-			}
-			else {
-
-			}
-
-			if (fillAbove === undefined) {
 				fillAbove = newLayer;
 			}
 			else {
-			//	var c = new ClipperLib.Clipper();
-			//	var solution = new ClipperLib.Paths();
-			//	c.AddPaths(fillArea, ClipperLib.PolyType.ptSubject, true);
-			//	c.AddPaths(fillAbove, ClipperLib.PolyType.ptClip, true);
-			//	c.Execute(ClipperLib.ClipType.ctDifference, solution);
+				var c = new ClipperLib.Clipper();
+				var solution = new ClipperLib.Paths();
+				c.AddPaths(fillArea, ClipperLib.PolyType.ptSubject, true);
+				c.AddPaths(fillAbove, ClipperLib.PolyType.ptClip, true);
+				c.Execute(ClipperLib.ClipType.ctIntersection, solution);
+
+				fillAbove = solution;
 			}
 		}
 		//kijkt alleen nog naar boven
@@ -291,6 +282,10 @@ D3D.Slicer.prototype.slicesToData = function (slices, config) {
 
 		fill = fill.concat(lowFillStrokes);
 
+		//optimize
+		//make as big as bounding box of highfillArea
+		var highFillTemplate = this.getFillTemplate(dimensionsZ, wallThickness, (layer % 2 === 0), (layer % 2 === 1));
+
 		var clipper = new ClipperLib.Clipper();
 		var highFillStrokes = new ClipperLib.Paths();
 		clipper.AddPaths(highFillTemplate, ClipperLib.PolyType.ptSubject, false);
@@ -298,6 +293,12 @@ D3D.Slicer.prototype.slicesToData = function (slices, config) {
 		clipper.Execute(ClipperLib.ClipType.ctIntersection, highFillStrokes);		
 
 		fill = fill.concat(highFillStrokes);
+
+		//create brim
+		if (layer === 0) {
+			var brim = this.getInset(outerLayer, -brimOffset);
+			outerLayer = brim.concat(outerLayer);
+		}
 
 		ClipperLib.JS.ScaleDownPaths(outerLayer, scale);
 		ClipperLib.JS.ScaleDownPaths(innerLayer, scale);
@@ -312,10 +313,26 @@ D3D.Slicer.prototype.slicesToData = function (slices, config) {
 
 	return data;
 };
-D3D.Slicer.prototype.getGcode = function (config) {
+D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 	"use strict";
 
+	var layerHeight = printer.config["printer.layerHeight"];
+	var normalSpeed = printer.config["printer.speed"];
+	var bottomSpeed = printer.config["printer.bottomLayerSpeed"];
+	var firstLayerSlow = printer.config["printer.firstLayerSlow"];
+	var bottomFlowRate = printer.config["printer.bottomFlowRate"];
+	var travelSpeed = printer.config["printer.travelSpeed"];
+	var filamentThickness = printer.config["printer.filamentThickness"];
+	var wallThickness = printer.config["printer.wallThickness"];
+	var enableTraveling = printer.config["printer.enableTraveling"];
+	var retractionEnabled = printer.config["printer.retraction.enabled"];
+	var retractionSpeed = printer.config["printer.retraction.speed"];
+	var retractionMinDistance = printer.config["printer.retraction.minDistance"];
+	var retractionAmount = printer.config["printer.retraction.amount"];
+	
 	function sliceToGcode (slice) {
+		"use strict";
+
 		var gcode = [];
 
 		for (var i = 0; i < slice.length; i ++) {
@@ -374,40 +391,12 @@ D3D.Slicer.prototype.getGcode = function (config) {
 		return gcode;
 	}
 
-	var normalSpeed = config["printer.speed"];
-	var bottomSpeed = config["printer.bottomLayerSpeed"];
-	var firstLayerSlow = config["printer.firstLayerSlow"];
-	var bottomFlowRate = config["printer.bottomFlowRate"];
-	var travelSpeed = config["printer.travelSpeed"];
-	var filamentThickness = config["printer.filamentThickness"];
-	var wallThickness = config["printer.wallThickness"];
-	var layerHeight = config["printer.layerHeight"];
-	var enableTraveling = config["printer.enableTraveling"];
-	var retractionEnabled = config["printer.retraction.enabled"];
-	var retractionSpeed = config["printer.retraction.speed"];
-	var retractionMinDistance = config["printer.retraction.minDistance"];
-	var retractionAmount = config["printer.retraction.amount"];
-	var dimensionsZ = config["printer.dimensions.z"];
-
-	var gcode = doodleBox.printer.getStartCode();
+	var gcode = printer.getStartCode();
 
 	var extruder = 0.0;
 	var speed = firstLayerSlow ? (bottomSpeed*60).toFixed(3) : (normalSpeed*60).toFixed(3);
 	var filamentSurfaceArea = Math.pow((filamentThickness/2), 2) * Math.PI;
 	var flowRate = bottomFlowRate;
-
-	var slices = [];
-
-	var slices = this.slice(dimensionsZ, layerHeight);
-	//still error in first layer, so remove first layer
-	//see https://github.com/Doodle3D/Doodle3D-Slicer/issues/1
-	slices.shift();
-
-	//code for only printing the first layer
-	//var slices = [slices.shift()];
-	
-	var data = this.slicesToData(slices, config);
-	return data;
 
 	for (var layer = 0; layer < data.length; layer ++) {
 		var slice = data[layer];
@@ -426,6 +415,28 @@ D3D.Slicer.prototype.getGcode = function (config) {
 		gcode = gcode.concat(sliceToGcode(slice.fill));
 	}
 
-	gcode = gcode.concat(doodleBox.printer.getEndCode());
+	gcode = gcode.concat(printer.getEndCode());
+	return gcode;
+};
+D3D.Slicer.prototype.getGcode = function (printer) {
+	"use strict";
+
+	var layerHeight = printer.config["printer.layerHeight"];
+	var dimensionsZ = printer.config["printer.dimensions.z"];
+
+	var slices = this.slice(dimensionsZ, layerHeight);
+	
+	//still error in first layer, so remove first layer
+	//see https://github.com/Doodle3D/Doodle3D-Slicer/issues/1
+	slices.shift();
+
+	var data = this.slicesToData(slices, printer);
+	//return data;
+
+	//TODO
+	//make the path more optimized for 3d printers
+	//make the printer follow the shortest path from line to line
+
+	var gcode = this.dataToGcode(data, printer);
 	return gcode;
 };

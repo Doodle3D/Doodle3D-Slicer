@@ -5,7 +5,6 @@
 <!--<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>-->
 <script src="library/jquery.js"></script>
 <script src="library/three.js"></script>
-<script src="library/cal.js"></script>
 <script src="library/clipper.js"></script>
 
 <script src="src/utils.js"></script>
@@ -25,15 +24,17 @@ canvas {border: 1px solid black;}
 <canvas id="canvas" width="400" height="400"></canvas>
 
 <script>
+//nieuwe config
+//geimplimenteerd worden in de doodlebox?
 var printerConfig = {
-	"printer.baudrate": "115200", 
+	"printer.baudrate": "115200", //wat is dit?
 	"printer.bed.temperature": 70, 
 	"printer.bottomFlowRate": 1.0, 
 	"printer.bottomLayerSpeed": 35, 
 	"printer.dimensions.x": 200, 
 	"printer.dimensions.y": 200, 
 	"printer.dimensions.z": 200, 
-	"printer.enableTraveling": true, 
+	"printer.enableTraveling": true,  //wat is dit?
 	"printer.endcode": "M107 ;fan off\nG91 ;relative positioning\nG1 E-1 F300 ;retract the filament a bit before lifting the nozzle, to release some of the pressure\nG1 Z+0.5 E-5 X-20 Y-20 F9000 ;move Z up a bit and retract filament even more\nG28 X0 Y0 ;move X/Y to min endstops, so the head is out of the way\nM84 ;disable axes / steppers\nG90 ;absolute positioning\nM104 S{preheatTemp}\n{if heatedBed}M140 S{preheatBedTemp}\nM117 Done                 ;display message (20 characters to clear whole screen)", 
 	"printer.filamentThickness": 2.89, 
 	"printer.firstLayerSlow": true, 
@@ -43,7 +44,7 @@ var printerConfig = {
 	"printer.heatup.temperature": 180, 
 	"printer.layerHeight": 0.3, 
 	"printer.retraction.amount": 3, 
-	"printer.retraction.enabled": true, 
+	"printer.retraction.enabled": false, 
 	"printer.retraction.minDistance": 5, 
 	"printer.retraction.speed": 50, 
 	"printer.screenToMillimeterScale": 0.3, 
@@ -52,15 +53,20 @@ var printerConfig = {
 	"printer.temperature": 230, 
 	"printer.travelSpeed": 200, 
 	"printer.type": "ultimaker", 
-	"printer.useSubLayers": true, 
-	"printer.wallThickness": 0.5
-};
+	"printer.useSubLayers": true, //wat is dit?
+	"printer.wallThickness": 0.4,
 
-//var localIp = location.hash.substring(1);
-//var doodleBox = new D3D.Box(localIp);
-var doodleBox = {
-	printer: new D3D.Printer(printerConfig)
+	//variabele toevoegen;
+	//overleg met rick;
+	//-snelheid, retraction etc voor verschillende types (outerlayer, innerlayer, fill)
+	"printer.shellThickness": 0.8, 
+	"printer.fillSize": 5, //dit is het raster aan de binnen kant van de geometry
+	"printer.brimOffset": 5 
 };
+var printer = new D3D.Printer(printerConfig);
+
+var localIp = location.hash.substring(1);
+var doodleBox = new D3D.Box(localIp);
 
 var scene = new THREE.Scene();
 
@@ -72,6 +78,8 @@ var camera = new THREE.PerspectiveCamera(75, renderer.domElement.width/renderer.
 applyMouseControls(renderer, camera, 1000);
 
 var geometry = (function () {
+	"use strict";
+
 	var circle = new THREE.Shape();
 	circle.absarc(0, 0, 20, 0, Math.PI*2, false);
 
@@ -94,8 +102,8 @@ var geometry = (function () {
 })();
 
 var material = new THREE.MeshLambertMaterial({color: 0x000000, wireframe: true});
-//var geometry = new THREE.TorusGeometry(40, 20, 10, 10);
-//var geometry = new THREE.BoxGeometry(10, 10, 10, 1, 1, 1);
+var geometry = new THREE.TorusGeometry(20, 10, 10, 10);
+//var geometry = new THREE.BoxGeometry(20, 5, 20, 1, 1, 1);
 //var geometry = new THREE.SphereGeometry(10, 10, 10);
 var mesh = new THREE.Mesh(geometry, material);
 scene.add(mesh);
@@ -108,12 +116,15 @@ var context = canvas.getContext("2d");
 var slicer = new D3D.Slicer().setGeometry(geometry);
 //slicer.draw(1, context);
 
-var gcode = slicer.getGcode(printerConfig);
+var gcode = slicer.getGcode(printer);
 
+/*
 var canvas = document.getElementById("canvas");
 var context = canvas.getContext("2d");
 
 function drawPolygons (paths, color) {
+	"use strict";
+
 	context.fillStyle = color;
 	context.strokeStyle = color;
 	context.beginPath();
@@ -121,30 +132,37 @@ function drawPolygons (paths, color) {
 	for (var i = 0; i < paths.length; i ++) {
 		var path = paths[i];
 
-		context.moveTo((path[0].X- 100) * 8.0 + 200, (path[0].Y- 100) * 8.0 + 200);
+		context.moveTo((path[0].X- 100) * 6.0 + 200, (path[0].Y- 100) * 6.0 + 200);
 
 		for (var j = 0; j < path.length; j ++) {
 			var point = path[j];
-			context.lineTo((point.X- 100) * 8.0 + 200, (point.Y- 100) * 8.0 + 200);
+			context.lineTo((point.X- 100) * 6.0 + 200, (point.Y- 100) * 6.0 + 200);
 		}
 		context.closePath();
 	}
 	context.stroke();
 }
 
+var layer = 0;
+setInterval(function () {
+	context.clearRect(0, 0, 400, 400);
 //for (var layer = 0; layer < gcode.length; layer ++) {
-	var layer = 0;
-	var slice = gcode[layer];
+	//var layer = 31;
+	var slice = gcode[layer % gcode.length];
 
-	console.log(gcode.length);
-
-	drawPolygons(slice.outerLayer, "red");
-	drawPolygons(slice.innerLayer, "green");
+	//drawPolygons(slice.outerLayer, "red");
+	//drawPolygons(slice.innerLayer, "green");
 	drawPolygons(slice.fill, "blue");
-//}*/
 
+	context.fillText("layer: " + layer, 10, 10);
+//}
+	layer ++;
+}, 100);
+*/
 
 (function animate () {
+	"use strict";
+
 	requestAnimationFrame(animate);
 
 	renderer.render(scene, camera);
