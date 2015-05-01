@@ -420,23 +420,10 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 D3D.Slicer.prototype.drawPaths = function (printer, min, max) {
 	"use strict";
 
-<<<<<<< HEAD
-	var canvas = document.createElement("canvas");
-	canvas.width = 400;
-	canvas.height = 400;
-	var context = canvas.getContext("2d");
-
-=======
->>>>>>> development
 	var layerHeight = printer.config["printer.layerHeight"];
 	var dimensionsZ = printer.config["printer.dimensions.z"];
 
 	function drawPolygons (paths, color) {
-<<<<<<< HEAD
-		"use strict";
-
-=======
->>>>>>> development
 		context.fillStyle = color;
 		context.strokeStyle = color;
 		context.beginPath();
@@ -460,14 +447,11 @@ D3D.Slicer.prototype.drawPaths = function (printer, min, max) {
 
 	var data = this.slicesToData(slices, printer);
 
-<<<<<<< HEAD
-=======
 	var canvas = document.createElement("canvas");
 	canvas.width = 400;
 	canvas.height = 400;
 	var context = canvas.getContext("2d");
 
->>>>>>> development
 	for (var layer = min; layer < max; layer ++) {
 		var layer = 0;
 		context.clearRect(0, 0, 400, 400);
