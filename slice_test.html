@@ -81,18 +81,18 @@ var geometry = (function () {
 	"use strict";
 
 	var circle = new THREE.Shape();
-	circle.absarc(0, 0, 20, 0, Math.PI*2, false);
+	circle.absarc(0, 0, 10, 0, Math.PI*2, false);
 
 	var hole = new THREE.Path();
-	hole.absarc(0, 0, 10, 0, Math.PI*2, true );
+	hole.absarc(0, 0, 5, 0, Math.PI*2, true );
 
-	circle.holes.push(hole);
+	//circle.holes.push(hole);
 
 	var matrix = new THREE.Matrix4();
 	matrix.makeRotationX(Math.PI*1.5);
 
 	var geometry = new THREE.ExtrudeGeometry(circle, {
-		amount: 10, 
+		amount: 3, 
 		bevelEnabled: false, 
 		steps: 1
 	});
@@ -102,7 +102,7 @@ var geometry = (function () {
 })();
 
 var material = new THREE.MeshLambertMaterial({color: 0x000000, wireframe: true});
-var geometry = new THREE.TorusGeometry(20, 10, 10, 10);
+//var geometry = new THREE.TorusGeometry(20, 10, 10, 10);
 //var geometry = new THREE.BoxGeometry(20, 5, 20, 1, 1, 1);
 //var geometry = new THREE.SphereGeometry(10, 10, 10);
 var mesh = new THREE.Mesh(geometry, material);
@@ -120,7 +120,7 @@ var gcode = slicer.getGcode(printer);
 var canvas = document.getElementById("canvas");
 var context = canvas.getContext("2d");
 
-var layer = 90;
+var layer = 9;
 var img = slicer.drawPaths(printer, layer, layer + 1);
 context.drawImage(img, 0, 0);
 

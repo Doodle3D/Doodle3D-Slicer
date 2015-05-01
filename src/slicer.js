@@ -18,7 +18,6 @@ D3D.Slicer = function () {
 	this.geometry;
 
 	this.lines = [];
-	this.lineLookup = {};
 };
 D3D.Slicer.prototype.setGeometry = function (geometry) {
 	"use strict";
@@ -30,30 +29,32 @@ D3D.Slicer.prototype.setGeometry = function (geometry) {
 
 	return this;
 };
-D3D.Slicer.prototype.addLine = function (a, b) {
-	"use strict";
-
-	//think lookup can only be b_a, a_b is only possible when face is flipped
-	var index = this.lineLookup[a + "_" + b] || this.lineLookup[b + "_" + a];
-
-	if (index === undefined) {
-		index = this.lines.length;
-		this.lineLookup[a + "_" + b] = index;
-
-		this.lines.push({
-			line: new THREE.Line3(this.geometry.vertices[a], this.geometry.vertices[b]),
-			connects: [],
-			normals: []
-		});
-	}
-
-	return index;
-};
 D3D.Slicer.prototype.createLines = function () {
 	"use strict";
 
 	this.lines = [];
-	this.lineLookup = {};
+	var lineLookup = {};
+
+	var self = this;
+	function addLine (a, b) {
+		"use strict";
+
+		//think lookup can only be b_a, a_b is only possible when face is flipped
+		var index = lineLookup[a + "_" + b] || lineLookup[b + "_" + a];
+
+		if (index === undefined) {
+			index = self.lines.length;
+			lineLookup[a + "_" + b] = index;
+
+			self.lines.push({
+				line: new THREE.Line3(self.geometry.vertices[a], self.geometry.vertices[b]),
+				connects: [],
+				normals: []
+			});
+		}
+
+		return index;
+	};
 
 	for (var i = 0; i < this.geometry.faces.length; i ++) {
 		var face = this.geometry.faces[i];
@@ -61,9 +62,9 @@ D3D.Slicer.prototype.createLines = function () {
 
 		//check for only adding unique lines
 		//returns index of said line
-		var a = this.addLine(face.a, face.b);
-		var b = this.addLine(face.b, face.c);
-		var c = this.addLine(face.c, face.a);
+		var a = addLine(face.a, face.b);
+		var b = addLine(face.b, face.c);
+		var c = addLine(face.c, face.a);
 
 		//set connecting lines (based on face)
 
@@ -228,6 +229,7 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 			innerLayer = innerLayer.concat(inset);
 		}
 
+		//moet fillArea wel kleiner?
 		var fillArea = this.getInset((inset || outerLayer), wallThickness);
 
 		var fillAbove = false;
