@@ -13,6 +13,8 @@ var D3D = {
 
 //add normal function to Three.js Vector class
 THREE.Vector2.prototype.normal = function () {
+	"use strict";
+
 	var x = this.y;
 	var y = -this.x;
 
@@ -29,6 +31,8 @@ function sendAPI (url, data, callback) {
 		dataType: "json",
 		timeout: 10000,
 		success: function (response) {
+			"use strict";
+
 			if (response.status === "success") {
 				if (callback !== undefined) {
 					callback(response.data);
@@ -39,6 +43,7 @@ function sendAPI (url, data, callback) {
 			}
 		}
 	}).fail(function () {
+		"use strict";
 
 		console.warn("failed connecting to " + url);
 		sendAPI(url, data, callback);
@@ -53,6 +58,8 @@ function getAPI (url, callback) {
 		dataType: "json",
 		timeout: 5000,
 		success: function (response) {
+			"use strict";
+
 			if (response.status === "success") {
 				if (callback !== undefined) {
 					callback(response.data);
@@ -63,6 +70,7 @@ function getAPI (url, callback) {
 			}
 		}
 	}).fail(function () {
+		"use strict";
 
 		console.warn("failed connecting to " + url);
 		getAPI(url, callback);
@@ -70,6 +78,8 @@ function getAPI (url, callback) {
 }
 
 function downloadFile (file, data) {
+	"use strict";
+	
 	$(document.createElement("a")).attr({
 		download: file,
 		href: "data:text/plain," + data
@@ -98,6 +108,7 @@ function applyMouseControls (renderer, camera, maxDistance) {
 	var rotX = 0;
 	var rotY = 0;
 	var moveCamera = false;
+
 	function updateCamera () {
 		"use strict";
 
@@ -127,6 +138,7 @@ function applyMouseControls (renderer, camera, maxDistance) {
 		moveCamera = false;
 	}).on("mousemove", function (e) {
 		"use strict";
+		var event = e.originalEvent;
 
 		if (moveCamera === true) {
 			rotX = (rotX - event.webkitMovementX/100) % (2*Math.PI);
