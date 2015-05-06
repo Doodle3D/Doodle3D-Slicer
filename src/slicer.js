@@ -22,7 +22,11 @@ D3D.Slicer = function () {
 D3D.Slicer.prototype.setGeometry = function (geometry) {
 	"use strict";
 
-	this.geometry = geometry;
+	if (geometry instanceof THREE.BufferGeometry) {
+		geometry = new THREE.Geometry().fromBufferGeometry(geometry);
+	}
+
+	this.geometry = geometry.clone();
 	this.geometry.mergeVertices();
 
 	this.createLines();
@@ -153,6 +157,7 @@ D3D.Slicer.prototype.slice = function (height, step) {
 
 				//think this check is not nescesary, always higher as 0
 				if (shape.length > 0) {
+					shape.push({X: shape[0].X, Y: shape[0].Y});
 					slice.push(shape);
 				}
 			}
@@ -230,7 +235,8 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 		}
 
 		//moet fillArea wel kleiner?
-		var fillArea = this.getInset((inset || outerLayer), wallThickness);
+		//var fillArea = this.getInset((inset || outerLayer), wallThickness);
+		var fillArea = (inset || outerLayer);
 
 		var fillAbove = false;
 		//for (var i = 1; i < shellThickness/layerHeight; i ++) {
@@ -330,7 +336,7 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 	var retractionSpeed = printer.config["printer.retraction.speed"];
 	var retractionMinDistance = printer.config["printer.retraction.minDistance"];
 	var retractionAmount = printer.config["printer.retraction.amount"];
-	
+
 	function sliceToGcode (slice) {
 		var gcode = [];
 
@@ -339,9 +345,8 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 
 			var previousPoint;
 
-			for (var j = 0; j <= shape.length; j ++) {
-				//Finish shape by going to first point
-				var point = shape[(j % shape.length)];
+			for (var j = 0; j < shape.length; j ++) {
+				var point = shape[j];
 
 				if (j === 0) {
 					//TODO
@@ -431,13 +436,13 @@ D3D.Slicer.prototype.drawPaths = function (printer, min, max) {
 		for (var i = 0; i < paths.length; i ++) {
 			var path = paths[i];
 
-			context.moveTo((path[0].X- 100) * 6.0 + 200, (path[0].Y- 100) * 6.0 + 200);
+			context.moveTo((path[0].X * 2), (path[0].Y * 2));
 
 			for (var j = 0; j < path.length; j ++) {
 				var point = path[j];
-				context.lineTo((point.X- 100) * 6.0 + 200, (point.Y- 100) * 6.0 + 200);
+				context.lineTo((point.X * 2), (point.Y * 2));
 			}
-			context.closePath();
+			//context.closePath();
 		}
 		context.stroke();
 	}

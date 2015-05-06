@@ -29,8 +29,6 @@ D3D.Box = function (localIp) {
 	this.onload;
 
 	getAPI(self.api + "config/all", function (data) {
-		//self.config = data;
-
 		for (var i in data) {
 			if (i.indexOf("doodle3d") === 0) {
 				self.config[i] = data[i];
@@ -85,6 +83,8 @@ D3D.Box.prototype.print = function (gcode) {
 		var gcodeBatch = gcode.splice(0, Math.min(this.batchSize, gcode.length));
 		this.printBatches.push(gcodeBatch);
 	}
+
+	return this;
 };
 D3D.Box.prototype.printBatch = function () {
 	"use strict";
@@ -135,4 +135,144 @@ D3D.Box.prototype.stop = function () {
 	}, function (data) {
 		console.log("Printer stop command sent");
 	});
+
+	return this;
+};
+D3D.Box.prototype.setConfig = function (data) {
+	"use strict";
+
+	sendAPI(this.api + "config", data);
+
+	return this;
+};
+D3D.Box.prototype.getInfoLog = function (callback) {
+	"use strict";
+
+	getAPI(this.api + "info/logfiles", function (data) {
+		if (callback !== undefined) {
+			callback(data);
+		}
+	});
+
+	return this;
+};
+D3D.Box.prototype.getInfoAcces = function (callback) {
+	"use strict";
+
+	//error
+	//cannot call function or module 'info/acces' ('module/function 'info/acces' does not exist')
+
+	getAPI(this.api + "info/acces", function (data) {
+		if (callback !== undefined) {
+			callback(data);
+		}
+	});
+
+	return this;
+};
+D3D.Box.prototype.getNetwerkScan = function (callback) {
+	"use strict";
+
+	getAPI(this.api + "network/scan", function (data) {
+		if (callback !== undefined) {
+			callback(data);
+		}
+	});
+
+	return this;
+};
+D3D.Box.prototype.getNetworkKnown = function (callback) {
+	"use strict";
+
+	getAPI(this.api + "network/known", function (data) {
+		if (callback !== undefined) {
+			callback(data);
+		}
+	});
+
+	return this;
+};
+D3D.Box.prototype.getNetworkStatus = function (callback) {
+	"use strict";
+
+	getAPI(this.api + "network/status", function (data) {
+		if (callback !== undefined) {
+			callback(data);
+		}
+	});
+
+	return this;
+};
+D3D.Box.prototype.setNetworkAssosiate = function (data) {
+	"use strict";
+
+	sendAPI(this.api + "network/assosiate", data);	
+
+	return this;
+};
+D3D.Box.prototype.setNetworkDisassosiate = function (data) {
+	"use strict";
+
+	sendAPI(this.api + "network/displayassosiate", data);
+
+	return this;	
+};
+D3D.Box.prototype.setNetworkOpenap = function (data) {
+	"use strict";
+
+	sendAPI(this.api + "network/openap", data);
+
+	return this;	
+};
+D3D.Box.prototype.setNetworkRemove = function (ssid) {
+	"use strict";
+
+	sendAPI(this.api + "network/displayassosiate", {ssid: ssid});
+
+	return this;	
+};
+D3D.Box.prototype.getNetworkAlive = function (callback) {
+	"use strict";
+
+	//emty?
+
+	getAPI(this.api + "network/alive", function (data) {
+		if (callback !== undefined) {
+			callback(data);
+		}
+	});
+
+	return this;
+};
+D3D.Box.prototype.getPrinterListAll = function (callback) {
+	"use strict";
+
+	getAPI(this.api + "printer/listall", function (data) {
+		if (callback !== undefined) {
+			callback(data);
+		}
+	});
+
+	return this;
+};
+D3D.Box.prototype.setPrinterHeatup = function (data) {
+	"use strict";
+
+	sendAPI(this.api + "printer/heatup", data);
+
+	return this;
+};
+D3D.Box.prototype.getVersion = function (data) {
+	"use strict";
+
+	//error
+	//cannot call function or module 'system/fwversion' ('module/function 'system/fwversion' does not exist')
+
+	getAPI(this.api + "system/fwversion", function (data) {
+		if (callback !== undefined) {
+			callback(data);
+		}
+	});
+	
+	return this;
 };

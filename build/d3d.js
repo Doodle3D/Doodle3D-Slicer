@@ -173,8 +173,6 @@ D3D.Box = function (localIp) {
 	this.onload;
 
 	getAPI(self.api + "config/all", function (data) {
-		//self.config = data;
-
 		for (var i in data) {
 			if (i.indexOf("doodle3d") === 0) {
 				self.config[i] = data[i];
@@ -229,6 +227,8 @@ D3D.Box.prototype.print = function (gcode) {
 		var gcodeBatch = gcode.splice(0, Math.min(this.batchSize, gcode.length));
 		this.printBatches.push(gcodeBatch);
 	}
+
+	return this;
 };
 D3D.Box.prototype.printBatch = function () {
 	"use strict";
@@ -279,6 +279,138 @@ D3D.Box.prototype.stop = function () {
 	}, function (data) {
 		console.log("Printer stop command sent");
 	});
+
+	return this;
+};
+D3D.Box.prototype.setConfig = function (data) {
+	"use strict";
+
+	sendAPI(this.api + "config", data);
+
+	return this;
+};
+D3D.Box.prototype.getInfoLog = function (callback) {
+	"use strict";
+
+	getAPI(self.api + "info/logfiles", function (data) {
+		if (callback !== undefined) {
+			callback(data);
+		}
+	});
+
+	return this;
+};
+D3D.Box.prototype.getInfoAcces = function (callback) {
+	"use strict";
+
+	getAPI(self.api + "info/acces", function (data) {
+		if (callback !== undefined) {
+			callback(data);
+		}
+	});
+
+	return this;
+};
+D3D.Box.prototype.getNetwerkScan = function (callback) {
+	"use strict";
+
+	getAPI(self.api + "network/scan", function (data) {
+		if (callback !== undefined) {
+			callback(data);
+		}
+	});
+
+	return this;
+};
+D3D.Box.prototype.getNetworkKnown = function (callback) {
+	"use strict";
+
+	getAPI(self.api + "network/known", function (data) {
+		if (callback !== undefined) {
+			callback(data);
+		}
+	});
+
+	return this;
+};
+D3D.Box.prototype.getNetworkStatus = function (callback) {
+	"use strict";
+
+	getAPI(self.api + "network/status", function (data) {
+		if (callback !== undefined) {
+			callback(data);
+		}
+	});
+
+	return this;
+};
+D3D.Box.prototype.setNetworkAssosiate = function (data) {
+	"use strict";
+
+	sendAPI(self.api + "network/assosiate", data);	
+
+	return this;
+};
+D3D.Box.prototype.setNetworkDisassosiate = function (data) {
+	"use strict";
+
+	sendAPI(self.api + "network/displayassosiate", data);
+
+	return this;	
+};
+D3D.Box.prototype.setNetworkOpenap = function (data) {
+	"use strict";
+
+	sendAPI(self.api + "network/openap", data);
+
+	return this;	
+};
+D3D.Box.prototype.setNetworkRemove = function (ssid) {
+	"use strict";
+
+	sendAPI(self.api + "network/displayassosiate", {ssid: ssid});
+
+	return this;	
+};
+D3D.Box.prototype.getNetworkAlive = function (callback) {
+	"use strict";
+
+	getAPI(self.api + "network/alive", function (data) {
+		if (callback !== undefined) {
+			callback(data);
+		}
+	});
+
+	return this;
+};
+D3D.Box.prototype.getPrinterListAll = function (callback) {
+	"use strict";
+
+	getAPI(self.api + "printer/listall", function (data) {
+		if (callback !== undefined) {
+			callback(data);
+		}
+	});
+
+	return this;
+};
+D3D.Box.prototype.setPrinterHeatup = function (data) {
+	"use strict";
+
+	sendAPI(self.api + "printer/heatup", data);
+
+	return this;
+};
+D3D.Box.prototype.getVersion = function (data) {
+	"use strict";
+
+	getAPI(self.api + "system/fwversion", function (data) {
+		if (callback !== undefined) {
+			callback(data);
+		}
+	});
+	
+	return this;
 };
 /******************************************************
 *
@@ -363,7 +495,6 @@ D3D.Slicer = function () {
 	this.geometry;
 
 	this.lines = [];
-	this.lineLookup = {};
 };
 D3D.Slicer.prototype.setGeometry = function (geometry) {
 	"use strict";
@@ -375,30 +506,32 @@ D3D.Slicer.prototype.setGeometry = function (geometry) {
 
 	return this;
 };
-D3D.Slicer.prototype.addLine = function (a, b) {
-	"use strict";
-
-	//think lookup can only be b_a, a_b is only possible when face is flipped
-	var index = this.lineLookup[a + "_" + b] || this.lineLookup[b + "_" + a];
-
-	if (index === undefined) {
-		index = this.lines.length;
-		this.lineLookup[a + "_" + b] = index;
-
-		this.lines.push({
-			line: new THREE.Line3(this.geometry.vertices[a], this.geometry.vertices[b]),
-			connects: [],
-			normals: []
-		});
-	}
-
-	return index;
-};
 D3D.Slicer.prototype.createLines = function () {
 	"use strict";
 
 	this.lines = [];
-	this.lineLookup = {};
+	var lineLookup = {};
+
+	var self = this;
+	function addLine (a, b) {
+		"use strict";
+
+		//think lookup can only be b_a, a_b is only possible when face is flipped
+		var index = lineLookup[a + "_" + b] || lineLookup[b + "_" + a];
+
+		if (index === undefined) {
+			index = self.lines.length;
+			lineLookup[a + "_" + b] = index;
+
+			self.lines.push({
+				line: new THREE.Line3(self.geometry.vertices[a], self.geometry.vertices[b]),
+				connects: [],
+				normals: []
+			});
+		}
+
+		return index;
+	};
 
 	for (var i = 0; i < this.geometry.faces.length; i ++) {
 		var face = this.geometry.faces[i];
@@ -406,9 +539,9 @@ D3D.Slicer.prototype.createLines = function () {
 
 		//check for only adding unique lines
 		//returns index of said line
-		var a = this.addLine(face.a, face.b);
-		var b = this.addLine(face.b, face.c);
-		var c = this.addLine(face.c, face.a);
+		var a = addLine(face.a, face.b);
+		var b = addLine(face.b, face.c);
+		var c = addLine(face.c, face.a);
 
 		//set connecting lines (based on face)
 
@@ -497,6 +630,7 @@ D3D.Slicer.prototype.slice = function (height, step) {
 
 				//think this check is not nescesary, always higher as 0
 				if (shape.length > 0) {
+					shape.push({X: shape[0].X, Y: shape[0].Y});
 					slice.push(shape);
 				}
 			}
@@ -573,13 +707,13 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 			innerLayer = innerLayer.concat(inset);
 		}
 
-		var fillArea = this.getInset((inset || outerLayer), wallThickness);
+		//moet fillArea wel kleiner?
+		//var fillArea = this.getInset((inset || outerLayer), wallThickness);
+		var fillArea = (inset || outerLayer);
 
-		var highFill;
-
-		var fillAbove = undefined;
+		var fillAbove = false;
 		//for (var i = 1; i < shellThickness/layerHeight; i ++) {
-		for (var i = 1; i < shellThickness/layerHeight + 4; i ++) {
+		for (var i = 1; i < shellThickness/layerHeight; i ++) {
 			var newLayer = ClipperLib.JS.Clone(slices[layer + i]);
 			ClipperLib.JS.ScaleUpPaths(newLayer, scale);
 
@@ -588,13 +722,13 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 
 				break;
 			}
-			else if (fillAbove === undefined) {
+			else if (fillAbove === false) {
 				fillAbove = newLayer;
 			}
 			else {
 				var c = new ClipperLib.Clipper();
 				var solution = new ClipperLib.Paths();
-				c.AddPaths(fillArea, ClipperLib.PolyType.ptSubject, true);
+				c.AddPaths(newLayer, ClipperLib.PolyType.ptSubject, true);
 				c.AddPaths(fillAbove, ClipperLib.PolyType.ptClip, true);
 				c.Execute(ClipperLib.ClipType.ctIntersection, solution);
 
@@ -675,7 +809,7 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 	var retractionSpeed = printer.config["printer.retraction.speed"];
 	var retractionMinDistance = printer.config["printer.retraction.minDistance"];
 	var retractionAmount = printer.config["printer.retraction.amount"];
-	
+
 	function sliceToGcode (slice) {
 		var gcode = [];
 
@@ -684,9 +818,8 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 
 			var previousPoint;
 
-			for (var j = 0; j <= shape.length; j ++) {
-				//Finish shape by going to first point
-				var point = shape[(j % shape.length)];
+			for (var j = 0; j < shape.length; j ++) {
+				var point = shape[j];
 
 				if (j === 0) {
 					//TODO
@@ -782,7 +915,7 @@ D3D.Slicer.prototype.drawPaths = function (printer, min, max) {
 				var point = path[j];
 				context.lineTo((point.X- 100) * 6.0 + 200, (point.Y- 100) * 6.0 + 200);
 			}
-			context.closePath();
+			//context.closePath();
 		}
 		context.stroke();
 	}
@@ -798,8 +931,6 @@ D3D.Slicer.prototype.drawPaths = function (printer, min, max) {
 	var context = canvas.getContext("2d");
 
 	for (var layer = min; layer < max; layer ++) {
-		var layer = 0;
-		context.clearRect(0, 0, 400, 400);
 		var slice = data[layer % data.length];
 
 		drawPolygons(slice.outerLayer, "red");

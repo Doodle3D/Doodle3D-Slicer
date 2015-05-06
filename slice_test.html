@@ -5,6 +5,7 @@
 <!--<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>-->
 <script src="library/jquery.js"></script>
 <script src="library/three.js"></script>
+<script src="library/stl_loader.js"></script>
 <script src="library/clipper.js"></script>
 
 <script src="src/utils.js"></script>
@@ -42,12 +43,12 @@ var printerConfig = {
 	"printer.heatup.bed.temperature": 70, 
 	"printer.heatup.enabled": true, 
 	"printer.heatup.temperature": 180, 
-	"printer.layerHeight": 0.3, 
+	"printer.layerHeight": 0.2, 
 	"printer.retraction.amount": 3, 
-	"printer.retraction.enabled": false, 
+	"printer.retraction.enabled": true, 
 	"printer.retraction.minDistance": 5, 
 	"printer.retraction.speed": 50, 
-	"printer.screenToMillimeterScale": 0.3, 
+	"printer.screenToMillimeterScale": 0.3, //????
 	"printer.speed": 70, 
 	"printer.startcode": ";Generated with Doodle3D (default)\nM109 S{printingTemp} ;set target temperature \n{if heatedBed}M190 S{printingBedTemp} ;set target bed temperature\nG21 ;metric values\nG91 ;relative positioning\nM107 ;start with the fan off\nG28 X0 Y0 ;move X/Y to min endstops\nG28 Z0 ;move Z to min endstops\nG1 Z15 F9000 ;move the platform down 15mm\nG92 E0 ;zero the extruded length\nG1 F200 E10 ;extrude 10mm of feed stock\nG92 E0 ;zero the extruded length again\nG92 E0 ;zero the extruded length again\nG1 F9000\nG90 ;absolute positioning\nM117 Printing Doodle...   ;display message (20 characters to clear whole screen)", 
 	"printer.temperature": 230, 
@@ -102,27 +103,45 @@ var geometry = (function () {
 })();
 
 var material = new THREE.MeshLambertMaterial({color: 0x000000, wireframe: true});
-//var geometry = new THREE.TorusGeometry(20, 10, 10, 10);
+//var geometry = new THREE.TorusGeometry(20, 10, 30, 30);
 //var geometry = new THREE.BoxGeometry(20, 5, 20, 1, 1, 1);
 //var geometry = new THREE.SphereGeometry(10, 10, 10);
 var mesh = new THREE.Mesh(geometry, material);
 scene.add(mesh);
 
-var slicer = new D3D.Slicer().setGeometry(geometry);
-
 var canvas = document.getElementById("canvas");
 var context = canvas.getContext("2d");
 
 var slicer = new D3D.Slicer().setGeometry(geometry);
 
-var gcode = slicer.getGcode(printer);
+gcode = slicer.getGcode(printer);
 
 var canvas = document.getElementById("canvas");
 var context = canvas.getContext("2d");
 
-var layer = 9;
+var layer = 149;
 var img = slicer.drawPaths(printer, layer, layer + 1);
 context.drawImage(img, 0, 0);
+
+/*var loader = new THREE.STLLoader();
+loader.load('stl/overhang_test.stl', function (geometry) {
+
+	var matrix = new THREE.Matrix4();
+	matrix.makeRotationX(Math.PI*1.5);
+
+	geometry.applyMatrix(matrix);
+
+	var material = new THREE.MeshLambertMaterial({color: 0x000000, wireframe: true});
+	var mesh = new THREE.Mesh(geometry, material);
+	scene.add(mesh);
+
+	var canvas = document.getElementById("canvas");
+	var context = canvas.getContext("2d");
+
+	var slicer = new D3D.Slicer().setGeometry(geometry);
+
+	//gcode = slicer.getGcode(printer);
+});*/
 
 (function animate () {
 	"use strict";
