@@ -3,6 +3,8 @@
 * Box
 * Representation of de Doodle3DBox
 * Handles all communication with the doodle box
+* JavaScript shell for api communication
+* Check http://www.doodle3d.com/help/api-documentation
 *
 ******************************************************/
 
@@ -93,12 +95,12 @@ D3D.Box.prototype.printBatch = function () {
 	var gcode = this.printBatches.shift();
 
 	sendAPI(this.api + "printer/print", {
-		"start": ((this.currentBatch === 0) ? "true" : "false"),
-		"first": ((this.currentBatch === 0) ? "true" : "false"),
+		"start": ((this.currentBatch === 0) ? true : false),
+		"first": ((this.currentBatch === 0) ? true : false),
 		"gcode": gcode.join("\n")
 	}, function (data) {
-
 		console.log("batch sent: " + self.currentBatch, data);
+
 		if (self.printBatches.length > 0) {
 			//sent new batch
 			self.currentBatch ++;
@@ -110,7 +112,7 @@ D3D.Box.prototype.printBatch = function () {
 		self.updateState();
 	});
 };
-D3D.Box.prototype.stop = function () {
+D3D.Box.prototype.stopPrint = function () {
 	"use strict";
 
 	this.printBatches = [];
@@ -131,148 +133,160 @@ D3D.Box.prototype.stop = function () {
 
 	sendAPI(this.api + "printer/stop", {
 		"gcode": finishMove.join("\n")
-		//"gcode": {}
 	}, function (data) {
 		console.log("Printer stop command sent");
 	});
 
 	return this;
 };
-D3D.Box.prototype.setConfig = function (data) {
+D3D.Box.prototype.setConfig = function (data, callback) {
+	//works
 	"use strict";
 
-	sendAPI(this.api + "config", data);
+	sendAPI(this.api + "config", data, callback);
 
 	return this;
 };
-D3D.Box.prototype.getInfoLog = function (callback) {
+D3D.Box.prototype.getInfo = function (callback) {
+	//works
 	"use strict";
 
-	getAPI(this.api + "info/logfiles", function (data) {
-		if (callback !== undefined) {
-			callback(data);
-		}
-	});
+	getAPI(this.api + "info", callback);
+};
+D3D.Box.prototype.downloadInfoLog = function (callback) {
+	//works in google chrome... not tested in other browsers
+	//some browsers may redirect using this code
+	"use strict";
 
-	return this;
+	window.location = this.api + "info/logfiles";
 };
 D3D.Box.prototype.getInfoAcces = function (callback) {
+	//works
 	"use strict";
 
-	//error
-	//cannot call function or module 'info/acces' ('module/function 'info/acces' does not exist')
-
-	getAPI(this.api + "info/acces", function (data) {
-		if (callback !== undefined) {
-			callback(data);
-		}
-	});
+	getAPI(this.api + "info/access", callback);
 
 	return this;
 };
-D3D.Box.prototype.getNetwerkScan = function (callback) {
+D3D.Box.prototype.getNetworkScan = function (callback) {
+	//works
 	"use strict";
 
-	getAPI(this.api + "network/scan", function (data) {
-		if (callback !== undefined) {
-			callback(data);
-		}
-	});
+	getAPI(this.api + "network/scan", callback);
 
 	return this;
 };
 D3D.Box.prototype.getNetworkKnown = function (callback) {
+	//works
 	"use strict";
 
-	getAPI(this.api + "network/known", function (data) {
-		if (callback !== undefined) {
-			callback(data);
-		}
-	});
+	getAPI(this.api + "network/known", callback);
 
 	return this;
 };
 D3D.Box.prototype.getNetworkStatus = function (callback) {
+	//works
 	"use strict";
 
-	getAPI(this.api + "network/status", function (data) {
-		if (callback !== undefined) {
-			callback(data);
-		}
-	});
+	getAPI(this.api + "network/status", callback);
 
 	return this;
 };
-D3D.Box.prototype.setNetworkAssosiate = function (data) {
+D3D.Box.prototype.setNetworkAssosiate = function (data, callback) {
+	//works
 	"use strict";
 
-	sendAPI(this.api + "network/assosiate", data);	
+	sendAPI(this.api + "network/associate", data, callback);	
 
 	return this;
 };
-D3D.Box.prototype.setNetworkDisassosiate = function (data) {
+D3D.Box.prototype.setNetworkDisassosiate = function (callback) {
+	//not tested
 	"use strict";
 
-	sendAPI(this.api + "network/displayassosiate", data);
+	sendAPI(this.api + "network/disassociate", {}, callback);
 
 	return this;	
 };
-D3D.Box.prototype.setNetworkOpenap = function (data) {
+D3D.Box.prototype.setNetworkOpenAP = function (callback) {
+	//not tested
 	"use strict";
 
-	sendAPI(this.api + "network/openap", data);
+	sendAPI(this.api + "network/openap", {}, callback);
 
 	return this;	
 };
-D3D.Box.prototype.setNetworkRemove = function (ssid) {
+D3D.Box.prototype.setNetworkRemove = function (ssid, callback) {
+	//works
 	"use strict";
 
-	sendAPI(this.api + "network/displayassosiate", {ssid: ssid});
+	sendAPI(this.api + "network/remove", {
+		ssid: ssid
+	}, callback);
 
 	return this;	
 };
 D3D.Box.prototype.getNetworkAlive = function (callback) {
+	//works but returns empty array
 	"use strict";
 
-	//emty?
-
-	getAPI(this.api + "network/alive", function (data) {
-		if (callback !== undefined) {
-			callback(data);
-		}
-	});
+	getAPI(this.api + "network/alive", callback);
 
 	return this;
 };
 D3D.Box.prototype.getPrinterListAll = function (callback) {
+	//works
 	"use strict";
 
-	getAPI(this.api + "printer/listall", function (data) {
-		if (callback !== undefined) {
-			callback(data);
-		}
-	});
+	getAPI(this.api + "printer/listall", callback);
 
 	return this;
 };
-D3D.Box.prototype.setPrinterHeatup = function (data) {
+D3D.Box.prototype.setPrinterHeatup = function (callback) {
+	//works
 	"use strict";
 
-	sendAPI(this.api + "printer/heatup", data);
+	sendAPI(this.api + "printer/heatup", {}, callback);
 
 	return this;
 };
-D3D.Box.prototype.getVersion = function (data) {
+D3D.Box.prototype.getSystemVersions = function (callback) {
+	//works
 	"use strict";
 
-	//error
-	//cannot call function or module 'system/fwversion' ('module/function 'system/fwversion' does not exist')
+	getAPI(this.api + "system/fwversions", callback);
+	
+	return this;
+};
+D3D.Box.prototype.getUpdateStatus = function (callback) {
+	//not tested
+	"use strict";
 
-	getAPI(this.api + "system/fwversion", function (data) {
-		if (callback !== undefined) {
-			callback(data);
-		}
-	});
+	getAPI(this.api + "update/status", callback);
+	
+	return this;
+};
+D3D.Box.prototype.setUpdateDownload = function (callback) {
+	//not tested
+	"use strict";
+
+	sendAPI(this.api + "update/download", {}, callback);
+	
+	return this;
+};
+D3D.Box.prototype.setUpdateInstall = function (callback) {
+	//not tested
+	"use strict";
+
+	sendAPI(this.api + "update/install", {}, callback);
+	
+	return this;
+};
+D3D.Box.prototype.setUpdateClear = function (callback) {
+	//not tested
+	"use strict";
+
+	sendAPI(this.api + "update/clear", {}, callback);
 	
 	return this;
 };

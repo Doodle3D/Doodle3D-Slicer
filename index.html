@@ -23,19 +23,23 @@ $(document).ready(function () {
 	listDoodle.append("<li><a href='doodle.html#192.168.5.1'>Wired Printer</a></li>");
 	listSliceTest.append("<li><a href='slice_test.html#192.168.5.1'>Wired Printer</a></li>");
 
-	/*printers.push({
+	/*
+	printers.push({
 		name: "wired box",
 		d3dbox: new D3D.Box("192.168.5.1")
-	});*/
+	});
+	*/
 	
 	getAPI(api + "list.php", function (boxes) {
 		for (var i = 0; i < boxes.length; i ++) {
 			var box = boxes[i];
 
-			/*printers.push({
+			/*
+			printers.push({
 				name: box.wifiboxid,
 				d3dbox: new D3D.Box(box.localip)
-			});*/
+			});
+			*/
 
 			listDoodle.append("<li><a href='doodle.html#" + box.localip + "'>" + box.wifiboxid + "</a></li>");
 			listSliceTest.append("<li><a href='slice_test.html#" + box.localip + "'>" + box.wifiboxid + "</a></li>");
@@ -49,7 +53,8 @@ $(document).ready(function () {
 
 <p>Slice Test</p>
 <ul id="printers-slicetest"></ul>
-<!--<table>
+<!--
+<table>
 	<tr>
 		<th>localip</th>
 		<th>wifiboxid</th>
@@ -60,7 +65,7 @@ $(document).ready(function () {
 		<td>wifiboxid</td>
 		<td>date</td>
 	</tr>
-</table>-->
-
+</table>
+-->
 </body>
 </html> 
