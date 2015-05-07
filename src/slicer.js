@@ -87,39 +87,48 @@ D3D.Slicer.prototype.createLines = function () {
 D3D.Slicer.prototype.slice = function (height, step) {
 	"use strict";
 
+	//something for optimalization...
+	var layersIntersections = [];
+
+	for (var i = 0; i < this.lines.length; i ++) {
+		var line = this.lines[i];
+
+		var min = Math.ceil(Math.min(line.line.start.y, line.line.end.y) / step);
+		var max = Math.floor(Math.max(line.line.start.y, line.line.end.y) / step);
+
+		for (var layerIndex = min; layerIndex < max; layerIndex ++) {
+			if (layerIndex >= 0) {
+				if (layersIntersections[layerIndex] === undefined) {
+					layersIntersections[layerIndex] = [];
+				}
+				layersIntersections[layerIndex].push(i);
+			}
+		}
+	}
+
 	var slices = [];
 
 	var	plane = new THREE.Plane();
 
-	for (var z = 0; z < height; z += step) {
+	for (var layer = 1; layer < layersIntersections.length; layer ++) {
+		var layerIntersections = layersIntersections[layer];
+		var z = layer*step;
 		plane.set(new THREE.Vector3(0, -1, 0), z);
 
-		var slice = [];
-
 		var intersections = [];
-
-		for (var i = 0; i < this.lines.length; i ++) {
-			var line = this.lines[i].line;
-
+		for (var i = 0; i < layerIntersections.length; i ++) {
+			var index = layerIntersections[i];
+			var line = this.lines[index].line;
 			var intersection = plane.intersectLine(line);
-
-			if (intersection !== undefined) {
-				//remove +100 when implimenting good structure for geometry is complete
-				var point = new THREE.Vector2(intersection.x + 100, intersection.z + 100);
-
-				intersections.push(point);
-			}
-			else {
-				intersections.push(false);
-			}
+			intersections[index] = new THREE.Vector2(intersection.x + 100, intersection.z + 100);
 		}
 
 		var done = [];
-		for (var i = 0; i < intersections.length; i ++) {
+		var slice = [];
+		for (var i = 0; i < layerIntersections.length; i ++) {
+			var index = layerIntersections[i];
 
-			if (intersections[i] && done.indexOf(i) === -1) {
-				var index = i;
-
+			if (done.indexOf(index) === -1) {
 				var shape = [];
 
 				while (index !== -1) {
@@ -444,8 +453,11 @@ D3D.Slicer.prototype.drawPaths = function (printer, min, max) {
 		context.stroke();
 	}
 
+	var start = new Date().getTime();
 	var slices = this.slice(dimensionsZ, layerHeight);
 	slices.shift();
+	var end = new Date().getTime();
+	console.log(end - start);
 
 	var data = this.slicesToData(slices, printer);
 
