@@ -6,8 +6,8 @@
 ******************************************************/
 
 var D3D = {
-	"version": "0.1",
-	"website": "http://www.doodle3d.com/",
+	"version": "0.1", 
+	"website": "http://www.doodle3d.com/", 
 	"contact": "develop@doodle3d.com"
 };
 
@@ -25,11 +25,11 @@ function sendAPI (url, data, callback) {
 	"use strict";
 
 	$.ajax({
-		url: url,
-		type: "POST",
-		data: data,
-		dataType: "json",
-		timeout: 10000,
+		url: url, 
+		type: "POST", 
+		data: data, 
+		dataType: "json", 
+		timeout: 10000, 
 		success: function (response) {
 			if (response.status === "success") {
 				if (callback !== undefined) {
@@ -50,9 +50,9 @@ function getAPI (url, callback) {
 	"use strict";
 
 	$.ajax({
-		url: url,
-		dataType: "json",
-		timeout: 5000,
+		url: url, 
+		dataType: "json", 
+		timeout: 5000, 
 		success: function (response) {
 			if (response.status === "success") {
 				if (callback !== undefined) {
@@ -73,7 +73,7 @@ function downloadFile (file, data) {
 	"use strict";
 	
 	$(document.createElement("a")).attr({
-		download: file,
+		download: file, 
 		href: "data:text/plain," + data
 	})[0].click();
 }
@@ -172,14 +172,9 @@ D3D.Box = function (localIp) {
 	this.currentBatch = 0;
 
 	this.loaded = false;
-	this.onload;
 
-	getAPI(self.api + "config/all", function (data) {
-		for (var i in data) {
-			if (i.indexOf("doodle3d") === 0) {
-				self.config[i] = data[i];
-			}
-		}
+	this.getConfigAll(function (data) {
+		self.updateConfig(data);
 
 		self.printer = new D3D.Printer(data);
 		self.update();
@@ -189,6 +184,17 @@ D3D.Box = function (localIp) {
 			self.onload();
 		}
 	});
+};
+D3D.Box.prototype.updateConfig = function (config) {
+	"use strict";
+
+	for (var i in config) {
+		if (i.indexOf("doodle3d") === 0) {
+			this.config[i] = config[i];
+		}
+	}
+
+	return this;
 };
 D3D.Box.prototype.update = function () {
 	"use strict";
@@ -206,12 +212,16 @@ D3D.Box.prototype.update = function () {
 	}
 };
 D3D.Box.prototype.updateState = function () {
+	//que api calls so they don't overload the d3d box
 	"use strict";
 	var self = this;
 
-	//que api calls so they don't overload the d3d box
-	getAPI(this.api + "info/status", function (data) {
+	this.getInfoStatus(function (data) {
 		self.printer.status = data;
+
+		if (self.onupdate !== undefined) {
+			self.onupdate(data);
+		}
 
 		self.update();
 	});
@@ -238,9 +248,9 @@ D3D.Box.prototype.printBatch = function () {
 
 	var gcode = this.printBatches.shift();
 
-	sendAPI(this.api + "printer/print", {
-		"start": ((this.currentBatch === 0) ? true : false),
-		"first": ((this.currentBatch === 0) ? true : false),
+	this.setPrinterPrint({
+		"start": ((this.currentBatch === 0) ? true : false), 
+		"first": ((this.currentBatch === 0) ? true : false), 
 		"gcode": gcode.join("\n")
 	}, function (data) {
 		console.log("batch sent: " + self.currentBatch, data);
@@ -250,7 +260,7 @@ D3D.Box.prototype.printBatch = function () {
 			self.currentBatch ++;
 		}
 		else {
-			//finish printing
+			//finish sending
 		}
 
 		self.updateState();
@@ -275,7 +285,7 @@ D3D.Box.prototype.stopPrint = function () {
 		"M117 Done                 ;display message (20 characters to clear whole screen)"
 	];
 
-	sendAPI(this.api + "printer/stop", {
+	this.setPrinterStop({
 		"gcode": finishMove.join("\n")
 	}, function (data) {
 		console.log("Printer stop command sent");
@@ -283,11 +293,39 @@ D3D.Box.prototype.stopPrint = function () {
 
 	return this;
 };
-D3D.Box.prototype.setConfig = function (data, callback) {
+
+//COMMUNICATION SHELL
+//see http://www.doodle3d.com/help/api-documentation
+D3D.Box.prototype.getConfig = function (keys, callback) {
 	//works
 	"use strict";
 
-	sendAPI(this.api + "config", data, callback);
+	getAPI(this.api + "config/?" + keys.join("=&") + "=", callback);
+};
+D3D.Box.prototype.getConfigAll = function (callback) {
+	//works
+	"use strict";
+
+	getAPI(this.api + "config/all", callback);
+};
+D3D.Box.prototype.setConfig = function (data, callback) {
+	//works
+	"use strict";
+	var self = this;
+
+	sendAPI(this.api + "config", data, function (response) {
+		for (var i in response.validation) {
+			if (response.validation[i] !== "ok") {
+				delete data[i];
+			}
+		}
+		self.updateConfig(data);
+		self.printer.updateConfig(data);
+
+		if (callback !== undefined) {
+			callback(response);
+		}
+	});
 
 	return this;
 };
@@ -297,7 +335,15 @@ D3D.Box.prototype.getInfo = function (callback) {
 
 	getAPI(this.api + "info", callback);
 };
-D3D.Box.prototype.downloadInfoLog = function (callback) {
+D3D.Box.prototype.getInfoStatus = function (callback) {
+	//works
+	"use strict";
+
+	getAPI(this.api + "info/status", callback);
+
+	return this;
+};
+D3D.Box.prototype.downloadInfoLogFiles = function () {
 	//works in google chrome... not tested in other browsers
 	//some browsers may redirect using this code
 	"use strict";
@@ -370,11 +416,43 @@ D3D.Box.prototype.setNetworkRemove = function (ssid, callback) {
 
 	return this;	
 };
+D3D.Box.prototype.getNetworkSignin = function (callback) {
+	//works
+	"use strict";
+
+	getAPI(this.api + "network/signin", callback);
+
+	return this;
+};
 D3D.Box.prototype.getNetworkAlive = function (callback) {
 	//works but returns empty array
 	"use strict";
 
 	getAPI(this.api + "network/alive", callback);
+
+	return this;
+};
+D3D.Box.prototype.getPrinterTemperature = function (callback) {
+	//works
+	"use strict";
+
+	getAPI(this.api + "printer/temperature", callback);
+
+	return this;
+};
+D3D.Box.prototype.getPrinterProgress = function (callback) {
+	//works
+	"use strict";
+
+	getAPI(this.api + "printer/progress", callback);
+
+	return this;
+};
+D3D.Box.prototype.getPrinterState = function (callback) {
+	//works
+	"use strict";
+
+	getAPI(this.api + "printer/state", callback);
 
 	return this;
 };
@@ -394,6 +472,56 @@ D3D.Box.prototype.setPrinterHeatup = function (callback) {
 
 	return this;
 };
+D3D.Box.prototype.setPrinterPrint = function (data, callback) {
+	//works
+	"use strict";
+
+	sendAPI(this.api + "printer/print", data, callback);
+
+	return this;
+};
+D3D.Box.prototype.setPrinterStop = function (data, callback) {
+	//works
+	"use strict";
+
+	sendAPI(this.api + "printer/stop", data, callback);
+
+	return this;
+};
+D3D.Box.prototype.getSketch = function (id, callback) {
+	//works
+	"use strict";
+
+	getAPI(this.api + "sketch/?id=" + id, callback);
+	
+	return this;
+};
+D3D.Box.prototype.setSketch = function (data, callback) {
+	//works
+	"use strict";
+
+	sendAPI(this.api + "sketch", {
+		"data": data
+	}, callback);
+	
+	return this;
+};
+D3D.Box.prototype.getSketchStatus = function (callback) {
+	//works
+	"use strict";
+
+	getAPI(this.api + "sketch/status", callback);
+	
+	return this;
+};
+D3D.Box.prototype.setSketchClear = function (callback) {
+	//works
+	"use strict";
+
+	sendAPI(this.api + "sketch/clear", callback);
+	
+	return this;
+};
 D3D.Box.prototype.getSystemVersions = function (callback) {
 	//works
 	"use strict";
@@ -402,43 +530,11 @@ D3D.Box.prototype.getSystemVersions = function (callback) {
 	
 	return this;
 };
-D3D.Box.prototype.getSketch = function (id, callback) {
-	//not tested
-	"use strict";
-
-	getAPI(this.api + "sketch/status/?id=" + id, callback);
-	
-	return this;
-};
-D3D.Box.prototype.getSketchStatus = function (callback) {
-	//not tested
-	"use strict";
-
-	getAPI(this.api + "sketch/status", callback);
-	
-	return this;
-};
 D3D.Box.prototype.getUpdateStatus = function (callback) {
-	//not tested
+	//works
 	"use strict";
 
 	getAPI(this.api + "update/status", callback);
-	
-	return this;
-};
-D3D.Box.prototype.setSketch = function (data, callback) {
-	//not tested
-	"use strict";
-
-	sendAPI(this.api + "sketch", data, callback);
-	
-	return this;
-};
-D3D.Box.prototype.setSketchClear = function (callback) {
-	//not tested
-	"use strict";
-
-	sendAPI(this.api + "sketch/clear", callback);
 	
 	return this;
 };
@@ -479,11 +575,18 @@ D3D.Printer = function (config) {
 	this.status = {};
 	this.config = {};
 
+	this.updateConfig(config);	
+};
+D3D.Printer.prototype.updateConfig = function (config) {
+	"use strict";
+
 	for (var i in config) {
 		if (i.indexOf("printer") === 0) {
 			this.config[i] = config[i];
 		}
 	}
+
+	return this;
 };
 D3D.Printer.prototype.getStartCode = function () {
 	"use strict";
@@ -546,8 +649,6 @@ D3D.Printer.prototype.subsituteVariables = function (gcode) {
 D3D.Slicer = function () {
 	"use strict";
 
-	this.geometry;
-
 	this.lines = [];
 };
 D3D.Slicer.prototype.setGeometry = function (geometry) {
@@ -581,8 +682,8 @@ D3D.Slicer.prototype.createLines = function () {
 			lineLookup[a + "_" + b] = index;
 
 			self.lines.push({
-				line: new THREE.Line3(self.geometry.vertices[a], self.geometry.vertices[b]),
-				connects: [],
+				line: new THREE.Line3(self.geometry.vertices[a], self.geometry.vertices[b]), 
+				connects: [], 
 				normals: []
 			});
 		}
@@ -842,8 +943,8 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 		ClipperLib.JS.ScaleDownPaths(fill, scale);
 
 		data.push({
-			outerLayer: outerLayer,
-			innerLayer: innerLayer,
+			outerLayer: outerLayer, 
+			innerLayer: innerLayer, 
 			fill: fill
 		});
 	}
@@ -884,7 +985,7 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 					if (extruder > retractionMinDistance && retractionEnabled) {
 						gcode.push([
 							"G0", 
-							"E" + (extruder - retractionAmount).toFixed(3),
+							"E" + (extruder - retractionAmount).toFixed(3), 
 							"F" + (retractionSpeed * 60).toFixed(3)
 						].join(" "));
 					}
@@ -898,7 +999,7 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 					if (extruder > retractionMinDistance && retractionEnabled) {
 						gcode.push([
 							"G0", 
-							"E" + extruder.toFixed(3),
+							"E" + extruder.toFixed(3), 
 							"F" + (retractionSpeed * 60).toFixed(3)
 						].join(" "));
 					}

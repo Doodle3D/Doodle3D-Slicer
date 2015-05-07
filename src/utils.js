@@ -6,8 +6,8 @@
 ******************************************************/
 
 var D3D = {
-	"version": "0.1",
-	"website": "http://www.doodle3d.com/",
+	"version": "0.1", 
+	"website": "http://www.doodle3d.com/", 
 	"contact": "develop@doodle3d.com"
 };
 
@@ -25,11 +25,11 @@ function sendAPI (url, data, callback) {
 	"use strict";
 
 	$.ajax({
-		url: url,
-		type: "POST",
-		data: data,
-		dataType: "json",
-		timeout: 10000,
+		url: url, 
+		type: "POST", 
+		data: data, 
+		dataType: "json", 
+		timeout: 10000, 
 		success: function (response) {
 			if (response.status === "success") {
 				if (callback !== undefined) {
@@ -50,9 +50,9 @@ function getAPI (url, callback) {
 	"use strict";
 
 	$.ajax({
-		url: url,
-		dataType: "json",
-		timeout: 5000,
+		url: url, 
+		dataType: "json", 
+		timeout: 5000, 
 		success: function (response) {
 			if (response.status === "success") {
 				if (callback !== undefined) {
@@ -73,7 +73,7 @@ function downloadFile (file, data) {
 	"use strict";
 	
 	$(document.createElement("a")).attr({
-		download: file,
+		download: file, 
 		href: "data:text/plain," + data
 	})[0].click();
 }

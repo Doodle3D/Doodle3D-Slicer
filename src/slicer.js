@@ -15,8 +15,6 @@
 D3D.Slicer = function () {
 	"use strict";
 
-	this.geometry;
-
 	this.lines = [];
 };
 D3D.Slicer.prototype.setGeometry = function (geometry) {
@@ -50,8 +48,8 @@ D3D.Slicer.prototype.createLines = function () {
 			lineLookup[a + "_" + b] = index;
 
 			self.lines.push({
-				line: new THREE.Line3(self.geometry.vertices[a], self.geometry.vertices[b]),
-				connects: [],
+				line: new THREE.Line3(self.geometry.vertices[a], self.geometry.vertices[b]), 
+				connects: [], 
 				normals: []
 			});
 		}
@@ -311,8 +309,8 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 		ClipperLib.JS.ScaleDownPaths(fill, scale);
 
 		data.push({
-			outerLayer: outerLayer,
-			innerLayer: innerLayer,
+			outerLayer: outerLayer, 
+			innerLayer: innerLayer, 
 			fill: fill
 		});
 	}
@@ -353,7 +351,7 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 					if (extruder > retractionMinDistance && retractionEnabled) {
 						gcode.push([
 							"G0", 
-							"E" + (extruder - retractionAmount).toFixed(3),
+							"E" + (extruder - retractionAmount).toFixed(3), 
 							"F" + (retractionSpeed * 60).toFixed(3)
 						].join(" "));
 					}
@@ -367,7 +365,7 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 					if (extruder > retractionMinDistance && retractionEnabled) {
 						gcode.push([
 							"G0", 
-							"E" + extruder.toFixed(3),
+							"E" + extruder.toFixed(3), 
 							"F" + (retractionSpeed * 60).toFixed(3)
 						].join(" "));
 					}

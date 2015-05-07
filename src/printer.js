@@ -11,11 +11,18 @@ D3D.Printer = function (config) {
 	this.status = {};
 	this.config = {};
 
+	this.updateConfig(config);	
+};
+D3D.Printer.prototype.updateConfig = function (config) {
+	"use strict";
+
 	for (var i in config) {
 		if (i.indexOf("printer") === 0) {
 			this.config[i] = config[i];
 		}
 	}
+
+	return this;
 };
 D3D.Printer.prototype.getStartCode = function () {
 	"use strict";
