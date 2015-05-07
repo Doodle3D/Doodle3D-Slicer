@@ -163,7 +163,6 @@ D3D.Slicer.prototype.slice = function (height, step) {
 
 				//think this check is not nescesary, always higher as 0
 				if (shape.length > 0) {
-					shape.push({X: shape[0].X, Y: shape[0].Y});
 					slice.push(shape);
 				}
 			}
@@ -482,13 +481,22 @@ D3D.Slicer.prototype.getGcode = function (printer) {
 	var layerHeight = printer.config["printer.layerHeight"];
 	var dimensionsZ = printer.config["printer.dimensions.z"];
 
+	var start = new Date().getTime();
 	var slices = this.slice(dimensionsZ, layerHeight);
-	
+	var end = new Date().getTime();
+
+	console.log("Slicing: " + (end - start) + "ms");
+
 	//still error in first layer, so remove first layer
 	//see https://github.com/Doodle3D/Doodle3D-Slicer/issues/1
 	slices.shift();
 
+	var start = new Date().getTime();
 	var data = this.slicesToData(slices, printer);
+	var end = new Date().getTime();
+
+	console.log("Data: " + (end - start) + "ms");
+
 	//return data;
 
 	//TODO
@@ -496,6 +504,11 @@ D3D.Slicer.prototype.getGcode = function (printer) {
 	//make the printer follow the shortest path from line to line
 	//see https://github.com/Ultimaker/CuraEngine#gcode-generation
 
+	var start = new Date().getTime();
 	var gcode = this.dataToGcode(data, printer);
+	var end = new Date().getTime();
+
+	console.log("Gcode: " + (end - start) + "ms");
+
 	return gcode;
 };
