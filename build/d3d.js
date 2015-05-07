@@ -1,7 +1,7 @@
 /******************************************************
 *
 * Utils
-* requires jQuery, Three.js, Clipper.js
+* requires jQuery, Three.js
 *
 ******************************************************/
 
@@ -402,11 +402,43 @@ D3D.Box.prototype.getSystemVersions = function (callback) {
 	
 	return this;
 };
+D3D.Box.prototype.getSketch = function (id, callback) {
+	//not tested
+	"use strict";
+
+	getAPI(this.api + "sketch/status/?id=" + id, callback);
+	
+	return this;
+};
+D3D.Box.prototype.getSketchStatus = function (callback) {
+	//not tested
+	"use strict";
+
+	getAPI(this.api + "sketch/status", callback);
+	
+	return this;
+};
 D3D.Box.prototype.getUpdateStatus = function (callback) {
 	//not tested
 	"use strict";
 
 	getAPI(this.api + "update/status", callback);
+	
+	return this;
+};
+D3D.Box.prototype.setSketch = function (data, callback) {
+	//not tested
+	"use strict";
+
+	sendAPI(this.api + "sketch", data, callback);
+	
+	return this;
+};
+D3D.Box.prototype.setSketchClear = function (callback) {
+	//not tested
+	"use strict";
+
+	sendAPI(this.api + "sketch/clear", callback);
 	
 	return this;
 };
@@ -540,7 +572,6 @@ D3D.Slicer.prototype.createLines = function () {
 
 	var self = this;
 	function addLine (a, b) {
-		"use strict";
 
 		//think lookup can only be b_a, a_b is only possible when face is flipped
 		var index = lineLookup[a + "_" + b] || lineLookup[b + "_" + a];
@@ -557,7 +588,7 @@ D3D.Slicer.prototype.createLines = function () {
 		}
 
 		return index;
-	};
+	}
 
 	for (var i = 0; i < this.geometry.faces.length; i ++) {
 		var face = this.geometry.faces[i];

@@ -41,7 +41,6 @@ D3D.Slicer.prototype.createLines = function () {
 
 	var self = this;
 	function addLine (a, b) {
-		"use strict";
 
 		//think lookup can only be b_a, a_b is only possible when face is flipped
 		var index = lineLookup[a + "_" + b] || lineLookup[b + "_" + a];
@@ -58,7 +57,7 @@ D3D.Slicer.prototype.createLines = function () {
 		}
 
 		return index;
-	};
+	}
 
 	for (var i = 0; i < this.geometry.faces.length; i ++) {
 		var face = this.geometry.faces[i];
