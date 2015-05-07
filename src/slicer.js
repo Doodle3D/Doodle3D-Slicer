@@ -96,7 +96,7 @@ D3D.Slicer.prototype.slice = function (height, step) {
 		var min = Math.ceil(Math.min(line.line.start.y, line.line.end.y) / step);
 		var max = Math.floor(Math.max(line.line.start.y, line.line.end.y) / step);
 
-		for (var layerIndex = min; layerIndex < max; layerIndex ++) {
+		for (var layerIndex = min; layerIndex <= max; layerIndex ++) {
 			if (layerIndex >= 0) {
 				if (layersIntersections[layerIndex] === undefined) {
 					layersIntersections[layerIndex] = [];
