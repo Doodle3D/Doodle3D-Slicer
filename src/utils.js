@@ -41,7 +41,7 @@ function sendAPI (url, data, callback) {
 			}
 		}
 	}).fail(function () {
-		console.warn("failed connecting to " + url);
+		console.warn("Failed connecting to " + url);
 		sendAPI(url, data, callback);
 	});
 }
@@ -64,7 +64,7 @@ function getAPI (url, callback) {
 			}
 		}
 	}).fail(function () {
-		console.warn("failed connecting to " + url);
+		console.warn("Failed connecting to " + url);
 		getAPI(url, callback);
 	});
 }

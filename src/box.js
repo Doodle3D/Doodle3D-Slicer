@@ -59,8 +59,8 @@ D3D.Box.prototype.update = function () {
 	//Bij error wordt gelijk zelfde data opnieuw gestuurd
 	//Als DoodleBox ontkoppeld wordt komt er een error in de loop waardoor pagina breekt en ververst moet worden
 
-	//if (this.printBatches.length > 0 && (this.progress["buffered_lines"] + this.batchSize) <= this.maxBufferedLines) {
-	if (this.printBatches.length > 0 ) {
+	if (this.printBatches.length > 0 && (this.printer.status["buffered_lines"] + this.batchSize) <= this.maxBufferedLines) {
+	//if (this.printBatches.length > 0 ) {
 		this.printBatch();
 	}
 	else {
@@ -142,6 +142,7 @@ D3D.Box.prototype.stopPrint = function () {
 	];
 
 	this.setPrinterStop({
+		//"gcode": {}
 		"gcode": finishMove.join("\n")
 	}, function (data) {
 		console.log("Printer stop command sent");
@@ -153,19 +154,20 @@ D3D.Box.prototype.stopPrint = function () {
 //COMMUNICATION SHELL
 //see http://www.doodle3d.com/help/api-documentation
 D3D.Box.prototype.getConfig = function (keys, callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "config/?" + keys.join("=&") + "=", callback);
+
+	return this;
 };
 D3D.Box.prototype.getConfigAll = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "config/all", callback);
+
+	return this;
 };
 D3D.Box.prototype.setConfig = function (data, callback) {
-	//works
 	"use strict";
 	var self = this;
 
@@ -186,13 +188,13 @@ D3D.Box.prototype.setConfig = function (data, callback) {
 	return this;
 };
 D3D.Box.prototype.getInfo = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "info", callback);
+
+	return this;
 };
 D3D.Box.prototype.getInfoStatus = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "info/status", callback);
@@ -207,7 +209,6 @@ D3D.Box.prototype.downloadInfoLogFiles = function () {
 	window.location = this.api + "info/logfiles";
 };
 D3D.Box.prototype.getInfoAcces = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "info/access", callback);
@@ -215,7 +216,6 @@ D3D.Box.prototype.getInfoAcces = function (callback) {
 	return this;
 };
 D3D.Box.prototype.getNetworkScan = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "network/scan", callback);
@@ -223,7 +223,6 @@ D3D.Box.prototype.getNetworkScan = function (callback) {
 	return this;
 };
 D3D.Box.prototype.getNetworkKnown = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "network/known", callback);
@@ -231,7 +230,6 @@ D3D.Box.prototype.getNetworkKnown = function (callback) {
 	return this;
 };
 D3D.Box.prototype.getNetworkStatus = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "network/status", callback);
@@ -239,7 +237,6 @@ D3D.Box.prototype.getNetworkStatus = function (callback) {
 	return this;
 };
 D3D.Box.prototype.setNetworkAssosiate = function (data, callback) {
-	//works
 	"use strict";
 
 	sendAPI(this.api + "network/associate", data, callback);	
@@ -263,17 +260,15 @@ D3D.Box.prototype.setNetworkOpenAP = function (callback) {
 	return this;	
 };
 D3D.Box.prototype.setNetworkRemove = function (ssid, callback) {
-	//works
 	"use strict";
 
 	sendAPI(this.api + "network/remove", {
-		ssid: ssid
+		"ssid": ssid
 	}, callback);
 
 	return this;	
 };
 D3D.Box.prototype.getNetworkSignin = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "network/signin", callback);
@@ -281,7 +276,6 @@ D3D.Box.prototype.getNetworkSignin = function (callback) {
 	return this;
 };
 D3D.Box.prototype.getNetworkAlive = function (callback) {
-	//works but returns empty array
 	"use strict";
 
 	getAPI(this.api + "network/alive", callback);
@@ -289,7 +283,6 @@ D3D.Box.prototype.getNetworkAlive = function (callback) {
 	return this;
 };
 D3D.Box.prototype.getPrinterTemperature = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "printer/temperature", callback);
@@ -297,7 +290,6 @@ D3D.Box.prototype.getPrinterTemperature = function (callback) {
 	return this;
 };
 D3D.Box.prototype.getPrinterProgress = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "printer/progress", callback);
@@ -305,7 +297,6 @@ D3D.Box.prototype.getPrinterProgress = function (callback) {
 	return this;
 };
 D3D.Box.prototype.getPrinterState = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "printer/state", callback);
@@ -313,7 +304,6 @@ D3D.Box.prototype.getPrinterState = function (callback) {
 	return this;
 };
 D3D.Box.prototype.getPrinterListAll = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "printer/listall", callback);
@@ -321,7 +311,6 @@ D3D.Box.prototype.getPrinterListAll = function (callback) {
 	return this;
 };
 D3D.Box.prototype.setPrinterHeatup = function (callback) {
-	//works
 	"use strict";
 
 	sendAPI(this.api + "printer/heatup", {}, callback);
@@ -329,7 +318,6 @@ D3D.Box.prototype.setPrinterHeatup = function (callback) {
 	return this;
 };
 D3D.Box.prototype.setPrinterPrint = function (data, callback) {
-	//works
 	"use strict";
 
 	sendAPI(this.api + "printer/print", data, callback);
@@ -337,7 +325,6 @@ D3D.Box.prototype.setPrinterPrint = function (data, callback) {
 	return this;
 };
 D3D.Box.prototype.setPrinterStop = function (data, callback) {
-	//works
 	"use strict";
 
 	sendAPI(this.api + "printer/stop", data, callback);
@@ -345,7 +332,6 @@ D3D.Box.prototype.setPrinterStop = function (data, callback) {
 	return this;
 };
 D3D.Box.prototype.getSketch = function (id, callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "sketch/?id=" + id, callback);
@@ -353,7 +339,6 @@ D3D.Box.prototype.getSketch = function (id, callback) {
 	return this;
 };
 D3D.Box.prototype.setSketch = function (data, callback) {
-	//works
 	"use strict";
 
 	sendAPI(this.api + "sketch", {
@@ -363,7 +348,6 @@ D3D.Box.prototype.setSketch = function (data, callback) {
 	return this;
 };
 D3D.Box.prototype.getSketchStatus = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "sketch/status", callback);
@@ -371,7 +355,6 @@ D3D.Box.prototype.getSketchStatus = function (callback) {
 	return this;
 };
 D3D.Box.prototype.setSketchClear = function (callback) {
-	//works
 	"use strict";
 
 	sendAPI(this.api + "sketch/clear", callback);
@@ -379,7 +362,6 @@ D3D.Box.prototype.setSketchClear = function (callback) {
 	return this;
 };
 D3D.Box.prototype.getSystemVersions = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "system/fwversions", callback);
@@ -387,7 +369,6 @@ D3D.Box.prototype.getSystemVersions = function (callback) {
 	return this;
 };
 D3D.Box.prototype.getUpdateStatus = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "update/status", callback);
