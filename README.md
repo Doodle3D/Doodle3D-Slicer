@@ -10,9 +10,12 @@ This is an example of code.
 var localIp = "192.168.5.1";
 var doodleBox = new D3D.Box(localIp);
 
-var geometry = new THREE.TorusGeometry(40, 20, 10, 10);
+var geometry = new THREE.BoxGeometry(20, 20, 20, 1, 1, 1);
 var material = new THREE.MeshBasicMaterial({color: 0x000000, wireframe: true});
 var mesh = new THREE.Mesh(geometry, material);
+mesh.position.x = 100;
+mesh.position.z = 100;
+mesh.position.y = 10;
 
 doodleBox.onload = function () {
   "use strict";
