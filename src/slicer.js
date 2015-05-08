@@ -17,8 +17,10 @@ D3D.Slicer = function () {
 
 	this.lines = [];
 };
-D3D.Slicer.prototype.setGeometry = function (mesh) {
+D3D.Slicer.prototype.setMesh = function (mesh) {
 	"use strict";
+
+	mesh.updateMatrix();
 
 	var geometry = mesh.geometry.clone();
 	geometry.mergeVertices();
@@ -116,8 +118,7 @@ D3D.Slicer.prototype.slice = function (height, step) {
 			var x = line.start.x * alpha + line.end.x * (1 - alpha);
 			var z = line.start.z * alpha + line.end.z * (1 - alpha);
 
-			//remove +100 when implimenting good stucture for creating geometry is complete
-			intersections[index] = new THREE.Vector2(x + 100, z + 100);
+			intersections[index] = new THREE.Vector2(x, z);
 		}
 
 		var done = [];
@@ -157,6 +158,28 @@ D3D.Slicer.prototype.slice = function (height, step) {
 						}
 					}
 				}
+
+				/*
+				for (var i = 0; i < shape.length; i ++) {
+					var point = shape[i];
+					var previousPoint = shape[(i + shape.length - 1) % shape.length];
+					var nextPoint = shape[(i + 1) % shape.length];
+
+					var point = new THREE.Vector2(point.X, point.Y);
+					var previousPoint = new THREE.Vector2(previousPoint.X, previousPoint.Y);
+					var nextPoint = new THREE.Vector2(nextPoint.X, nextPoint.Y);
+					//var lineLength = nextPoint.sub(previousPoint).length();
+
+					var normal = nextPoint.sub(previousPoint).normal().normalize();
+					var distance = Math.abs(normal.dot(point.sub(previousPoint)));
+
+					//something better for offset check
+					if (distance <= 0.01) {
+						shape.splice(i, 1);
+						i --;
+					}
+				}
+				*/
 
 				//think this check is not nescesary, always higher as 0
 				if (shape.length > 0) {
@@ -478,8 +501,8 @@ D3D.Slicer.prototype.drawPaths = function (printer, min, max) {
 		var slice = data[layer % data.length];
 
 		drawLines(slice.outerLayer, "red");
-		//drawLines(slice.innerLayer, "green");
-		//drawLines(slice.fill, "blue");
+		drawLines(slice.innerLayer, "green");
+		drawLines(slice.fill, "blue");
 
 		drawVertexes(slice.outerLayer, "green");
 	}

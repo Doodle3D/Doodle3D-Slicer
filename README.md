@@ -17,7 +17,7 @@ var mesh = new THREE.Mesh(geometry, material);
 doodleBox.onload = function () {
   "use strict";
   
-  var slicer = new D3D.Slicer().setGeometry(mesh);
+  var slicer = new D3D.Slicer().setMesh(mesh);
   var gcode = slicer.getGcode(doodleBox.printer);
   
   doodleBox.print(gcode);

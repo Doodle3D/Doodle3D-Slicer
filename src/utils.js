@@ -90,7 +90,7 @@ Array.prototype.clone = function () {
 	return array;
 };
 
-function applyMouseControls (renderer, camera, maxDistance) {
+function applyMouseControls (renderer, camera, center, maxDistance) {
 	"use strict";
 	//TODO
 	//impliment touch controls
@@ -102,10 +102,12 @@ function applyMouseControls (renderer, camera, maxDistance) {
 	var moveCamera = false;
 
 	function updateCamera () {
-		camera.position.x = Math.cos(rotY)*Math.sin(rotX)*distance;
-		camera.position.y = Math.sin(rotY)*distance;
-		camera.position.z = Math.cos(rotY)*Math.cos(rotX)*distance;
-		camera.lookAt(new THREE.Vector3(0, 0, 0));
+		camera.position.set(
+			Math.cos(rotY)*Math.sin(rotX)*distance,
+			Math.sin(rotY)*distance,
+			Math.cos(rotY)*Math.cos(rotX)*distance
+		).add(center);
+		camera.lookAt(center);
 	}
 
 	$(renderer.domElement).on("mousedown", function (e) {
