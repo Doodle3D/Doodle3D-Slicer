@@ -10,16 +10,18 @@ This is an example of code.
 var localIp = "192.168.5.1";
 var doodleBox = new D3D.Box(localIp);
 
+var geometry = new THREE.TorusGeometry(40, 20, 10, 10);
+var material = new THREE.MeshBasicMaterial({color: 0x000000, wireframe: true});
+var mesh = new THREE.Mesh(geometry, material);
+
 doodleBox.onload = function () {
   "use strict";
   
-  var geometry = new THREE.TorusGeometry(40, 20, 10, 10);
-
-  var slicer = new D3D.Slicer().setGeometry(geometry);
+  var slicer = new D3D.Slicer().setGeometry(mesh);
   var gcode = slicer.getGcode(doodleBox.printer);
   
   doodleBox.print(gcode);
 };
 ```
 
-For more information see http://www.doodle3d.com/help/api-documentation
+For more information see http://www.doodle3d.com/

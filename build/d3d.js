@@ -41,7 +41,7 @@ function sendAPI (url, data, callback) {
 			}
 		}
 	}).fail(function () {
-		console.warn("failed connecting to " + url);
+		console.warn("Failed connecting to " + url);
 		sendAPI(url, data, callback);
 	});
 }
@@ -64,7 +64,7 @@ function getAPI (url, callback) {
 			}
 		}
 	}).fail(function () {
-		console.warn("failed connecting to " + url);
+		console.warn("Failed connecting to " + url);
 		getAPI(url, callback);
 	});
 }
@@ -203,8 +203,8 @@ D3D.Box.prototype.update = function () {
 	//Bij error wordt gelijk zelfde data opnieuw gestuurd
 	//Als DoodleBox ontkoppeld wordt komt er een error in de loop waardoor pagina breekt en ververst moet worden
 
-	//if (this.printBatches.length > 0 && (this.progress["buffered_lines"] + this.batchSize) <= this.maxBufferedLines) {
-	if (this.printBatches.length > 0 ) {
+	if (this.printBatches.length > 0 && (this.printer.status["buffered_lines"] + this.batchSize) <= this.maxBufferedLines) {
+	//if (this.printBatches.length > 0 ) {
 		this.printBatch();
 	}
 	else {
@@ -286,6 +286,7 @@ D3D.Box.prototype.stopPrint = function () {
 	];
 
 	this.setPrinterStop({
+		//"gcode": {}
 		"gcode": finishMove.join("\n")
 	}, function (data) {
 		console.log("Printer stop command sent");
@@ -297,19 +298,20 @@ D3D.Box.prototype.stopPrint = function () {
 //COMMUNICATION SHELL
 //see http://www.doodle3d.com/help/api-documentation
 D3D.Box.prototype.getConfig = function (keys, callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "config/?" + keys.join("=&") + "=", callback);
+
+	return this;
 };
 D3D.Box.prototype.getConfigAll = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "config/all", callback);
+
+	return this;
 };
 D3D.Box.prototype.setConfig = function (data, callback) {
-	//works
 	"use strict";
 	var self = this;
 
@@ -330,13 +332,13 @@ D3D.Box.prototype.setConfig = function (data, callback) {
 	return this;
 };
 D3D.Box.prototype.getInfo = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "info", callback);
+
+	return this;
 };
 D3D.Box.prototype.getInfoStatus = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "info/status", callback);
@@ -351,7 +353,6 @@ D3D.Box.prototype.downloadInfoLogFiles = function () {
 	window.location = this.api + "info/logfiles";
 };
 D3D.Box.prototype.getInfoAcces = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "info/access", callback);
@@ -359,7 +360,6 @@ D3D.Box.prototype.getInfoAcces = function (callback) {
 	return this;
 };
 D3D.Box.prototype.getNetworkScan = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "network/scan", callback);
@@ -367,7 +367,6 @@ D3D.Box.prototype.getNetworkScan = function (callback) {
 	return this;
 };
 D3D.Box.prototype.getNetworkKnown = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "network/known", callback);
@@ -375,7 +374,6 @@ D3D.Box.prototype.getNetworkKnown = function (callback) {
 	return this;
 };
 D3D.Box.prototype.getNetworkStatus = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "network/status", callback);
@@ -383,7 +381,6 @@ D3D.Box.prototype.getNetworkStatus = function (callback) {
 	return this;
 };
 D3D.Box.prototype.setNetworkAssosiate = function (data, callback) {
-	//works
 	"use strict";
 
 	sendAPI(this.api + "network/associate", data, callback);	
@@ -407,17 +404,15 @@ D3D.Box.prototype.setNetworkOpenAP = function (callback) {
 	return this;	
 };
 D3D.Box.prototype.setNetworkRemove = function (ssid, callback) {
-	//works
 	"use strict";
 
 	sendAPI(this.api + "network/remove", {
-		ssid: ssid
+		"ssid": ssid
 	}, callback);
 
 	return this;	
 };
 D3D.Box.prototype.getNetworkSignin = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "network/signin", callback);
@@ -425,7 +420,6 @@ D3D.Box.prototype.getNetworkSignin = function (callback) {
 	return this;
 };
 D3D.Box.prototype.getNetworkAlive = function (callback) {
-	//works but returns empty array
 	"use strict";
 
 	getAPI(this.api + "network/alive", callback);
@@ -433,7 +427,6 @@ D3D.Box.prototype.getNetworkAlive = function (callback) {
 	return this;
 };
 D3D.Box.prototype.getPrinterTemperature = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "printer/temperature", callback);
@@ -441,7 +434,6 @@ D3D.Box.prototype.getPrinterTemperature = function (callback) {
 	return this;
 };
 D3D.Box.prototype.getPrinterProgress = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "printer/progress", callback);
@@ -449,7 +441,6 @@ D3D.Box.prototype.getPrinterProgress = function (callback) {
 	return this;
 };
 D3D.Box.prototype.getPrinterState = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "printer/state", callback);
@@ -457,7 +448,6 @@ D3D.Box.prototype.getPrinterState = function (callback) {
 	return this;
 };
 D3D.Box.prototype.getPrinterListAll = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "printer/listall", callback);
@@ -465,7 +455,6 @@ D3D.Box.prototype.getPrinterListAll = function (callback) {
 	return this;
 };
 D3D.Box.prototype.setPrinterHeatup = function (callback) {
-	//works
 	"use strict";
 
 	sendAPI(this.api + "printer/heatup", {}, callback);
@@ -473,7 +462,6 @@ D3D.Box.prototype.setPrinterHeatup = function (callback) {
 	return this;
 };
 D3D.Box.prototype.setPrinterPrint = function (data, callback) {
-	//works
 	"use strict";
 
 	sendAPI(this.api + "printer/print", data, callback);
@@ -481,7 +469,6 @@ D3D.Box.prototype.setPrinterPrint = function (data, callback) {
 	return this;
 };
 D3D.Box.prototype.setPrinterStop = function (data, callback) {
-	//works
 	"use strict";
 
 	sendAPI(this.api + "printer/stop", data, callback);
@@ -489,7 +476,6 @@ D3D.Box.prototype.setPrinterStop = function (data, callback) {
 	return this;
 };
 D3D.Box.prototype.getSketch = function (id, callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "sketch/?id=" + id, callback);
@@ -497,7 +483,6 @@ D3D.Box.prototype.getSketch = function (id, callback) {
 	return this;
 };
 D3D.Box.prototype.setSketch = function (data, callback) {
-	//works
 	"use strict";
 
 	sendAPI(this.api + "sketch", {
@@ -507,7 +492,6 @@ D3D.Box.prototype.setSketch = function (data, callback) {
 	return this;
 };
 D3D.Box.prototype.getSketchStatus = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "sketch/status", callback);
@@ -515,7 +499,6 @@ D3D.Box.prototype.getSketchStatus = function (callback) {
 	return this;
 };
 D3D.Box.prototype.setSketchClear = function (callback) {
-	//works
 	"use strict";
 
 	sendAPI(this.api + "sketch/clear", callback);
@@ -523,7 +506,6 @@ D3D.Box.prototype.setSketchClear = function (callback) {
 	return this;
 };
 D3D.Box.prototype.getSystemVersions = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "system/fwversions", callback);
@@ -531,7 +513,6 @@ D3D.Box.prototype.getSystemVersions = function (callback) {
 	return this;
 };
 D3D.Box.prototype.getUpdateStatus = function (callback) {
-	//works
 	"use strict";
 
 	getAPI(this.api + "update/status", callback);
@@ -651,15 +632,18 @@ D3D.Slicer = function () {
 
 	this.lines = [];
 };
-D3D.Slicer.prototype.setGeometry = function (geometry) {
+D3D.Slicer.prototype.setGeometry = function (mesh) {
 	"use strict";
+
+	var geometry = mesh.geometry.clone();
+	geometry.mergeVertices();
+	geometry.applyMatrix(mesh.matrix);
 
 	if (geometry instanceof THREE.BufferGeometry) {
 		geometry = new THREE.Geometry().fromBufferGeometry(geometry);
 	}
 
-	this.geometry = geometry.clone();
-	this.geometry.mergeVertices();
+	this.geometry = geometry;
 
 	this.createLines();
 
@@ -702,8 +686,6 @@ D3D.Slicer.prototype.createLines = function () {
 		var c = addLine(face.c, face.a);
 
 		//set connecting lines (based on face)
-
-		//something wrong here, 3 face can go in different direction
 		this.lines[a].connects.push(b, c);
 		this.lines[b].connects.push(c, a);
 		this.lines[c].connects.push(a, b);
@@ -712,48 +694,53 @@ D3D.Slicer.prototype.createLines = function () {
 		this.lines[b].normals.push(normal);
 		this.lines[c].normals.push(normal);
 	}
-
-	//sort lines on min height
-	//this.lines.sort(function (a, b) {
-	//	return Math.min() - Math.min();
-	//});
 };
 D3D.Slicer.prototype.slice = function (height, step) {
 	"use strict";
 
+	var layersIntersections = [];
+
+	for (var i = 0; i < this.lines.length; i ++) {
+		var line = this.lines[i];
+
+		var min = Math.ceil(Math.min(line.line.start.y, line.line.end.y) / step);
+		var max = Math.floor(Math.max(line.line.start.y, line.line.end.y) / step);
+
+		for (var layerIndex = min; layerIndex <= max; layerIndex ++) {
+			if (layerIndex >= 0) {
+				if (layersIntersections[layerIndex] === undefined) {
+					layersIntersections[layerIndex] = [];
+				}
+				layersIntersections[layerIndex].push(i);
+			}
+		}
+	}
+
 	var slices = [];
 
-	var	plane = new THREE.Plane();
-
-	for (var z = 0; z < height; z += step) {
-		plane.set(new THREE.Vector3(0, -1, 0), z);
-
-		var slice = [];
+	for (var layer = 1; layer < layersIntersections.length; layer ++) {
+		var layerIntersections = layersIntersections[layer];
+		var y = layer*step;
 
 		var intersections = [];
+		for (var i = 0; i < layerIntersections.length; i ++) {
+			var index = layerIntersections[i];
+			var line = this.lines[index].line;
 
-		for (var i = 0; i < this.lines.length; i ++) {
-			var line = this.lines[i].line;
+			var alpha = (y - line.start.y) / (line.end.y - line.start.y);
+			var x = line.start.x * alpha + line.end.x * (1 - alpha);
+			var z = line.start.z * alpha + line.end.z * (1 - alpha);
 
-			var intersection = plane.intersectLine(line);
-
-			if (intersection !== undefined) {
-				//remove +100 when implimenting good structure for geometry is complete
-				var point = new THREE.Vector2(intersection.x + 100, intersection.z + 100);
-
-				intersections.push(point);
-			}
-			else {
-				intersections.push(false);
-			}
+			//remove +100 when implimenting good stucture for creating geometry is complete
+			intersections[index] = new THREE.Vector2(x + 100, z + 100);
 		}
 
 		var done = [];
-		for (var i = 0; i < intersections.length; i ++) {
+		var slice = [];
+		for (var i = 0; i < layerIntersections.length; i ++) {
+			var index = layerIntersections[i];
 
-			if (intersections[i] && done.indexOf(i) === -1) {
-				var index = i;
-
+			if (done.indexOf(index) === -1) {
 				var shape = [];
 
 				while (index !== -1) {
@@ -788,7 +775,6 @@ D3D.Slicer.prototype.slice = function (height, step) {
 
 				//think this check is not nescesary, always higher as 0
 				if (shape.length > 0) {
-					shape.push({X: shape[0].X, Y: shape[0].Y});
 					slice.push(shape);
 				}
 			}
@@ -1059,7 +1045,7 @@ D3D.Slicer.prototype.drawPaths = function (printer, min, max) {
 	var layerHeight = printer.config["printer.layerHeight"];
 	var dimensionsZ = printer.config["printer.dimensions.z"];
 
-	function drawPolygons (paths, color) {
+	function drawLines (paths, color) {
 		context.fillStyle = color;
 		context.strokeStyle = color;
 		context.beginPath();
@@ -1078,8 +1064,23 @@ D3D.Slicer.prototype.drawPaths = function (printer, min, max) {
 		context.stroke();
 	}
 
+	function drawVertexes (paths, color) {
+		context.fillStyle = color;
+		context.strokeStyle = color;
+
+		for (var i = 0; i < paths.length; i ++) {
+			var path = paths[i];
+
+			for (var j = 0; j < path.length; j ++) {
+				var point = path[j];
+				context.beginPath();
+				context.arc(point.X * 2, point.Y * 2, 1, 0, Math.PI*2, false);
+				context.stroke();
+			}
+		}
+	}
+
 	var slices = this.slice(dimensionsZ, layerHeight);
-	slices.shift();
 
 	var data = this.slicesToData(slices, printer);
 
@@ -1091,9 +1092,11 @@ D3D.Slicer.prototype.drawPaths = function (printer, min, max) {
 	for (var layer = min; layer < max; layer ++) {
 		var slice = data[layer % data.length];
 
-		drawPolygons(slice.outerLayer, "red");
-		drawPolygons(slice.innerLayer, "green");
-		drawPolygons(slice.fill, "blue");
+		drawLines(slice.outerLayer, "red");
+		//drawLines(slice.innerLayer, "green");
+		//drawLines(slice.fill, "blue");
+
+		drawVertexes(slice.outerLayer, "green");
 	}
 
 	return canvas;
@@ -1104,13 +1107,21 @@ D3D.Slicer.prototype.getGcode = function (printer) {
 	var layerHeight = printer.config["printer.layerHeight"];
 	var dimensionsZ = printer.config["printer.dimensions.z"];
 
+	var start = new Date().getTime();
 	var slices = this.slice(dimensionsZ, layerHeight);
-	
+	var end = new Date().getTime();
+
+	console.log("Slicing: " + (end - start) + "ms");
+
 	//still error in first layer, so remove first layer
 	//see https://github.com/Doodle3D/Doodle3D-Slicer/issues/1
-	slices.shift();
 
+	var start = new Date().getTime();
 	var data = this.slicesToData(slices, printer);
+	var end = new Date().getTime();
+
+	console.log("Data: " + (end - start) + "ms");
+
 	//return data;
 
 	//TODO
@@ -1118,6 +1129,11 @@ D3D.Slicer.prototype.getGcode = function (printer) {
 	//make the printer follow the shortest path from line to line
 	//see https://github.com/Ultimaker/CuraEngine#gcode-generation
 
+	var start = new Date().getTime();
 	var gcode = this.dataToGcode(data, printer);
+	var end = new Date().getTime();
+
+	console.log("Gcode: " + (end - start) + "ms");
+
 	return gcode;
 };

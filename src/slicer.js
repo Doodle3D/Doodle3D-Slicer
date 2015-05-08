@@ -17,15 +17,18 @@ D3D.Slicer = function () {
 
 	this.lines = [];
 };
-D3D.Slicer.prototype.setGeometry = function (geometry) {
+D3D.Slicer.prototype.setGeometry = function (mesh) {
 	"use strict";
+
+	var geometry = mesh.geometry.clone();
+	geometry.mergeVertices();
+	geometry.applyMatrix(mesh.matrix);
 
 	if (geometry instanceof THREE.BufferGeometry) {
 		geometry = new THREE.Geometry().fromBufferGeometry(geometry);
 	}
 
-	this.geometry = geometry.clone();
-	this.geometry.mergeVertices();
+	this.geometry = geometry;
 
 	this.createLines();
 
@@ -68,8 +71,6 @@ D3D.Slicer.prototype.createLines = function () {
 		var c = addLine(face.c, face.a);
 
 		//set connecting lines (based on face)
-
-		//something wrong here, 3 face can go in different direction
 		this.lines[a].connects.push(b, c);
 		this.lines[b].connects.push(c, a);
 		this.lines[c].connects.push(a, b);
@@ -78,16 +79,10 @@ D3D.Slicer.prototype.createLines = function () {
 		this.lines[b].normals.push(normal);
 		this.lines[c].normals.push(normal);
 	}
-
-	//sort lines on min height
-	//this.lines.sort(function (a, b) {
-	//	return Math.min() - Math.min();
-	//});
 };
 D3D.Slicer.prototype.slice = function (height, step) {
 	"use strict";
 
-	//something for optimalization...
 	var layersIntersections = [];
 
 	for (var i = 0; i < this.lines.length; i ++) {
@@ -108,19 +103,21 @@ D3D.Slicer.prototype.slice = function (height, step) {
 
 	var slices = [];
 
-	var	plane = new THREE.Plane();
-
 	for (var layer = 1; layer < layersIntersections.length; layer ++) {
 		var layerIntersections = layersIntersections[layer];
-		var z = layer*step;
-		plane.set(new THREE.Vector3(0, -1, 0), z);
+		var y = layer*step;
 
 		var intersections = [];
 		for (var i = 0; i < layerIntersections.length; i ++) {
 			var index = layerIntersections[i];
 			var line = this.lines[index].line;
-			var intersection = plane.intersectLine(line);
-			intersections[index] = new THREE.Vector2(intersection.x + 100, intersection.z + 100);
+
+			var alpha = (y - line.start.y) / (line.end.y - line.start.y);
+			var x = line.start.x * alpha + line.end.x * (1 - alpha);
+			var z = line.start.z * alpha + line.end.z * (1 - alpha);
+
+			//remove +100 when implimenting good stucture for creating geometry is complete
+			intersections[index] = new THREE.Vector2(x + 100, z + 100);
 		}
 
 		var done = [];
@@ -433,7 +430,7 @@ D3D.Slicer.prototype.drawPaths = function (printer, min, max) {
 	var layerHeight = printer.config["printer.layerHeight"];
 	var dimensionsZ = printer.config["printer.dimensions.z"];
 
-	function drawPolygons (paths, color) {
+	function drawLines (paths, color) {
 		context.fillStyle = color;
 		context.strokeStyle = color;
 		context.beginPath();
@@ -452,11 +449,23 @@ D3D.Slicer.prototype.drawPaths = function (printer, min, max) {
 		context.stroke();
 	}
 
-	var start = new Date().getTime();
+	function drawVertexes (paths, color) {
+		context.fillStyle = color;
+		context.strokeStyle = color;
+
+		for (var i = 0; i < paths.length; i ++) {
+			var path = paths[i];
+
+			for (var j = 0; j < path.length; j ++) {
+				var point = path[j];
+				context.beginPath();
+				context.arc(point.X * 2, point.Y * 2, 1, 0, Math.PI*2, false);
+				context.stroke();
+			}
+		}
+	}
+
 	var slices = this.slice(dimensionsZ, layerHeight);
-	slices.shift();
-	var end = new Date().getTime();
-	console.log(end - start);
 
 	var data = this.slicesToData(slices, printer);
 
@@ -468,9 +477,11 @@ D3D.Slicer.prototype.drawPaths = function (printer, min, max) {
 	for (var layer = min; layer < max; layer ++) {
 		var slice = data[layer % data.length];
 
-		drawPolygons(slice.outerLayer, "red");
-		drawPolygons(slice.innerLayer, "green");
-		drawPolygons(slice.fill, "blue");
+		drawLines(slice.outerLayer, "red");
+		//drawLines(slice.innerLayer, "green");
+		//drawLines(slice.fill, "blue");
+
+		drawVertexes(slice.outerLayer, "green");
 	}
 
 	return canvas;
@@ -489,7 +500,6 @@ D3D.Slicer.prototype.getGcode = function (printer) {
 
 	//still error in first layer, so remove first layer
 	//see https://github.com/Doodle3D/Doodle3D-Slicer/issues/1
-	slices.shift();
 
 	var start = new Date().getTime();
 	var data = this.slicesToData(slices, printer);
