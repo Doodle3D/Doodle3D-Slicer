@@ -89,61 +89,6 @@ Array.prototype.clone = function () {
 
 	return array;
 };
-
-function applyMouseControls (renderer, camera, center, maxDistance) {
-	"use strict";
-	//TODO
-	//impliment touch controls
-	//windows mouse wheel fix
-
-	var distance = 20;
-	var rotX = 0;
-	var rotY = 0;
-	var moveCamera = false;
-
-	function updateCamera () {
-		camera.position.set(
-			Math.cos(rotY)*Math.sin(rotX)*distance,
-			Math.sin(rotY)*distance,
-			Math.cos(rotY)*Math.cos(rotX)*distance
-		).add(center);
-		camera.lookAt(center);
-	}
-
-	$(renderer.domElement).on("mousedown", function (e) {
-		moveCamera = true;
-	}).on("wheel", function (e) {
-		var event = e.originalEvent;
-
-		event.preventDefault();
-		distance = THREE.Math.clamp(distance - event.wheelDelta, 1, maxDistance);
-
-		updateCamera();
-	});
-
-	$(window).on("mouseup", function (e) {
-		moveCamera = false;
-	}).on("mousemove", function (e) {
-		var event = e.originalEvent;
-
-		if (moveCamera === true) {
-			rotX = (rotX - event.webkitMovementX/100) % (2*Math.PI);
-			rotY = THREE.Math.clamp(rotY + event.webkitMovementY/100, -Math.PI/2, Math.PI/2);
-
-			updateCamera();
-		}
-	});
-	
-	updateCamera();
-}
-
-var requestAnimFrame = (function () {
-	"use strict";
-
-	return requestAnimationFrame || webkitRequestAnimationFrame || mozRequestAnimationFrame || function (callback) {
-		setTimeout(callback, 1000/60);
-	};
-})();
 /******************************************************
 *
 * Box
@@ -617,6 +562,159 @@ D3D.Printer.prototype.subsituteVariables = function (gcode) {
 };
 /******************************************************
 *
+* Path
+*
+* Abstraction layer for annoying clipper js
+*
+******************************************************/
+
+D3D.Path = function (path, closed) {
+	"use strict";
+
+	this.path = path || [];
+	this.closed = (closed !== undefined) ? closed : true;
+};
+D3D.Path.prototype.setPath = function (path) {
+	"use strict";
+
+	this.path = path;
+
+	return this;
+};
+D3D.Path.prototype.union = function (path) {
+	"use strict";
+
+	var solution = new ClipperLib.Paths();
+
+	var clipper = new ClipperLib.Clipper();
+	clipper.AddPaths(this.path, ClipperLib.PolyType.ptSubject, this.closed);
+	clipper.AddPaths(path.path, ClipperLib.PolyType.ptClip, path.closed);
+	clipper.Execute(ClipperLib.ClipType.ctUnion, solution);
+
+	return new D3D.Path(solution, this.closed);
+};
+D3D.Path.prototype.difference = function (path) {
+	"use strict";
+
+	var solution = new ClipperLib.Paths();
+
+	var clipper = new ClipperLib.Clipper();
+	clipper.AddPaths(this.path, ClipperLib.PolyType.ptSubject, this.closed);
+	clipper.AddPaths(path.path, ClipperLib.PolyType.ptClip, path.closed);
+	clipper.Execute(ClipperLib.ClipType.ctDifference, solution);
+
+	return new D3D.Path(solution, this.closed);
+};
+D3D.Path.prototype.intersect = function (path) {
+	"use strict";
+
+	var solution = new ClipperLib.Paths();
+
+	var clipper = new ClipperLib.Clipper();
+	clipper.AddPaths(this.path, ClipperLib.PolyType.ptSubject, this.closed);
+	clipper.AddPaths(path.path, ClipperLib.PolyType.ptClip, path.closed);
+	clipper.Execute(ClipperLib.ClipType.ctIntersection, solution);
+
+	return new D3D.Path(solution, this.closed);
+};
+D3D.Path.prototype.xor = function () {
+	"use strict";
+
+	var solution = new ClipperLib.Paths();
+
+	var clipper = new ClipperLib.Clipper();
+	clipper.AddPaths(this.path, ClipperLib.PolyType.ptSubject, this.closed);
+	clipper.AddPaths(path.path, ClipperLib.PolyType.ptClip, path.closed);
+	clipper.Execute(ClipperLib.ClipType.ctXor, solution);
+
+	return new D3D.Path(solution, this.closed);
+};
+D3D.Path.prototype.offset = function (offset) {
+	"use strict";
+
+	var solution = new ClipperLib.Paths();
+	var co = new ClipperLib.ClipperOffset(1, 1);
+	co.AddPaths(this.path, ClipperLib.JoinType.jtRound, ClipperLib.EndType.etClosedPolygon);
+	co.Execute(solution, offset);
+
+	return new D3D.Path(solution, this.closed);
+};
+D3D.Path.prototype.scaleUp = function (factor) {
+	"use strict";
+
+	var path = ClipperLib.JS.ScaleUpPaths(this.path, factor);
+
+	return this;
+};
+D3D.Path.prototype.scaleDown = function (factor) {
+	"use strict";
+
+	var path = ClipperLib.JS.ScaleDownPaths(this.path, factor);
+
+	return this;
+};
+D3D.Path.prototype.tresholdArea = function (minArea) {
+	"use strict";
+
+	for (var i = 0; i < this.path.length; i ++) {
+		var shape = this.path[i];
+
+		var area = ClipperLib.Clipper.Area(shape);
+
+		if (area < minArea) {
+			this.path.splice(i, 1);
+			i --;
+		}
+	}
+	
+	return areas;
+};
+D3D.Path.prototype.area = function () {
+	"use strict";
+
+	var areas = [];
+
+	for (var i = 0; i < this.path.length; i ++) {
+		var shape = this.path[i];
+
+		areas.push(ClipperLib.Clipper.Area(shape))
+	}
+	
+	return areas;
+};
+D3D.Path.prototype.join = function (path) {
+	"use strict";
+
+	this.path = this.path.concat(path.path);
+
+	return this;
+}
+D3D.Path.prototype.clone = function () {
+	"use strict";
+
+	var path = ClipperLib.JS.Clone(this.path);
+
+	return new D3D.Path(path, this.closed);
+}
+D3D.Path.prototype.draw = function (context, color) {
+	"use strict";
+
+	context.strokeStyle = color;
+	for (var i = 0; i < this.path.length; i ++) {
+		var shape = this.path[i];
+
+		context.beginPath();
+		var length = this.closed ? (shape.length + 1) : shape.length;
+		for (var j = 0; j < length; j ++) {
+			var point = shape[j % shape.length];
+
+			context.lineTo(point.X*2, point.Y*2);
+		}
+		context.stroke();
+	}
+};
+/******************************************************
+*
 * Slicer
 *
 * TODO (optimalisatie)
@@ -732,8 +830,8 @@ D3D.Slicer.prototype.slice = function (height, step) {
 			var line = this.lines[index].line;
 
 			var alpha = (y - line.start.y) / (line.end.y - line.start.y);
-			var x = line.start.x * alpha + line.end.x * (1 - alpha);
-			var z = line.start.z * alpha + line.end.z * (1 - alpha);
+			var x = line.end.x * alpha + line.start.x * (1 - alpha);
+			var z = line.end.z * alpha + line.start.z * (1 - alpha);
 
 			intersections[index] = new THREE.Vector2(x, z);
 		}
@@ -807,7 +905,8 @@ D3D.Slicer.prototype.slice = function (height, step) {
 
 		//stop when ther are no intersects
 		if (slice.length > 0) {
-			slices.push(slice);
+			slices.push(new D3D.Path(slice, true));
+			//slices.push(slice);
 		}
 		else {
 			break;
@@ -816,20 +915,64 @@ D3D.Slicer.prototype.slice = function (height, step) {
 
 	return slices;
 };
-D3D.Slicer.prototype.getInset = function (slice, offset) {
+D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 	"use strict";
 
-	var solution = new ClipperLib.Paths();
-	var co = new ClipperLib.ClipperOffset(1, 1);
-	co.AddPaths(slice, ClipperLib.JoinType.jtRound, ClipperLib.EndType.etClosedPolygon);
-	co.Execute(solution, -offset);
+	var scale = 100;
 
-	return solution;
+	var layerHeight = printer.config["printer.layerHeight"] * scale;
+	var dimensionsZ = printer.config["printer.dimensions.z"] * scale;
+	var wallThickness = printer.config["printer.wallThickness"] * scale;
+	var shellThickness = printer.config["printer.shellThickness"] * scale;
+	var fillSize = printer.config["printer.fillSize"] * scale;
+	var brimOffset = printer.config["printer.brimOffset"] * scale;
+	var skinCount = Math.ceil(shellThickness/layerHeight);
+
+	var data = [];
+
+	var lowFillTemplate = this.getFillTemplate(dimensionsZ, fillSize, true, true);
+
+	for (var layer = 0; layer < slices.length; layer ++) {
+		var slice = slices[layer];
+
+		var outerLayer = slice.clone();
+		outerLayer.scaleUp(scale);
+
+		var insets = new D3D.Path();
+		for (var offset = wallThickness; offset <= shellThickness; offset += wallThickness) {
+			var inset = outerLayer.offset(-offset);
+
+			insets.join(inset);
+		}
+
+		var fillArea = (inset || outerLayer).offset(-wallThickness/2);
+
+		var downFill = (layer - skinCount >= 0) ? slices[layer - skinCount] : new D3D.Path();
+		var upFill = (layer + skinCount < slices.length) ? slices[layer + skinCount] : new D3D.Path();
+		var highFillArea = fillArea.difference(downFill.intersect(upFill).scaleUp(scale));
+
+		var lowFillArea = fillArea.difference(highFillArea);
+
+		var fill = new D3D.Path([], false);
+		fill.join(lowFillTemplate.intersect(lowFillArea));
+		if (highFillArea.path.length > 0) {
+			var highFillTemplate = this.getFillTemplate(dimensionsZ, wallThickness, (layer % 2 === 0), (layer % 2 === 1));
+			fill.join(highFillTemplate.intersect(highFillArea));
+		}
+
+		data.push({
+			outerLayer: outerLayer.scaleDown(scale), 
+			insets: insets.scaleDown(scale), 
+			fill: fill.scaleDown(scale)
+		});
+	}
+
+	return data;
 };
 D3D.Slicer.prototype.getFillTemplate = function (dimension, size, even, uneven) {
 	"use strict";
 
-	var paths = new ClipperLib.Paths();
+	var paths = [];
 
 	if (even) {
 		for (var length = 0; length <= dimension; length += size) {
@@ -842,125 +985,8 @@ D3D.Slicer.prototype.getFillTemplate = function (dimension, size, even, uneven) 
 		}
 	}
 	
-	return paths;
-};
-D3D.Slicer.prototype.slicesToData = function (slices, printer) {
-	"use strict";
-
-	//scale because of clipper crap
-	var scale = 100;
-
-	var layerHeight = printer.config["printer.layerHeight"] * scale;
-	var dimensionsZ = printer.config["printer.dimensions.z"] * scale;
-	var wallThickness = printer.config["printer.wallThickness"] * scale;
-	var shellThickness = printer.config["printer.shellThickness"] * scale;
-	var fillSize = printer.config["printer.fillSize"] * scale;
-	var brimOffset = printer.config["printer.brimOffset"] * scale;
-
-	var data = [];
-
-	var lowFillTemplate = this.getFillTemplate(dimensionsZ, fillSize, true, true);
-
-	for (var layer = 0; layer < slices.length; layer ++) {
-		var slice = slices[layer];
-
-		//var outerLayer = ClipperLib.JS.Clean(slice, 1.0);
-		var outerLayer = slice.clone();
-		ClipperLib.JS.ScaleUpPaths(outerLayer, scale);
-
-		var innerLayer = [];
-
-		for (var i = wallThickness; i < shellThickness; i += wallThickness) {
-			var inset = this.getInset(outerLayer, i);
-
-			innerLayer = innerLayer.concat(inset);
-		}
-
-		//moet fillArea wel kleiner?
-		//var fillArea = this.getInset((inset || outerLayer), wallThickness);
-		var fillArea = (inset || outerLayer);
-
-		var fillAbove = false;
-		//for (var i = 1; i < shellThickness/layerHeight; i ++) {
-		for (var i = 1; i < shellThickness/layerHeight; i ++) {
-			var newLayer = ClipperLib.JS.Clone(slices[layer + i]);
-			ClipperLib.JS.ScaleUpPaths(newLayer, scale);
-
-			if (newLayer.length === 0 || (fillAbove && fillAbove.length === 0)) {
-				fillAbove = [];
-
-				break;
-			}
-			else if (fillAbove === false) {
-				fillAbove = newLayer;
-			}
-			else {
-				var c = new ClipperLib.Clipper();
-				var solution = new ClipperLib.Paths();
-				c.AddPaths(newLayer, ClipperLib.PolyType.ptSubject, true);
-				c.AddPaths(fillAbove, ClipperLib.PolyType.ptClip, true);
-				c.Execute(ClipperLib.ClipType.ctIntersection, solution);
-
-				fillAbove = solution;
-			}
-		}
-		//kijkt alleen nog naar boven
-		//omliggende lagen hebben inhoud van lowFill;
-		//inset moet opgevult worden;
-		//verschill tussen lowFill en inset moet vol, rest is raster
-
-		var clipper = new ClipperLib.Clipper();
-		var highFillArea = new ClipperLib.Paths();
-		clipper.AddPaths(fillArea, ClipperLib.PolyType.ptSubject, true);
-		clipper.AddPaths(fillAbove, ClipperLib.PolyType.ptClip, true);
-		clipper.Execute(ClipperLib.ClipType.ctDifference, highFillArea);
-
-		var clipper = new ClipperLib.Clipper();
-		var lowFillArea = new ClipperLib.Paths();
-		clipper.AddPaths(fillArea, ClipperLib.PolyType.ptSubject, true);
-		clipper.AddPaths(highFillArea, ClipperLib.PolyType.ptClip, true);
-		clipper.Execute(ClipperLib.ClipType.ctDifference, lowFillArea);
-
-		var fill = [];
-
-		var clipper = new ClipperLib.Clipper();
-		var lowFillStrokes = new ClipperLib.Paths();
-		clipper.AddPaths(lowFillTemplate, ClipperLib.PolyType.ptSubject, false);
-		clipper.AddPaths(lowFillArea, ClipperLib.PolyType.ptClip, true);
-		clipper.Execute(ClipperLib.ClipType.ctIntersection, lowFillStrokes);
-
-		fill = fill.concat(lowFillStrokes);
-
-		//optimize
-		//make as big as bounding box of highFillArea
-		var highFillTemplate = this.getFillTemplate(dimensionsZ, wallThickness, (layer % 2 === 0), (layer % 2 === 1));
-
-		var clipper = new ClipperLib.Clipper();
-		var highFillStrokes = new ClipperLib.Paths();
-		clipper.AddPaths(highFillTemplate, ClipperLib.PolyType.ptSubject, false);
-		clipper.AddPaths(highFillArea, ClipperLib.PolyType.ptClip, true);
-		clipper.Execute(ClipperLib.ClipType.ctIntersection, highFillStrokes);		
-
-		fill = fill.concat(highFillStrokes);
-
-		//create brim
-		/*if (layer === 0) {
-			var brim = this.getInset(outerLayer, -brimOffset);
-			outerLayer = brim.concat(outerLayer);
-		}*/
-
-		ClipperLib.JS.ScaleDownPaths(outerLayer, scale);
-		ClipperLib.JS.ScaleDownPaths(innerLayer, scale);
-		ClipperLib.JS.ScaleDownPaths(fill, scale);
-
-		data.push({
-			outerLayer: outerLayer, 
-			innerLayer: innerLayer, 
-			fill: fill
-		});
-	}
-
-	return data;
+	//return paths;
+	return new D3D.Path(paths, false);
 };
 D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 	"use strict";
@@ -982,8 +1008,8 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 	function sliceToGcode (slice) {
 		var gcode = [];
 
-		for (var i = 0; i < slice.length; i ++) {
-			var shape = slice[i];
+		for (var i = 0; i < slice.path.length; i ++) {
+			var shape = slice.path[i];
 
 			var previousPoint;
 
@@ -1057,53 +1083,19 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 		var z = ((layer + 1) * layerHeight).toFixed(3);
 
 		gcode = gcode.concat(sliceToGcode(slice.outerLayer));
-		gcode = gcode.concat(sliceToGcode(slice.innerLayer));
+		gcode = gcode.concat(sliceToGcode(slice.insets));
 		gcode = gcode.concat(sliceToGcode(slice.fill));
 	}
 
 	gcode = gcode.concat(printer.getEndCode());
 	return gcode;
 };
+//only for debug purposes
 D3D.Slicer.prototype.drawPaths = function (printer, min, max) {
 	"use strict";
 
 	var layerHeight = printer.config["printer.layerHeight"];
 	var dimensionsZ = printer.config["printer.dimensions.z"];
-
-	function drawLines (paths, color) {
-		context.fillStyle = color;
-		context.strokeStyle = color;
-		context.beginPath();
-
-		for (var i = 0; i < paths.length; i ++) {
-			var path = paths[i];
-
-			context.moveTo((path[0].X * 2), (path[0].Y * 2));
-
-			for (var j = 0; j < path.length; j ++) {
-				var point = path[j];
-				context.lineTo((point.X * 2), (point.Y * 2));
-			}
-			//context.closePath();
-		}
-		context.stroke();
-	}
-
-	function drawVertexes (paths, color) {
-		context.fillStyle = color;
-		context.strokeStyle = color;
-
-		for (var i = 0; i < paths.length; i ++) {
-			var path = paths[i];
-
-			for (var j = 0; j < path.length; j ++) {
-				var point = path[j];
-				context.beginPath();
-				context.arc(point.X * 2, point.Y * 2, 1, 0, Math.PI*2, false);
-				context.stroke();
-			}
-		}
-	}
 
 	var slices = this.slice(dimensionsZ, layerHeight);
 
@@ -1114,14 +1106,13 @@ D3D.Slicer.prototype.drawPaths = function (printer, min, max) {
 	canvas.height = 400;
 	var context = canvas.getContext("2d");
 
+
 	for (var layer = min; layer < max; layer ++) {
 		var slice = data[layer % data.length];
 
-		drawLines(slice.outerLayer, "red");
-		drawLines(slice.innerLayer, "green");
-		drawLines(slice.fill, "blue");
-
-		drawVertexes(slice.outerLayer, "green");
+		slice.insets.draw(context, "blue");
+		slice.outerLayer.draw(context, "green");
+		slice.fill.draw(context, "red");
 	}
 
 	return canvas;

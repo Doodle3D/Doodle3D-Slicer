@@ -11,6 +11,7 @@
 <script src="src/utils.js"></script>
 <script src="src/box.js"></script>
 <script src="src/printer.js"></script>
+<script src="src/path.js"></script>
 <script src="src/slicer.js"></script>
 
 <script src="gcode/testgcode.js"></script>
@@ -43,9 +44,8 @@ var printerConfig = {
 	"printer.heatup.bed.temperature": 70, 
 	"printer.heatup.enabled": true, 
 	"printer.heatup.temperature": 180, 
-	"printer.layerHeight": 0.3, 
 	"printer.retraction.amount": 3, 
-	"printer.retraction.enabled": true, 
+	"printer.retraction.enabled": false, 
 	"printer.retraction.minDistance": 5, 
 	"printer.retraction.speed": 50, 
 	"printer.screenToMillimeterScale": 0.3, //????
@@ -55,13 +55,16 @@ var printerConfig = {
 	"printer.travelSpeed": 200, 
 	"printer.type": "ultimaker", 
 	"printer.useSubLayers": true, //wat is dit?
-	"printer.wallThickness": 0.4,
+
+	"printer.wallThickness": 0.4, //nozzle
+	"printer.layerHeight": 0.3, 
 
 	//variabele toevoegen;
 	//-snelheid, retraction etc voor verschillende types (outerlayer, innerlayer, fill)
-	"printer.shellThickness": 0.8, 
+	"printer.shellThickness": 0.4, 
 	"printer.fillSize": 5, //dit is het raster aan de binnen kant van de geometry
-	"printer.brimOffset": 5 
+	"printer.brimOffset": 5, 
+	"printer.bottomTopThickness": 0.8 
 };
 var printer = new D3D.Printer(printerConfig);
 
@@ -104,53 +107,30 @@ var geometry = (function () {
 
 var material = new THREE.MeshBasicMaterial({color: 0x000000, wireframe: true});
 //var geometry = new THREE.TorusGeometry(20, 10, 30, 30);
-var geometry = new THREE.BoxGeometry(20, 20, 20, 1, 1, 1);
+var geometry = new THREE.BoxGeometry(10, 10, 10, 1, 1, 1);
 //var geometry = new THREE.SphereGeometry(10, 10, 10);
 var mesh = new THREE.Mesh(geometry, material);
 mesh.position.x = 100;
 mesh.position.z = 100;
-scene.add(mesh);
+//scene.add(mesh);
 
-var canvas = document.getElementById("canvas");
-var context = canvas.getContext("2d");
-
-var slicer = new D3D.Slicer().setMesh(mesh);
-
-gcode = slicer.getGcode(printer);
-
-var canvas = document.getElementById("canvas");
-var context = canvas.getContext("2d");
-
-var layer = 0;
-var img = slicer.drawPaths(printer, layer, layer + 1);
-context.drawImage(img, 0, 0);
-
-/*
 var loader = new THREE.STLLoader();
-loader.load('stl/overhang_test.stl', function (geometry) {
-
-	var matrix = new THREE.Matrix4();
-	matrix.makeRotationX(Math.PI*1.5);
-
-	geometry.applyMatrix(matrix);
-
-	var material = new THREE.MeshLambertMaterial({color: 0x000000, wireframe: true});
+loader.load("models/cubes.stl", function (geometry) {
 	var mesh = new THREE.Mesh(geometry, material);
+	
+	mesh.position.x = 100;
+	mesh.position.z = 100;
+	mesh.rotation.x = -Math.PI/2;
+	mesh.scale.x = mesh.scale.y = mesh.scale.z = 3;
+	//mesh is lifted a little bit...
+	mesh.position.y = -0.6552429199218741;
+
 	scene.add(mesh);
 
-	var canvas = document.getElementById("canvas");
-	var context = canvas.getContext("2d");
+	var slicer = new D3D.Slicer().setMesh(mesh);
 
-	var slicer = new D3D.Slicer().setMesh(geometry);
-
-	var layer = 149;
-	var img = slicer.drawPaths(printer, layer, layer + 1);
-	context.drawImage(img, 0, 0);
-
-	var gcode = slicer.getGcode(printer);
-	console.log(gcode);
+	gcode = slicer.getGcode(printer);
 });
-*/
 
 (function animate () {
 	"use strict";
@@ -158,6 +138,53 @@ loader.load('stl/overhang_test.stl', function (geometry) {
 	requestAnimationFrame(animate);
 	renderer.render(scene, camera);
 })();
+
+function applyMouseControls (renderer, camera, center, maxDistance) {
+	"use strict";
+	//TODO
+	//impliment touch controls
+	//windows mouse wheel fix
+
+	var distance = 20;
+	var rotX = 0;
+	var rotY = 0;
+	var moveCamera = false;
+
+	function updateCamera () {
+		camera.position.set(
+			Math.cos(rotY)*Math.sin(rotX)*distance,
+			Math.sin(rotY)*distance,
+			Math.cos(rotY)*Math.cos(rotX)*distance
+		).add(center);
+		camera.lookAt(center);
+	}
+
+	$(renderer.domElement).on("mousedown", function (e) {
+		moveCamera = true;
+	}).on("wheel", function (e) {
+		var event = e.originalEvent;
+
+		event.preventDefault();
+		distance = THREE.Math.clamp(distance - event.wheelDelta, 1, maxDistance);
+
+		updateCamera();
+	});
+
+	$(window).on("mouseup", function (e) {
+		moveCamera = false;
+	}).on("mousemove", function (e) {
+		var event = e.originalEvent;
+
+		if (moveCamera === true) {
+			rotX = (rotX - event.webkitMovementX/100) % (2*Math.PI);
+			rotY = THREE.Math.clamp(rotY + event.webkitMovementY/100, -Math.PI/2, Math.PI/2);
+
+			updateCamera();
+		}
+	});
+	
+	updateCamera();
+}
 </script>
 
 </body>

@@ -16,3 +16,6 @@ src/script/.DS_Store
 src/.DS_Store
 
 bower_components/
+src/oldcode.js
+
+test.html

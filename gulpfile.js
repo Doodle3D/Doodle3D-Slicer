@@ -10,6 +10,7 @@ var files = [
 	"src/utils.js", 
 	"src/box.js", 
 	"src/printer.js", 
+	"src/path.js", 
 	"src/slicer.js"
 ];
 
