@@ -70,7 +70,7 @@ var printerConfig = {
 var printer = new D3D.Printer(printerConfig);
 
 var localIp = location.hash.substring(1);
-//var doodleBox = new D3D.Box(localIp);
+var doodleBox = new D3D.Box(localIp);
 //var printer = doodleBox.printer;
 
 var scene = new THREE.Scene();
@@ -116,13 +116,14 @@ mesh.position.z = 100;
 //scene.add(mesh);
 
 var loader = new THREE.STLLoader();
-loader.load("models/cube.stl", function (geometry) {
+loader.load("models/diamond.stl", function (geometry) {
 	var geometry = new THREE.BoxGeometry(10, 10, 10, 1, 1, 1);
-
+	//var geometry = new THREE.TorusGeometry(20, 10, 30, 30);
 	var mesh = new THREE.Mesh(geometry, material);
 	
 	mesh.position.x = 100;
 	mesh.position.z = 100;
+
 	/*
 	mesh.rotation.x = -Math.PI/2;
 	mesh.scale.x = mesh.scale.y = mesh.scale.z = 3;
@@ -136,7 +137,7 @@ loader.load("models/cube.stl", function (geometry) {
 	var canvas = document.getElementById("canvas");
 	var context = canvas.getContext("2d");
 
-	var img = slicer.drawPaths(printer, 0, 1);
+	var img = slicer.drawPaths(printer, 0, 10);
 	context.drawImage(img, 0, 0);
 
 	gcode = slicer.getGcode(printer);

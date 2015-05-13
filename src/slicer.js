@@ -193,6 +193,8 @@ D3D.Slicer.prototype.slice = function (height, step) {
 
 		//stop when ther are no intersects
 		if (slice.length > 0) {
+			var layerParts = [];
+
 			slices.push(slice);
 		}
 		else {
@@ -256,8 +258,6 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 
 			var highFillTemplate = this.getFillTemplate(dimensionsZ, wallThickness, (layer % 2 === 0), (layer % 2 === 1));
 			fills.join(highFillTemplate.intersect(highFillArea));
-
-			console.log(highFillTemplate.intersect(highFillArea));
 
 			outerLayers.push(outerLayer);
 		}
@@ -411,7 +411,7 @@ D3D.Slicer.prototype.drawPaths = function (printer, min, max) {
 	for (var layer = min; layer < max; layer ++) {
 		var slice = data[layer % data.length];
 
-		slice.insets.draw(context, "blue");
+		//slice.insets.draw(context, "blue");
 		slice.outerLayer.draw(context, "green");
 		slice.fill.draw(context, "red");
 	}
