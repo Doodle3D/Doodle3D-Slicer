@@ -64,28 +64,25 @@ D3D.Slicer.prototype.createLines = function () {
 
 	for (var i = 0; i < this.geometry.faces.length; i ++) {
 		var face = this.geometry.faces[i];
-		var normal = new THREE.Vector2().set(face.normal.x, face.normal.z).normalize();
 
-		//check for only adding unique lines
-		//returns index of said line
-		var a = addLine(face.a, face.b);
-		var b = addLine(face.b, face.c);
-		var c = addLine(face.c, face.a);
+		//if (face.normal.y !== 1 && face.normal.y !== -1) {
+			var normal = new THREE.Vector2().set(face.normal.x, face.normal.z).normalize();
 
-		//set connecting lines (based on face)
-		this.lines[a].connects.push(b, c);
-		this.lines[b].connects.push(c, a);
-		this.lines[c].connects.push(a, b);
+			//check for only adding unique lines
+			//returns index of said line
+			var a = addLine(face.a, face.b);
+			var b = addLine(face.b, face.c);
+			var c = addLine(face.c, face.a);
 
-		this.lines[a].normals.push(normal);
-		this.lines[b].normals.push(normal);
-		this.lines[c].normals.push(normal);
+			//set connecting lines (based on face)
+			this.lines[a].connects.push(b, c);
+			this.lines[b].connects.push(c, a);
+			this.lines[c].connects.push(a, b);
 
-		if (face.normal.y === 1 || face.normal.y === -1) {
-			this.lines[a].ignore ++;
-			this.lines[b].ignore ++;
-			this.lines[c].ignore ++;
-		}
+			this.lines[a].normals.push(normal);
+			this.lines[b].normals.push(normal);
+			this.lines[c].normals.push(normal);
+		//}
 	}
 };
 D3D.Slicer.prototype.slice = function (height, step) {
@@ -99,21 +96,19 @@ D3D.Slicer.prototype.slice = function (height, step) {
 		var min = Math.ceil(Math.min(line.line.start.y, line.line.end.y) / step);
 		var max = Math.floor(Math.max(line.line.start.y, line.line.end.y) / step);
 
-		if (line.ignore < 2) {
-			for (var layerIndex = min; layerIndex <= max; layerIndex ++) {
-				if (layerIndex >= 0) {
-					if (layersIntersections[layerIndex] === undefined) {
-						layersIntersections[layerIndex] = [];
-					}
-					layersIntersections[layerIndex].push(i);
+		for (var layerIndex = min; layerIndex <= max; layerIndex ++) {
+			if (layerIndex >= 0) {
+				if (layersIntersections[layerIndex] === undefined) {
+					layersIntersections[layerIndex] = [];
 				}
+				layersIntersections[layerIndex].push(i);
 			}
 		}
 	}
 
 	var slices = [];
 
-	for (var layer = 1; layer < layersIntersections.length; layer ++) {
+	for (var layer = 1; layer < layersIntersections.length-1; layer ++) {
 		var layerIntersections = layersIntersections[layer];
 		var y = layer*step;
 
@@ -130,7 +125,7 @@ D3D.Slicer.prototype.slice = function (height, step) {
 		}
 
 		var done = [];
-		var slice = [];
+		var slice = new D3D.Paths([], true);
 		for (var i = 0; i < layerIntersections.length; i ++) {
 			var index = layerIntersections[i];
 
@@ -191,15 +186,34 @@ D3D.Slicer.prototype.slice = function (height, step) {
 
 				//think this check is not nescesary, always higher as 0
 				if (shape.length > 0) {
-					slice.push(shape);
+					slice.push(new D3D.Paths([shape]));
 				}
 			}
 		}
 
+		var layerParts = [];
+
+		for (var i = 0; i < slice.length; i ++) {
+			var layerPart1 = slice[i];
+			var merge = false;
+
+			for (var j = 0; j < layerParts.length; j ++) {
+				var layerPart2 = layerParts[j];
+
+				if (layerPart2.intersect(layerPart1).length > 0) {
+					layerPart2.join(layerPart1);
+					merge = true;
+					break;
+				}
+			}
+			if (!merge) {
+				layerParts.push(layerPart1);
+			}
+		}
+
 		//stop when ther are no intersects
-		if (slice.length > 0) {
-			slices.push(new D3D.Path(slice, true));
-			//slices.push(slice);
+		if (layerParts.length > 0) {
+			slices.push(layerParts);
 		}
 		else {
 			break;
@@ -227,38 +241,59 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 
 	for (var layer = 0; layer < slices.length; layer ++) {
 		var slice = slices[layer];
-
-		var outerLayer = slice.clone();
-		outerLayer.scaleUp(scale);
-
-		var insets = new D3D.Path();
-		for (var offset = wallThickness; offset <= shellThickness; offset += wallThickness) {
-			var inset = outerLayer.offset(-offset);
-
-			insets.join(inset);
+		
+		var layerData = [];
+		data.push(layerData);
+		
+		var downSkin = new D3D.Paths();
+		if (layer - skinCount >= 0) {
+			var downLayer = slices[layer - skinCount];
+			for (var i = 0; i < downLayer.length; i ++) {
+				downSkin.join(downLayer[i]);
+			}
 		}
+		var upSkin = new D3D.Paths();
+		if (layer + skinCount < slices.length) {
+			var downLayer = slices[layer + skinCount];
+			for (var i = 0; i < downLayer.length; i ++) {
+				upSkin.join(downLayer[i]);
+			}
+		}
+		var surroundingLayer = upSkin.intersect(downSkin).clone().scaleUp(scale);
+		var sliceData = [];
 
-		var fillArea = (inset || outerLayer).offset(-wallThickness/2);
+		for (var i = 0; i < slice.length; i ++) {
+			var part = slice[i];
 
-		var downFill = (layer - skinCount >= 0) ? slices[layer - skinCount] : new D3D.Path();
-		var upFill = (layer + skinCount < slices.length) ? slices[layer + skinCount] : new D3D.Path();
-		var highFillArea = fillArea.difference(downFill.intersect(upFill).scaleUp(scale));
+			var outerLayer = part.clone();
+			outerLayer.scaleUp(scale);
 
-		var lowFillArea = fillArea.difference(highFillArea);
+			var insets = new D3D.Paths();
+			for (var offset = wallThickness; offset <= shellThickness; offset += wallThickness) {
+				var inset = outerLayer.offset(-offset);
 
-		var fill = new D3D.Path([], false);
-		fill.join(lowFillTemplate.intersect(lowFillArea));
-		if (highFillArea.path.length > 0) {
+				insets.join(inset);
+			}
+
+			var fillArea = (inset || outerLayer).offset(-wallThickness/2);
+
+			var highFillArea = fillArea.difference(surroundingLayer);
+
+			var lowFillArea = fillArea.difference(highFillArea);
+
+			var fill = new D3D.Paths([]);
+
+			fill.join(lowFillTemplate.intersect(lowFillArea));
+
 			var highFillTemplate = this.getFillTemplate(dimensionsZ, wallThickness, (layer % 2 === 0), (layer % 2 === 1));
-			var highFillStrokes = highFillArea;
-			fill.join(highFillTemplate.intersect(highFillStrokes));
-		}
+			fill.join(highFillTemplate.intersect(highFillArea));
 
-		data.push({
-			outerLayer: outerLayer.scaleDown(scale), 
-			insets: insets.scaleDown(scale), 
-			fill: fill.scaleDown(scale)
-		});
+			layerData.push({
+				outerLayer: outerLayer.scaleDown(scale),
+				fill: fill.scaleDown(scale),
+				insets: insets.scaleDown(scale)
+			});
+		}
 	}
 
 	return data;
@@ -266,7 +301,7 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 D3D.Slicer.prototype.getFillTemplate = function (dimension, size, even, uneven) {
 	"use strict";
 
-	var paths = [];
+	var paths = new D3D.Paths([], false);
 
 	if (even) {
 		for (var length = 0; length <= dimension; length += size) {
@@ -280,7 +315,7 @@ D3D.Slicer.prototype.getFillTemplate = function (dimension, size, even, uneven) 
 	}
 	
 	//return paths;
-	return new D3D.Path(paths, false);
+	return paths;
 };
 D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 	"use strict";
@@ -302,13 +337,15 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 	function sliceToGcode (slice) {
 		var gcode = [];
 
-		for (var i = 0; i < slice.path.length; i ++) {
-			var shape = slice.path[i];
+		for (var i = 0; i < slice.length; i ++) {
+			var shape = slice[i];
 
 			var previousPoint;
 
-			for (var j = 0; j < shape.length; j ++) {
-				var point = shape[j];
+			var length = slice.closed ? (shape.length + 1) : shape.length;
+
+			for (var j = 0; j < length; j ++) {
+				var point = shape[j % shape.length];
 
 				if (j === 0) {
 					//TODO
@@ -376,9 +413,13 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 
 		var z = ((layer + 1) * layerHeight).toFixed(3);
 
-		gcode = gcode.concat(sliceToGcode(slice.outerLayer));
-		gcode = gcode.concat(sliceToGcode(slice.insets));
-		gcode = gcode.concat(sliceToGcode(slice.fill));
+		for (var i = 0; i < slice.length; i ++) {
+			var layerPart = slice[i];
+
+			gcode = gcode.concat(sliceToGcode(layerPart.outerLayer));
+			gcode = gcode.concat(sliceToGcode(layerPart.insets));
+			gcode = gcode.concat(sliceToGcode(layerPart.fill));
+		}
 	}
 
 	gcode = gcode.concat(printer.getEndCode());
@@ -403,9 +444,13 @@ D3D.Slicer.prototype.drawPaths = function (printer, min, max) {
 	for (var layer = min; layer < max; layer ++) {
 		var slice = data[layer % data.length];
 
-		slice.insets.draw(context, "blue");
-		slice.outerLayer.draw(context, "green");
-		slice.fill.draw(context, "red");
+		for (var i = 0; i < slice.length; i ++) {
+			var layerPart = slice[i];
+
+			layerPart.insets.draw(context, "blue");
+			layerPart.outerLayer.draw(context, "green");
+			layerPart.fill.draw(context, "red");
+		}
 	}
 
 	return canvas;

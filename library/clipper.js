@@ -2876,8 +2876,8 @@
   };
   ClipperLib.ClipperBase.prototype.AddPaths = function (ppg, polyType, closed)
   {
-    //  console.log("-------------------------------------------");
-    //  console.log(JSON.stringify(ppg));
+    //  console.warn("-------------------------------------------");
+    //  console.warn(JSON.stringify(ppg));
     var result = false;
     for (var i = 0, ilen = ppg.length; i < ilen; ++i)
       if (this.AddPath(ppg[i], polyType, closed))
@@ -3185,7 +3185,7 @@
         if (this.m_Scanbeam === null)
           break;
         var topY = this.PopScanbeam();
-        //console.log("botY:" + botY + ", topY:" + topY);
+        //console.warn("botY:" + botY + ", topY:" + topY);
         if (!this.ProcessIntersections(botY, topY))
           return false;
         this.ProcessEdgesAtTopOfScanbeam(topY);
@@ -4747,7 +4747,7 @@
       return;
     //prepare for sorting ...
     var e = this.m_ActiveEdges;
-    //console.log(JSON.stringify(JSON.decycle( e )));
+    //console.warn(JSON.stringify(JSON.decycle( e )));
     this.m_SortedEdges = e;
     while (e !== null)
     {
@@ -4766,13 +4766,13 @@
       {
         var eNext = e.NextInSEL;
         var pt = new ClipperLib.IntPoint();
-        //console.log("e.Curr.X: " + e.Curr.X + " eNext.Curr.X" + eNext.Curr.X);
+        //console.warn("e.Curr.X: " + e.Curr.X + " eNext.Curr.X" + eNext.Curr.X);
         if (e.Curr.X > eNext.Curr.X)
         {
           if (!this.IntersectPoint(e, eNext, pt) && e.Curr.X > eNext.Curr.X + 1)
           {
-            //console.log("e.Curr.X: "+JSON.stringify(JSON.decycle( e.Curr.X )));
-            //console.log("eNext.Curr.X+1: "+JSON.stringify(JSON.decycle( eNext.Curr.X+1)));
+            //console.warn("e.Curr.X: "+JSON.stringify(JSON.decycle( e.Curr.X )));
+            //console.warn("eNext.Curr.X+1: "+JSON.stringify(JSON.decycle( eNext.Curr.X+1)));
             ClipperLib.Error("Intersection error");
           }
           if (pt.Y > botY)
@@ -4884,8 +4884,8 @@
   else ClipperLib.Clipper.Round = R2; // eg. browser.chrome || browser.firefox || browser.opera
   ClipperLib.Clipper.TopX = function (edge, currentY)
   {
-    //if (edge.Bot == edge.Curr) alert ("edge.Bot = edge.Curr");
-    //if (edge.Bot == edge.Top) alert ("edge.Bot = edge.Top");
+    //if (edge.Bot == edge.Curr) console.warn ("edge.Bot = edge.Curr");
+    //if (edge.Bot == edge.Top) console.warn ("edge.Bot = edge.Top");
     if (currentY == edge.Top.Y)
       return edge.Top.X;
     return edge.Bot.X + ClipperLib.Clipper.Round(edge.Dx * (currentY - edge.Bot.Y));
@@ -6469,7 +6469,7 @@
         if (solution.length > 0)
           solution.splice(0, 1);
       }
-      //console.log(JSON.stringify(solution));
+      //console.warn(JSON.stringify(solution));
     }
     else // function (polytree, delta)
     {
@@ -6596,7 +6596,7 @@
     }
     catch (err)
     {
-      alert(err.message);
+      console.warn(err.message);
     }
   };
   // ---------------------------------
