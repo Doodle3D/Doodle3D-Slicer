@@ -12,7 +12,6 @@
 <script src="src/box.js"></script>
 <script src="src/printer.js"></script>
 <script src="src/paths.js"></script>
-<script src="src/path.js"></script>
 <script src="src/slicer.js"></script>
 
 <script src="gcode/testgcode.js"></script>
@@ -119,6 +118,31 @@ var loader = new THREE.STLLoader();
 loader.load("models/diamond.stl", function (geometry) {
 	var geometry = new THREE.BoxGeometry(10, 10, 10, 1, 1, 1);
 	//var geometry = new THREE.TorusGeometry(20, 10, 30, 30);
+
+	var geometry = (function () {
+		"use strict";
+
+		var circle = new THREE.Shape();
+		circle.absarc(0, 0, 10, 0, Math.PI*2, false);
+
+		var hole = new THREE.Path();
+		hole.absarc(0, 0, 5, 0, Math.PI*2, true );
+
+		circle.holes.push(hole);
+
+		var matrix = new THREE.Matrix4();
+		matrix.makeRotationX(Math.PI*1.5);
+
+		var geometry = new THREE.ExtrudeGeometry(circle, {
+			amount: 3, 
+			bevelEnabled: false, 
+			steps: 1
+		});
+		geometry.applyMatrix(matrix);
+
+		return geometry;
+	})();
+
 	var mesh = new THREE.Mesh(geometry, material);
 	
 	mesh.position.x = 100;
@@ -137,8 +161,8 @@ loader.load("models/diamond.stl", function (geometry) {
 	var canvas = document.getElementById("canvas");
 	var context = canvas.getContext("2d");
 
-	var img = slicer.drawPaths(printer, 0, 10);
-	context.drawImage(img, 0, 0);
+	//var img = slicer.drawPaths(printer, 7, 8);
+	//context.drawImage(img, 0, 0);
 
 	gcode = slicer.getGcode(printer);
 });

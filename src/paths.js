@@ -6,14 +6,14 @@
 *
 ******************************************************/
 
-D3D.Paths = function (paths) {
+D3D.Paths = function (paths, closed) {
 	"use strict";
 
 	Array.call(this);
 
 	this.setPaths(paths || []);
 
-	this.closed = (this[0] !== undefined) ? this[0].closed : true;
+	this.closed = (closed !== undefined) ? closed : true;
 };
 D3D.Paths.prototype = Object.create(Array.prototype);
 D3D.Paths.prototype.setPaths = function (paths) {
@@ -21,10 +21,6 @@ D3D.Paths.prototype.setPaths = function (paths) {
 
 	for (var i = 0; i < paths.length; i ++) {
 		var path = paths[i];
-		if (!(path instanceof D3D.Path)) {
-			//console.log("Path not instance of D3D.Path, converting path to D3D.Path");
-			path = new D3D.Path(path, true);
-		}
 		this.push(path);
 	}
 
@@ -37,12 +33,7 @@ D3D.Paths.prototype.clip = function (path, type) {
 
 	var clipper = new ClipperLib.Clipper();
 	clipper.AddPaths(this, ClipperLib.PolyType.ptSubject, this.closed);
-	if (path instanceof D3D.Paths) {
-		clipper.AddPaths(path, ClipperLib.PolyType.ptClip, path.closed);
-	}
-	else if (path instanceof D3D.Path) {
-		clipper.AddPath(path, ClipperLib.PolyType.ptClip, path.closed);
-	}
+	clipper.AddPaths(path, ClipperLib.PolyType.ptClip, path.closed);
 	clipper.Execute(type, solution);
 
 	return new D3D.Paths(solution);
@@ -124,13 +115,19 @@ D3D.Paths.prototype.join = function (path) {
 D3D.Paths.prototype.clone = function () {
 	"use strict";
 
-	var paths = [];
+	return new D3D.Paths(ClipperLib.JS.Clone(this), this.closed);
+};
+D3D.Paths.prototype.bounds = function () {
+	"use strict";
 
-	for (var i = 0; i < this.length; i ++) {
-		paths.push(this[i].clone());
-	}
+	return ClipperLib.Clipper.GetBounds(this);
+};
+D3D.Paths.prototype.reverse = function () {
+	"use strict";
 
-	return new D3D.Paths(paths);
+	ClipperLib.Clipper.ReversePaths(this);
+
+	return this;
 };
 D3D.Paths.prototype.draw = function (context, color) {
 	"use strict";
