@@ -11,6 +11,7 @@
 <script src="src/utils.js"></script>
 <script src="src/box.js"></script>
 <script src="src/printer.js"></script>
+<script src="src/paths.js"></script>
 <script src="src/path.js"></script>
 <script src="src/slicer.js"></script>
 
@@ -69,7 +70,7 @@ var printerConfig = {
 var printer = new D3D.Printer(printerConfig);
 
 var localIp = location.hash.substring(1);
-var doodleBox = new D3D.Box(localIp);
+//var doodleBox = new D3D.Box(localIp);
 //var printer = doodleBox.printer;
 
 var scene = new THREE.Scene();
@@ -115,19 +116,28 @@ mesh.position.z = 100;
 //scene.add(mesh);
 
 var loader = new THREE.STLLoader();
-loader.load("models/cubes.stl", function (geometry) {
+loader.load("models/cube.stl", function (geometry) {
+	var geometry = new THREE.BoxGeometry(10, 10, 10, 1, 1, 1);
+
 	var mesh = new THREE.Mesh(geometry, material);
 	
 	mesh.position.x = 100;
 	mesh.position.z = 100;
+	/*
 	mesh.rotation.x = -Math.PI/2;
 	mesh.scale.x = mesh.scale.y = mesh.scale.z = 3;
 	//mesh is lifted a little bit...
 	mesh.position.y = -0.6552429199218741;
-
+	*/
 	scene.add(mesh);
 
 	var slicer = new D3D.Slicer().setMesh(mesh);
+
+	var canvas = document.getElementById("canvas");
+	var context = canvas.getContext("2d");
+
+	var img = slicer.drawPaths(printer, 0, 1);
+	context.drawImage(img, 0, 0);
 
 	gcode = slicer.getGcode(printer);
 });

@@ -3100,7 +3100,7 @@
       if (this.m_ExecuteLocked)
         return false;
       if (this.m_HasOpenPaths)
-        //ClipperLib.Error("Error: PolyTree struct is need for open path clipping.");
+        ClipperLib.Error("Error: PolyTree struct is need for open path clipping.");
       this.m_ExecuteLocked = true;
       ClipperLib.Clear(solution);
       this.m_SubjFillType = subjFillType;
@@ -4884,8 +4884,8 @@
   else ClipperLib.Clipper.Round = R2; // eg. browser.chrome || browser.firefox || browser.opera
   ClipperLib.Clipper.TopX = function (edge, currentY)
   {
-    //if (edge.Bot == edge.Curr) alert ("edge.Bot = edge.Curr");
-    //if (edge.Bot == edge.Top) alert ("edge.Bot = edge.Top");
+    //if (edge.Bot == edge.Curr) console.log ("edge.Bot = edge.Curr");
+    //if (edge.Bot == edge.Top) console.log ("edge.Bot = edge.Top");
     if (currentY == edge.Top.Y)
       return edge.Top.X;
     return edge.Bot.X + ClipperLib.Clipper.Round(edge.Dx * (currentY - edge.Bot.Y));
@@ -6596,7 +6596,7 @@
     }
     catch (err)
     {
-      alert(err.message);
+      console.log(err.message);
     }
   };
   // ---------------------------------
