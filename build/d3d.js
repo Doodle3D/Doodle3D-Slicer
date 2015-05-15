@@ -644,7 +644,49 @@ D3D.Paths.prototype.scaleDown = function (factor) {
 
 	return this;
 };
+D3D.Paths.prototype.optimizePath = function (start) {
+	"use strict";
+
+	var optimizedPaths = new D3D.Paths();
+
+	while (optimizedPaths.length !== this.length) {
+		var minLength = undefined;
+		var reverse;
+		var minPath;
+
+		for (var i = 0; i < this.length; i ++) {
+			var path = this[i];
+
+			if (optimizedPaths.indexOf(path) === -1) {
+				var startPoint = new THREE.Vector2(path[0].X, path[0].Y);
+				var endPoint = new THREE.Vector2(path[path.length - 1].X, path[path.length - 1].Y);
+				var length = startPoint.sub(start).length();
+				if (minLength === undefined || length < minLength) {
+					minPath = path;
+					minLength = length;
+					reverse = false;
+				}
+				var length = endPoint.sub(start).length();
+				if (length < minLength) {
+					minPath = path;
+					minLength = length;
+					reverse = true;
+				}
+			}
+		}
+
+		if (reverse) {
+			minPath.reverse();	
+		}
+		var point = minPath[minPath.length - 1];
+		start = new THREE.Vector2(point.X, point.Y);
+		optimizedPaths.push(minPath);
+	}
+
+	return optimizedPaths;
+};
 D3D.Paths.prototype.tresholdArea = function (minArea) {
+	//code not tested yet
 	"use strict";
 
 	for (var i = 0; i < this.length; i ++) {
@@ -659,11 +701,6 @@ D3D.Paths.prototype.tresholdArea = function (minArea) {
 	}
 	
 	return areas;
-};
-D3D.Paths.prototype.area = function () {
-	"use strict";
-
-	return ClipperLib.Clipper.Area(this);
 };
 D3D.Paths.prototype.join = function (path) {
 	"use strict";
@@ -684,19 +721,15 @@ D3D.Paths.prototype.bounds = function () {
 
 	return ClipperLib.Clipper.GetBounds(this);
 };
-D3D.Paths.prototype.reverse = function () {
-	"use strict";
-
-	ClipperLib.Clipper.ReversePaths(this);
-
-	return this;
-};
 D3D.Paths.prototype.draw = function (context, color) {
 	"use strict";
 
 	context.strokeStyle = color;
 	for (var i = 0; i < this.length; i ++) {
 		var shape = this[i];
+
+		//var point = shape[0];
+		//context.fillText(i, point.X*2, point.Y*2);
 
 		context.beginPath();
 		var length = this.closed ? (shape.length + 1) : shape.length;
@@ -947,7 +980,12 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 
 	var data = [];
 
-	var lowFillTemplate = this.getFillTemplate(dimensionsZ, fillSize, true, true);
+	var lowFillTemplate = this.getFillTemplate({
+		left: 0, 
+		top: 0, 
+		right: dimensionsZ, 
+		bottom: dimensionsZ
+	}, fillSize, true, true);
 
 	for (var layer = 0; layer < slices.length; layer ++) {
 		var slice = slices[layer];
@@ -955,14 +993,14 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 		var layerData = [];
 		data.push(layerData);
 		
-		var downSkin = new D3D.Paths();
+		var downSkin = new D3D.Paths([], true);
 		if (layer - skinCount >= 0) {
 			var downLayer = slices[layer - skinCount];
 			for (var i = 0; i < downLayer.length; i ++) {
 				downSkin.join(downLayer[i]);
 			}
 		}
-		var upSkin = new D3D.Paths();
+		var upSkin = new D3D.Paths([], true);
 		if (layer + skinCount < slices.length) {
 			var downLayer = slices[layer + skinCount];
 			for (var i = 0; i < downLayer.length; i ++) {
@@ -978,7 +1016,7 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 			var outerLayer = part.clone();
 			outerLayer.scaleUp(scale);
 
-			var insets = new D3D.Paths();
+			var insets = new D3D.Paths([], true);
 			for (var offset = wallThickness; offset <= shellThickness; offset += wallThickness) {
 				var inset = outerLayer.offset(-offset);
 
@@ -991,12 +1029,19 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 
 			var lowFillArea = fillArea.difference(highFillArea);
 
-			var fill = new D3D.Paths([]);
+			var fill = new D3D.Paths([], false);
 
 			fill.join(lowFillTemplate.intersect(lowFillArea));
 
-			var highFillTemplate = this.getFillTemplate(dimensionsZ, wallThickness, (layer % 2 === 0), (layer % 2 === 1));
-			fill.join(highFillTemplate.intersect(highFillArea));
+			if (highFillArea.length > 0) {
+				var highFillTemplate = this.getFillTemplate(highFillArea.bounds(), wallThickness, (layer % 2 === 0), (layer % 2 === 1));
+				fill.join(highFillTemplate.intersect(highFillArea));
+			}
+
+			var lastPath = insets[insets.length - 1];
+			var lastPoint = lastPath[lastPath.length - 1];
+			var start = new THREE.Vector2(lastPoint.X, lastPoint.Y);
+			fill = fill.optimizePath(start);			
 
 			layerData.push({
 				outerLayer: outerLayer.scaleDown(scale),
@@ -1008,19 +1053,19 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 
 	return data;
 };
-D3D.Slicer.prototype.getFillTemplate = function (dimension, size, even, uneven) {
+D3D.Slicer.prototype.getFillTemplate = function (bounds, size, even, uneven) {
 	"use strict";
 
 	var paths = new D3D.Paths([], false);
 
 	if (even) {
-		for (var length = 0; length <= dimension; length += size) {
-			paths.push([{X: length, Y: 0}, {X: length, Y: dimension}]);
+		for (var length = Math.floor(bounds.left); length <= Math.ceil(bounds.right); length += size) {
+			paths.push([{X: length, Y: bounds.top}, {X: length, Y: bounds.bottom}]);
 		}
 	}
 	if (uneven) {
-		for (var length = 0; length <= dimension; length += size) {
-			paths.push([{X: 0, Y: length}, {X: dimension, Y: length}]);
+		for (var length = Math.floor(bounds.top); length <= Math.floor(bounds.bottom); length += size) {
+			paths.push([{X: bounds.left, Y: length}, {X: bounds.right, Y: length}]);
 		}
 	}
 	

@@ -82,7 +82,83 @@ D3D.Paths.prototype.scaleDown = function (factor) {
 
 	return this;
 };
+D3D.Paths.prototype.lastPoint = function () {
+	"use strict";
+
+	var lastPath = this[this.length - 1];
+	var lastPoint = this.closed ? lastPath[0] : lastPath[lastPath.length - 1];
+	return new THREE.Vector2(lastPoint.X, lastPoint.Y);
+};
+D3D.Paths.prototype.optimizePath = function (start) {
+	"use strict";
+
+	var optimizedPaths = new D3D.Paths([], this.closed);
+	var donePaths = [];
+
+	while (optimizedPaths.length !== this.length) {
+		var minLength = false;
+		var reverse;
+		var minPath;
+		var offset;
+		var pathIndex;
+
+		for (var i = 0; i < this.length; i ++) {
+			var path = this[i];
+
+			if (donePaths.indexOf(i) === -1) {
+
+				if (this.closed) {
+					for (var j = 0; j < path.length; j ++) {
+						var point = new THREE.Vector2(path[j].X, path[j].Y);
+						var length = point.sub(start).length();
+						if (minLength === false || length < minLength) {
+							minPath = path;
+							minLength = length;
+							offset = j;
+							pathIndex = i;
+						}
+					}
+				}
+				else {
+					var startPoint = new THREE.Vector2(path[0].X, path[0].Y);
+					var length = startPoint.sub(start).length();
+					if (minLength === false || length < minLength) {
+						minPath = path;
+						minLength = length;
+						reverse = false;
+						pathIndex = i;
+					}
+					var endPoint = new THREE.Vector2(path[path.length - 1].X, path[path.length - 1].Y);
+					var length = endPoint.sub(start).length();
+					if (length < minLength) {
+						minPath = path;
+						minLength = length;
+						reverse = true;
+						pathIndex = i;
+					}
+				}
+			}
+		}
+
+		if (this.closed) {
+			minPath = minPath.concat(minPath.splice(0, offset));
+			var point = minPath[0];
+		}
+		else {
+			if (reverse) {
+				minPath.reverse();	
+			}
+			var point = minPath[minPath.length - 1];
+		}
+		donePaths.push(pathIndex);
+		start = new THREE.Vector2(point.X, point.Y);
+		optimizedPaths.push(minPath);
+	}
+
+	return optimizedPaths;
+};
 D3D.Paths.prototype.tresholdArea = function (minArea) {
+	//code not tested yet
 	"use strict";
 
 	for (var i = 0; i < this.length; i ++) {
@@ -97,11 +173,6 @@ D3D.Paths.prototype.tresholdArea = function (minArea) {
 	}
 	
 	return areas;
-};
-D3D.Paths.prototype.area = function () {
-	"use strict";
-
-	return ClipperLib.Clipper.Area(this);
 };
 D3D.Paths.prototype.join = function (path) {
 	"use strict";
@@ -122,19 +193,15 @@ D3D.Paths.prototype.bounds = function () {
 
 	return ClipperLib.Clipper.GetBounds(this);
 };
-D3D.Paths.prototype.reverse = function () {
-	"use strict";
-
-	ClipperLib.Clipper.ReversePaths(this);
-
-	return this;
-};
 D3D.Paths.prototype.draw = function (context, color) {
 	"use strict";
 
 	context.strokeStyle = color;
 	for (var i = 0; i < this.length; i ++) {
 		var shape = this[i];
+
+		var point = shape[0];
+		context.fillText(i, point.X*2, point.Y*2);
 
 		context.beginPath();
 		var length = this.closed ? (shape.length + 1) : shape.length;

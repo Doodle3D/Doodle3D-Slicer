@@ -235,9 +235,16 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 	var brimOffset = printer.config["printer.brimOffset"] * scale;
 	var skinCount = Math.ceil(shellThickness/layerHeight);
 
+	var start = new THREE.Vector2(0, 0);
+
 	var data = [];
 
-	var lowFillTemplate = this.getFillTemplate(dimensionsZ, fillSize, true, true);
+	var lowFillTemplate = this.getFillTemplate({
+		left: 0, 
+		top: 0, 
+		right: dimensionsZ, 
+		bottom: dimensionsZ
+	}, fillSize, true, true);
 
 	for (var layer = 0; layer < slices.length; layer ++) {
 		var slice = slices[layer];
@@ -245,14 +252,14 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 		var layerData = [];
 		data.push(layerData);
 		
-		var downSkin = new D3D.Paths();
+		var downSkin = new D3D.Paths([], true);
 		if (layer - skinCount >= 0) {
 			var downLayer = slices[layer - skinCount];
 			for (var i = 0; i < downLayer.length; i ++) {
 				downSkin.join(downLayer[i]);
 			}
 		}
-		var upSkin = new D3D.Paths();
+		var upSkin = new D3D.Paths([], true);
 		if (layer + skinCount < slices.length) {
 			var downLayer = slices[layer + skinCount];
 			for (var i = 0; i < downLayer.length; i ++) {
@@ -268,7 +275,7 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 			var outerLayer = part.clone();
 			outerLayer.scaleUp(scale);
 
-			var insets = new D3D.Paths();
+			var insets = new D3D.Paths([], true);
 			for (var offset = wallThickness; offset <= shellThickness; offset += wallThickness) {
 				var inset = outerLayer.offset(-offset);
 
@@ -281,12 +288,19 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 
 			var lowFillArea = fillArea.difference(highFillArea);
 
-			var fill = new D3D.Paths([]);
+			var fill = new D3D.Paths([], false);
 
 			fill.join(lowFillTemplate.intersect(lowFillArea));
 
-			var highFillTemplate = this.getFillTemplate(dimensionsZ, wallThickness, (layer % 2 === 0), (layer % 2 === 1));
-			fill.join(highFillTemplate.intersect(highFillArea));
+			if (highFillArea.length > 0) {
+				var highFillTemplate = this.getFillTemplate(highFillArea.bounds(), wallThickness, (layer % 2 === 0), (layer % 2 === 1));
+				fill.join(highFillTemplate.intersect(highFillArea));
+			}
+
+			outerLayer = outerLayer.optimizePath(start);
+			insets = insets.optimizePath(outerLayer.lastPoint());
+			fill = fill.optimizePath(insets.lastPoint());
+			start = fill.lastPoint();
 
 			layerData.push({
 				outerLayer: outerLayer.scaleDown(scale),
@@ -298,19 +312,19 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 
 	return data;
 };
-D3D.Slicer.prototype.getFillTemplate = function (dimension, size, even, uneven) {
+D3D.Slicer.prototype.getFillTemplate = function (bounds, size, even, uneven) {
 	"use strict";
 
 	var paths = new D3D.Paths([], false);
 
 	if (even) {
-		for (var length = 0; length <= dimension; length += size) {
-			paths.push([{X: length, Y: 0}, {X: length, Y: dimension}]);
+		for (var length = Math.floor(bounds.left); length <= Math.ceil(bounds.right); length += size) {
+			paths.push([{X: length, Y: bounds.top}, {X: length, Y: bounds.bottom}]);
 		}
 	}
 	if (uneven) {
-		for (var length = 0; length <= dimension; length += size) {
-			paths.push([{X: 0, Y: length}, {X: dimension, Y: length}]);
+		for (var length = Math.floor(bounds.top); length <= Math.floor(bounds.bottom); length += size) {
+			paths.push([{X: bounds.left, Y: length}, {X: bounds.right, Y: length}]);
 		}
 	}
 	
@@ -361,7 +375,7 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 					gcode.push([
 						"G0", 
 						"X" + point.X.toFixed(3) + " Y" + point.Y.toFixed(3) + " Z" + z, 
-						"F" + (travelSpeed*60)
+						"F" + (travelSpeed * 60)
 					].join(" "));
 
 					if (extruder > retractionMinDistance && retractionEnabled) {
