@@ -21,7 +21,9 @@ D3D.Paths.prototype.setPaths = function (paths) {
 
 	for (var i = 0; i < paths.length; i ++) {
 		var path = paths[i];
-		this.push(path);
+		if (path.length > 0) {
+			this.push(path);
+		}
 	}
 
 	return this;
@@ -36,7 +38,7 @@ D3D.Paths.prototype.clip = function (path, type) {
 	clipper.AddPaths(path, ClipperLib.PolyType.ptClip, path.closed);
 	clipper.Execute(type, solution);
 
-	return new D3D.Paths(solution);
+	return new D3D.Paths(solution, this.closed);
 };
 D3D.Paths.prototype.union = function (path) {
 	"use strict";

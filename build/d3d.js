@@ -583,7 +583,9 @@ D3D.Paths.prototype.setPaths = function (paths) {
 
 	for (var i = 0; i < paths.length; i ++) {
 		var path = paths[i];
-		this.push(path);
+		if (path.length > 0) {
+			this.push(path);
+		}
 	}
 
 	return this;
@@ -598,7 +600,7 @@ D3D.Paths.prototype.clip = function (path, type) {
 	clipper.AddPaths(path, ClipperLib.PolyType.ptClip, path.closed);
 	clipper.Execute(type, solution);
 
-	return new D3D.Paths(solution);
+	return new D3D.Paths(solution, this.closed);
 };
 D3D.Paths.prototype.union = function (path) {
 	"use strict";
@@ -762,8 +764,8 @@ D3D.Paths.prototype.draw = function (context, color) {
 	for (var i = 0; i < this.length; i ++) {
 		var shape = this[i];
 
-		var point = shape[0];
-		context.fillText(i, point.X*2, point.Y*2);
+		//var point = shape[0];
+		//context.fillText(i, point.X*2, point.Y*2);
 
 		context.beginPath();
 		var length = this.closed ? (shape.length + 1) : shape.length;
@@ -797,17 +799,34 @@ D3D.Slicer = function () {
 D3D.Slicer.prototype.setMesh = function (mesh) {
 	"use strict";
 
-	mesh.updateMatrix();
-
+	//convert buffergeometry to geometry;
 	var geometry = mesh.geometry.clone();
 	if (geometry instanceof THREE.BufferGeometry) {
 		geometry = new THREE.Geometry().fromBufferGeometry(geometry);
 	}
+
+	//remove duplicate vertices;
+	for (var i = 0; i < geometry.vertices.length; i ++) {
+		var vertexA = geometry.vertices[i];
+
+		for (var j = i + 1; j < geometry.vertices.length; j ++) {
+			var vertexB = geometry.vertices[j];
+
+			if (vertexA.equals(vertexB)) {
+				geometry.vertices[j] = vertexA;
+			}
+		}
+	}
 	geometry.mergeVertices();
+
+	//apply mesh matrix on geometry;
+	mesh.updateMatrix();
 	geometry.applyMatrix(mesh.matrix);
+	geometry.computeFaceNormals();
 
 	this.geometry = geometry;
 
+	//get unique lines from geometry;
 	this.createLines();
 
 	return this;
@@ -1060,6 +1079,7 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 			}
 
 			var fillArea = (inset || outerLayer).offset(-wallThickness/2);
+			//var fillArea = (inset || outerLayer).clone();
 
 			var highFillArea = fillArea.difference(surroundingLayer);
 
@@ -1067,18 +1087,35 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 
 			var fill = new D3D.Paths([], false);
 
-			fill.join(lowFillTemplate.intersect(lowFillArea));
-
-			if (highFillArea.length > 0) {
-				var highFillTemplate = this.getFillTemplate(highFillArea.bounds(), wallThickness, (layer % 2 === 0), (layer % 2 === 1));
-				fill.join(highFillTemplate.intersect(highFillArea));
+			if (lowFillTemplate.length > 0) {
+				fill.join(lowFillTemplate.intersect(lowFillArea));
 			}
 
+			if (highFillArea.length > 0) {
+				var bounds = highFillArea.bounds();
+				var even = (layer % 2 === 0);
+				var highFillTemplate = this.getFillTemplate(bounds, wallThickness, even, !even);
+				fill.join(highFillTemplate.intersect(highFillArea));
+			}
+			
 			outerLayer = outerLayer.optimizePath(start);
-			insets = insets.optimizePath(outerLayer.lastPoint());
-			fill = fill.optimizePath(insets.lastPoint());
-			start = fill.lastPoint();
-
+			if (insets.length > 0) {
+				insets = insets.optimizePath(outerLayer.lastPoint());
+				fill = fill.optimizePath(insets.lastPoint());
+			}
+			else {
+				fill = fill.optimizePath(outerLayer.lastPoint());
+			}
+			if (fill.length > 0) {
+				start = fill.lastPoint();
+			}
+			else if (insets.length > 0) {
+				start = insets.lastPoint();
+			}
+			else {
+				start = outerLayer.lastPoint();
+			}
+			
 			layerData.push({
 				outerLayer: outerLayer.scaleDown(scale),
 				fill: fill.scaleDown(scale),

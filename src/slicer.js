@@ -50,8 +50,6 @@ D3D.Slicer.prototype.setMesh = function (mesh) {
 	//get unique lines from geometry;
 	this.createLines();
 
-	console.log(this.lines);
-
 	return this;
 };
 D3D.Slicer.prototype.createLines = function () {
@@ -320,16 +318,25 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 				var highFillTemplate = this.getFillTemplate(bounds, wallThickness, even, !even);
 				fill.join(highFillTemplate.intersect(highFillArea));
 			}
-
-			/*
+			
 			outerLayer = outerLayer.optimizePath(start);
-			insets = insets.optimizePath(outerLayer.lastPoint());
-			fill = fill.optimizePath(insets.lastPoint());
-			start = fill.lastPoint();
-			*/
-			fill = fill.optimizePath(insets.lastPoint());
-
-
+			if (insets.length > 0) {
+				insets = insets.optimizePath(outerLayer.lastPoint());
+				fill = fill.optimizePath(insets.lastPoint());
+			}
+			else {
+				fill = fill.optimizePath(outerLayer.lastPoint());
+			}
+			if (fill.length > 0) {
+				start = fill.lastPoint();
+			}
+			else if (insets.length > 0) {
+				start = insets.lastPoint();
+			}
+			else {
+				start = outerLayer.lastPoint();
+			}
+			
 			layerData.push({
 				outerLayer: outerLayer.scaleDown(scale),
 				fill: fill.scaleDown(scale),
