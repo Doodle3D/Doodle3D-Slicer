@@ -20,18 +20,37 @@ D3D.Slicer = function () {
 D3D.Slicer.prototype.setMesh = function (mesh) {
 	"use strict";
 
-	mesh.updateMatrix();
-
+	//convert buffergeometry to geometry;
 	var geometry = mesh.geometry.clone();
 	if (geometry instanceof THREE.BufferGeometry) {
 		geometry = new THREE.Geometry().fromBufferGeometry(geometry);
 	}
+
+	//remove duplicate vertices;
+	for (var i = 0; i < geometry.vertices.length; i ++) {
+		var vertexA = geometry.vertices[i];
+
+		for (var j = i + 1; j < geometry.vertices.length; j ++) {
+			var vertexB = geometry.vertices[j];
+
+			if (vertexA.equals(vertexB)) {
+				geometry.vertices[j] = vertexA;
+			}
+		}
+	}
 	geometry.mergeVertices();
+
+	//apply mesh matrix on geometry;
+	mesh.updateMatrix();
 	geometry.applyMatrix(mesh.matrix);
+	geometry.computeFaceNormals();
 
 	this.geometry = geometry;
 
+	//get unique lines from geometry;
 	this.createLines();
+
+	console.log(this.lines);
 
 	return this;
 };
@@ -283,6 +302,7 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 			}
 
 			var fillArea = (inset || outerLayer).offset(-wallThickness/2);
+			//var fillArea = (inset || outerLayer).clone();
 
 			var highFillArea = fillArea.difference(surroundingLayer);
 
@@ -290,17 +310,25 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 
 			var fill = new D3D.Paths([], false);
 
-			fill.join(lowFillTemplate.intersect(lowFillArea));
+			if (lowFillTemplate.length > 0) {
+				fill.join(lowFillTemplate.intersect(lowFillArea));
+			}
 
 			if (highFillArea.length > 0) {
-				var highFillTemplate = this.getFillTemplate(highFillArea.bounds(), wallThickness, (layer % 2 === 0), (layer % 2 === 1));
+				var bounds = highFillArea.bounds();
+				var even = (layer % 2 === 0);
+				var highFillTemplate = this.getFillTemplate(bounds, wallThickness, even, !even);
 				fill.join(highFillTemplate.intersect(highFillArea));
 			}
 
+			/*
 			outerLayer = outerLayer.optimizePath(start);
 			insets = insets.optimizePath(outerLayer.lastPoint());
 			fill = fill.optimizePath(insets.lastPoint());
 			start = fill.lastPoint();
+			*/
+			fill = fill.optimizePath(insets.lastPoint());
+
 
 			layerData.push({
 				outerLayer: outerLayer.scaleDown(scale),

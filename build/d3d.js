@@ -644,41 +644,75 @@ D3D.Paths.prototype.scaleDown = function (factor) {
 
 	return this;
 };
+D3D.Paths.prototype.lastPoint = function () {
+	"use strict";
+
+	var lastPath = this[this.length - 1];
+	var lastPoint = this.closed ? lastPath[0] : lastPath[lastPath.length - 1];
+	return new THREE.Vector2(lastPoint.X, lastPoint.Y);
+};
 D3D.Paths.prototype.optimizePath = function (start) {
 	"use strict";
 
-	var optimizedPaths = new D3D.Paths();
+	var optimizedPaths = new D3D.Paths([], this.closed);
+	var donePaths = [];
 
 	while (optimizedPaths.length !== this.length) {
-		var minLength = undefined;
+		var minLength = false;
 		var reverse;
 		var minPath;
+		var offset;
+		var pathIndex;
 
 		for (var i = 0; i < this.length; i ++) {
 			var path = this[i];
 
-			if (optimizedPaths.indexOf(path) === -1) {
-				var startPoint = new THREE.Vector2(path[0].X, path[0].Y);
-				var endPoint = new THREE.Vector2(path[path.length - 1].X, path[path.length - 1].Y);
-				var length = startPoint.sub(start).length();
-				if (minLength === undefined || length < minLength) {
-					minPath = path;
-					minLength = length;
-					reverse = false;
+			if (donePaths.indexOf(i) === -1) {
+
+				if (this.closed) {
+					for (var j = 0; j < path.length; j ++) {
+						var point = new THREE.Vector2(path[j].X, path[j].Y);
+						var length = point.sub(start).length();
+						if (minLength === false || length < minLength) {
+							minPath = path;
+							minLength = length;
+							offset = j;
+							pathIndex = i;
+						}
+					}
 				}
-				var length = endPoint.sub(start).length();
-				if (length < minLength) {
-					minPath = path;
-					minLength = length;
-					reverse = true;
+				else {
+					var startPoint = new THREE.Vector2(path[0].X, path[0].Y);
+					var length = startPoint.sub(start).length();
+					if (minLength === false || length < minLength) {
+						minPath = path;
+						minLength = length;
+						reverse = false;
+						pathIndex = i;
+					}
+					var endPoint = new THREE.Vector2(path[path.length - 1].X, path[path.length - 1].Y);
+					var length = endPoint.sub(start).length();
+					if (length < minLength) {
+						minPath = path;
+						minLength = length;
+						reverse = true;
+						pathIndex = i;
+					}
 				}
 			}
 		}
 
-		if (reverse) {
-			minPath.reverse();	
+		if (this.closed) {
+			minPath = minPath.concat(minPath.splice(0, offset));
+			var point = minPath[0];
 		}
-		var point = minPath[minPath.length - 1];
+		else {
+			if (reverse) {
+				minPath.reverse();	
+			}
+			var point = minPath[minPath.length - 1];
+		}
+		donePaths.push(pathIndex);
 		start = new THREE.Vector2(point.X, point.Y);
 		optimizedPaths.push(minPath);
 	}
@@ -728,8 +762,8 @@ D3D.Paths.prototype.draw = function (context, color) {
 	for (var i = 0; i < this.length; i ++) {
 		var shape = this[i];
 
-		//var point = shape[0];
-		//context.fillText(i, point.X*2, point.Y*2);
+		var point = shape[0];
+		context.fillText(i, point.X*2, point.Y*2);
 
 		context.beginPath();
 		var length = this.closed ? (shape.length + 1) : shape.length;
@@ -978,6 +1012,8 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 	var brimOffset = printer.config["printer.brimOffset"] * scale;
 	var skinCount = Math.ceil(shellThickness/layerHeight);
 
+	var start = new THREE.Vector2(0, 0);
+
 	var data = [];
 
 	var lowFillTemplate = this.getFillTemplate({
@@ -1038,10 +1074,10 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 				fill.join(highFillTemplate.intersect(highFillArea));
 			}
 
-			var lastPath = insets[insets.length - 1];
-			var lastPoint = lastPath[lastPath.length - 1];
-			var start = new THREE.Vector2(lastPoint.X, lastPoint.Y);
-			fill = fill.optimizePath(start);			
+			outerLayer = outerLayer.optimizePath(start);
+			insets = insets.optimizePath(outerLayer.lastPoint());
+			fill = fill.optimizePath(insets.lastPoint());
+			start = fill.lastPoint();
 
 			layerData.push({
 				outerLayer: outerLayer.scaleDown(scale),
@@ -1116,7 +1152,7 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 					gcode.push([
 						"G0", 
 						"X" + point.X.toFixed(3) + " Y" + point.Y.toFixed(3) + " Z" + z, 
-						"F" + (travelSpeed*60)
+						"F" + (travelSpeed * 60)
 					].join(" "));
 
 					if (extruder > retractionMinDistance && retractionEnabled) {

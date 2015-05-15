@@ -200,8 +200,8 @@ D3D.Paths.prototype.draw = function (context, color) {
 	for (var i = 0; i < this.length; i ++) {
 		var shape = this[i];
 
-		var point = shape[0];
-		context.fillText(i, point.X*2, point.Y*2);
+		//var point = shape[0];
+		//context.fillText(i, point.X*2, point.Y*2);
 
 		context.beginPath();
 		var length = this.closed ? (shape.length + 1) : shape.length;
