@@ -71,11 +71,11 @@ function getAPI (url, callback) {
 
 function downloadFile (file, data) {
 	"use strict";
-	
-	$(document.createElement("a")).attr({
-		download: file, 
-		href: "data:text/plain," + data
-	})[0].click();
+
+	var button = document.createElement("a");
+	button.download = file;
+	button.href = "data:text/plain," + data;
+	button.click();
 }
 
 Array.prototype.clone = function () {

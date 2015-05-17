@@ -124,6 +124,8 @@ D3D.Slicer.prototype.slice = function (height, step) {
 
 	var slices = [];
 
+	//still error in first layer, so remove first layer & last layer
+	//see https://github.com/Doodle3D/Doodle3D-Slicer/issues/1
 	for (var layer = 1; layer < layersIntersections.length-1; layer ++) {
 	//for (var layer = 0; layer < layersIntersections.length; layer ++) {
 		var layerIntersections = layersIntersections[layer];
@@ -257,10 +259,10 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 	var data = [];
 
 	var lowFillTemplate = this.getFillTemplate({
-		left: 0, 
-		top: 0, 
-		right: dimensionsZ, 
-		bottom: dimensionsZ
+		left: this.geometry.boundingBox.min.z * scale, 
+		top: this.geometry.boundingBox.min.x * scale, 
+		right: this.geometry.boundingBox.max.z * scale, 
+		bottom: this.geometry.boundingBox.max.x * scale
 	}, fillSize, true, true);
 
 	for (var layer = 0; layer < slices.length; layer ++) {
@@ -283,7 +285,7 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 				upSkin.join(downLayer[i]);
 			}
 		}
-		var surroundingLayer = upSkin.intersect(downSkin).clone().scaleUp(scale);
+		var surroundingLayer = upSkin.intersect(downSkin).scaleUp(scale);
 		var sliceData = [];
 
 		for (var i = 0; i < slice.length; i ++) {
@@ -514,22 +516,16 @@ D3D.Slicer.prototype.getGcode = function (printer) {
 	var start = new Date().getTime();
 	var slices = this.slice(dimensionsZ, layerHeight);
 	var end = new Date().getTime();
-
 	console.log("Slicing: " + (end - start) + "ms");
-
-	//still error in first layer, so remove first layer
-	//see https://github.com/Doodle3D/Doodle3D-Slicer/issues/1
 
 	var start = new Date().getTime();
 	var data = this.slicesToData(slices, printer);
 	var end = new Date().getTime();
-
 	console.log("Data: " + (end - start) + "ms");
 
 	var start = new Date().getTime();
 	var gcode = this.dataToGcode(data, printer);
 	var end = new Date().getTime();
-
 	console.log("Gcode: " + (end - start) + "ms");
 
 	return gcode;

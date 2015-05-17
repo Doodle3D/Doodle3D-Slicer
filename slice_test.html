@@ -56,7 +56,7 @@ var printerConfig = {
 	"printer.useSubLayers": true, //wat is dit?
 
 	"printer.wallThickness": 0.4, //nozzle
-	"printer.layerHeight": 0.3, 
+	"printer.layerHeight": 0.2, 
 
 	//variabele toevoegen;
 	//-snelheid, retraction etc voor verschillende types (outerlayer, innerlayer, fill)
@@ -77,18 +77,18 @@ var renderer = new THREE.WebGLRenderer({canvas: document.getElementById("3d-prev
 renderer.setClearColor(0xffffff, 1);
 
 var camera = new THREE.PerspectiveCamera(75, renderer.domElement.width/renderer.domElement.height, 1, 10000);
+scene.add(camera);
 
 var light = new THREE.AmbientLight(0x404040);
-scene.add(light );
+scene.add(light);
 
-var directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-directionalLight.position.set(0, 1, 1);
-scene.add(directionalLight);
+var directionalLight = new THREE.PointLight(0xffffff, 0.5);
+camera.add(directionalLight);
 
 applyMouseControls(renderer, camera, new THREE.Vector3(100, 0, 100), 1000);
 
 var loader = new THREE.STLLoader();
-loader.load("models/stanford_bunny.stl", function (geometry) {
+loader.load("models/pikachu.stl", function (geometry) {
 	//var geometry = new THREE.BoxGeometry(10, 10, 10, 1, 1, 1);
 	//var geometry = new THREE.SphereGeometry(10, 10, 10);
 	//var geometry = new THREE.TorusGeometry(20, 10, 30, 30);
@@ -134,7 +134,7 @@ loader.load("models/stanford_bunny.stl", function (geometry) {
 	var canvas = document.getElementById("canvas");
 	var context = canvas.getContext("2d");
 
-	var img = slicer.drawPaths(printer, 0, 1);
+	var img = slicer.drawPaths(printer, 5, 6);
 	context.drawImage(img, 0, 0);
 
 	gcode = slicer.getGcode(printer);
