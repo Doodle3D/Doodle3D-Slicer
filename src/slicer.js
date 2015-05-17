@@ -14,8 +14,6 @@
 
 D3D.Slicer = function () {
 	"use strict";
-
-	this.lines = [];
 };
 D3D.Slicer.prototype.setMesh = function (mesh) {
 	"use strict";
@@ -44,7 +42,8 @@ D3D.Slicer.prototype.setMesh = function (mesh) {
 	mesh.updateMatrix();
 	geometry.applyMatrix(mesh.matrix);
 	geometry.computeFaceNormals();
-
+	geometry.computeBoundingBox();
+	
 	this.geometry = geometry;
 
 	//get unique lines from geometry;
@@ -62,7 +61,7 @@ D3D.Slicer.prototype.createLines = function () {
 	function addLine (a, b) {
 
 		//think lookup can only be b_a, a_b is only possible when face is flipped
-		var index = lineLookup[a + "_" + b] || lineLookup[b + "_" + a];
+		var index = lineLookup[b + "_" + a] || lineLookup[a + "_" + b];
 
 		if (index === undefined) {
 			index = self.lines.length;
@@ -82,8 +81,8 @@ D3D.Slicer.prototype.createLines = function () {
 	for (var i = 0; i < this.geometry.faces.length; i ++) {
 		var face = this.geometry.faces[i];
 
-		//if (face.normal.y !== 1 && face.normal.y !== -1) {
-			var normal = new THREE.Vector2().set(face.normal.x, face.normal.z).normalize();
+		if (face.normal.y !== 1 && face.normal.y !== -1) {
+			var normal = new THREE.Vector2().set(face.normal.z, face.normal.x).normalize();
 
 			//check for only adding unique lines
 			//returns index of said line
@@ -99,7 +98,7 @@ D3D.Slicer.prototype.createLines = function () {
 			this.lines[a].normals.push(normal);
 			this.lines[b].normals.push(normal);
 			this.lines[c].normals.push(normal);
-		//}
+		}
 	}
 };
 D3D.Slicer.prototype.slice = function (height, step) {
@@ -126,6 +125,7 @@ D3D.Slicer.prototype.slice = function (height, step) {
 	var slices = [];
 
 	for (var layer = 1; layer < layersIntersections.length-1; layer ++) {
+	//for (var layer = 0; layer < layersIntersections.length; layer ++) {
 		var layerIntersections = layersIntersections[layer];
 		var y = layer*step;
 
@@ -138,11 +138,11 @@ D3D.Slicer.prototype.slice = function (height, step) {
 			var x = line.end.x * alpha + line.start.x * (1 - alpha);
 			var z = line.end.z * alpha + line.start.z * (1 - alpha);
 
-			intersections[index] = new THREE.Vector2(x, z);
+			intersections[index] = new THREE.Vector2(z, x);
 		}
 
 		var done = [];
-		var slice = new D3D.Paths([], true);
+		var slice = [];
 		for (var i = 0; i < layerIntersections.length; i ++) {
 			var index = layerIntersections[i];
 
@@ -327,6 +327,7 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 			else {
 				fill = fill.optimizePath(outerLayer.lastPoint());
 			}
+
 			if (fill.length > 0) {
 				start = fill.lastPoint();
 			}
@@ -353,12 +354,12 @@ D3D.Slicer.prototype.getFillTemplate = function (bounds, size, even, uneven) {
 	var paths = new D3D.Paths([], false);
 
 	if (even) {
-		for (var length = Math.floor(bounds.left); length <= Math.ceil(bounds.right); length += size) {
+		for (var length = Math.floor(bounds.left/size)*size; length <= Math.ceil(bounds.right/size)*size; length += size) {
 			paths.push([{X: length, Y: bounds.top}, {X: length, Y: bounds.bottom}]);
 		}
 	}
 	if (uneven) {
-		for (var length = Math.floor(bounds.top); length <= Math.floor(bounds.bottom); length += size) {
+		for (var length = Math.floor(bounds.top/size)*size; length <= Math.floor(bounds.bottom/size)*size; length += size) {
 			paths.push([{X: bounds.left, Y: length}, {X: bounds.right, Y: length}]);
 		}
 	}
@@ -524,13 +525,6 @@ D3D.Slicer.prototype.getGcode = function (printer) {
 	var end = new Date().getTime();
 
 	console.log("Data: " + (end - start) + "ms");
-
-	//return data;
-
-	//TODO
-	//make the path more optimized for 3d printers
-	//make the printer follow the shortest path from line to line
-	//see https://github.com/Ultimaker/CuraEngine#gcode-generation
 
 	var start = new Date().getTime();
 	var gcode = this.dataToGcode(data, printer);

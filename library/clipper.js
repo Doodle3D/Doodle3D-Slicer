@@ -2876,8 +2876,8 @@
   };
   ClipperLib.ClipperBase.prototype.AddPaths = function (ppg, polyType, closed)
   {
-    //  console.warn("-------------------------------------------");
-    //  console.warn(JSON.stringify(ppg));
+    //  console.log("-------------------------------------------");
+    //  console.log(JSON.stringify(ppg));
     var result = false;
     for (var i = 0, ilen = ppg.length; i < ilen; ++i)
       if (this.AddPath(ppg[i], polyType, closed))
@@ -3100,7 +3100,7 @@
       if (this.m_ExecuteLocked)
         return false;
       if (this.m_HasOpenPaths)
-        //ClipperLib.Error("Error: PolyTree struct is need for open path clipping.");
+        ClipperLib.Error("Error: PolyTree struct is need for open path clipping.");
       this.m_ExecuteLocked = true;
       ClipperLib.Clear(solution);
       this.m_SubjFillType = subjFillType;
@@ -3185,7 +3185,7 @@
         if (this.m_Scanbeam === null)
           break;
         var topY = this.PopScanbeam();
-        //console.warn("botY:" + botY + ", topY:" + topY);
+        //console.log("botY:" + botY + ", topY:" + topY);
         if (!this.ProcessIntersections(botY, topY))
           return false;
         this.ProcessEdgesAtTopOfScanbeam(topY);
@@ -4747,7 +4747,7 @@
       return;
     //prepare for sorting ...
     var e = this.m_ActiveEdges;
-    //console.warn(JSON.stringify(JSON.decycle( e )));
+    //console.log(JSON.stringify(JSON.decycle( e )));
     this.m_SortedEdges = e;
     while (e !== null)
     {
@@ -4766,13 +4766,13 @@
       {
         var eNext = e.NextInSEL;
         var pt = new ClipperLib.IntPoint();
-        //console.warn("e.Curr.X: " + e.Curr.X + " eNext.Curr.X" + eNext.Curr.X);
+        //console.log("e.Curr.X: " + e.Curr.X + " eNext.Curr.X" + eNext.Curr.X);
         if (e.Curr.X > eNext.Curr.X)
         {
           if (!this.IntersectPoint(e, eNext, pt) && e.Curr.X > eNext.Curr.X + 1)
           {
-            //console.warn("e.Curr.X: "+JSON.stringify(JSON.decycle( e.Curr.X )));
-            //console.warn("eNext.Curr.X+1: "+JSON.stringify(JSON.decycle( eNext.Curr.X+1)));
+            //console.log("e.Curr.X: "+JSON.stringify(JSON.decycle( e.Curr.X )));
+            //console.log("eNext.Curr.X+1: "+JSON.stringify(JSON.decycle( eNext.Curr.X+1)));
             ClipperLib.Error("Intersection error");
           }
           if (pt.Y > botY)
@@ -6469,7 +6469,7 @@
         if (solution.length > 0)
           solution.splice(0, 1);
       }
-      //console.warn(JSON.stringify(solution));
+      //console.log(JSON.stringify(solution));
     }
     else // function (polytree, delta)
     {
