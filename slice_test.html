@@ -48,27 +48,29 @@ var printerConfig = {
 	"printer.retraction.minDistance": 5, 
 	"printer.retraction.speed": 50, 
 	"printer.screenToMillimeterScale": 0.3, //????
-	"printer.speed": 70, 
 	"printer.startcode": ";Generated with Doodle3D (default)\nM109 S{printingTemp} ;set target temperature \n{if heatedBed}M190 S{printingBedTemp} ;set target bed temperature\nG21 ;metric values\nG91 ;relative positioning\nM107 ;start with the fan off\nG28 X0 Y0 ;move X/Y to min endstops\nG28 Z0 ;move Z to min endstops\nG1 Z15 F9000 ;move the platform down 15mm\nG92 E0 ;zero the extruded length\nG1 F200 E10 ;extrude 10mm of feed stock\nG92 E0 ;zero the extruded length again\nG92 E0 ;zero the extruded length again\nG1 F9000\nG90 ;absolute positioning\nM117 Printing Doodle...   ;display message (20 characters to clear whole screen)", 
 	"printer.temperature": 230, 
 	"printer.travelSpeed": 200, 
 	"printer.type": "ultimaker", 
 	"printer.useSubLayers": true, //wat is dit?
 
+	"printer.speed": 50, 
 	"printer.wallThickness": 0.4, //nozzle
 	"printer.layerHeight": 0.2, 
 
+
 	//variabele toevoegen;
 	//-snelheid, retraction etc voor verschillende types (outerlayer, innerlayer, fill)
+	"printer.bottomThickness": 0.4, 
+	"printer.topThickness": 0.8, 
 	"printer.shellThickness": 0.4, 
 	"printer.fillSize": 5, //dit is het raster aan de binnen kant van de geometry
-	"printer.brimOffset": 5, 
-	"printer.bottomTopThickness": 0.8 
+	"printer.brimOffset": 5
 };
 var printer = new D3D.Printer(printerConfig);
 
 var localIp = location.hash.substring(1);
-//var doodleBox = new D3D.Box(localIp);
+var doodleBox = new D3D.Box(localIp);
 //var printer = doodleBox.printer;
 
 var scene = new THREE.Scene();
@@ -88,7 +90,7 @@ camera.add(directionalLight);
 applyMouseControls(renderer, camera, new THREE.Vector3(100, 0, 100), 1000);
 
 var loader = new THREE.STLLoader();
-loader.load("models/pikachu.stl", function (geometry) {
+loader.load("models/d20.stl", function (geometry) {
 	//var geometry = new THREE.BoxGeometry(10, 10, 10, 1, 1, 1);
 	//var geometry = new THREE.SphereGeometry(10, 10, 10);
 	//var geometry = new THREE.TorusGeometry(20, 10, 30, 30);
@@ -122,6 +124,7 @@ loader.load("models/pikachu.stl", function (geometry) {
 	var mesh = new THREE.Mesh(geometry, material);
 	
 	mesh.rotation.x = -Math.PI/2;
+	//mesh.rotation.z = Math.PI;
 	mesh.scale.x = mesh.scale.y = mesh.scale.z = 1;
 	mesh.position.x = 100;
 	mesh.position.z = 100;
@@ -134,7 +137,7 @@ loader.load("models/pikachu.stl", function (geometry) {
 	var canvas = document.getElementById("canvas");
 	var context = canvas.getContext("2d");
 
-	var img = slicer.drawPaths(printer, 5, 6);
+	var img = slicer.drawPaths(printer, 0, 1);
 	context.drawImage(img, 0, 0);
 
 	gcode = slicer.getGcode(printer);

@@ -252,7 +252,11 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 	var shellThickness = printer.config["printer.shellThickness"] * scale;
 	var fillSize = printer.config["printer.fillSize"] * scale;
 	var brimOffset = printer.config["printer.brimOffset"] * scale;
-	var skinCount = Math.ceil(shellThickness/layerHeight);
+	var bottomThickness = printer.config["printer.bottomThickness"] * scale;
+	var topThickness = printer.config["printer.topThickness"] * scale;
+	
+	var bottomSkinCount = Math.ceil(bottomThickness/layerHeight);
+	var topSkinCount = Math.ceil(topThickness/layerHeight);
 
 	var start = new THREE.Vector2(0, 0);
 
@@ -272,15 +276,15 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 		data.push(layerData);
 		
 		var downSkin = new D3D.Paths([], true);
-		if (layer - skinCount >= 0) {
-			var downLayer = slices[layer - skinCount];
+		if (layer - bottomSkinCount >= 0) {
+			var downLayer = slices[layer - bottomSkinCount];
 			for (var i = 0; i < downLayer.length; i ++) {
 				downSkin.join(downLayer[i]);
 			}
 		}
 		var upSkin = new D3D.Paths([], true);
-		if (layer + skinCount < slices.length) {
-			var downLayer = slices[layer + skinCount];
+		if (layer + topSkinCount < slices.length) {
+			var downLayer = slices[layer + topSkinCount];
 			for (var i = 0; i < downLayer.length; i ++) {
 				upSkin.join(downLayer[i]);
 			}
@@ -291,60 +295,62 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 		for (var i = 0; i < slice.length; i ++) {
 			var part = slice[i];
 
-			var outerLayer = part.clone();
-			outerLayer.scaleUp(scale);
+			//var outerLayer = part.clone();
+			var outerLayer = part.clone().scaleUp(scale).offset(-wallThickness/2);
 
-			var insets = new D3D.Paths([], true);
-			for (var offset = wallThickness; offset <= shellThickness; offset += wallThickness) {
-				var inset = outerLayer.offset(-offset);
+			if (outerLayer.length > 0) {
+				var insets = new D3D.Paths([], true);
+				for (var offset = wallThickness; offset <= shellThickness; offset += wallThickness) {
+					var inset = outerLayer.offset(-offset);
 
-				insets.join(inset);
+					insets.join(inset);
+				}
+
+				var fillArea = (inset || outerLayer).offset(-wallThickness/2);
+				//var fillArea = (inset || outerLayer).clone();
+
+				var highFillArea = fillArea.difference(surroundingLayer);
+
+				var lowFillArea = fillArea.difference(highFillArea);
+
+				var fill = new D3D.Paths([], false);
+
+				if (lowFillTemplate.length > 0) {
+					fill.join(lowFillTemplate.intersect(lowFillArea));
+				}
+
+				if (highFillArea.length > 0) {
+					var bounds = highFillArea.bounds();
+					var even = (layer % 2 === 0);
+					var highFillTemplate = this.getFillTemplate(bounds, wallThickness, even, !even);
+					fill.join(highFillTemplate.intersect(highFillArea));
+				}
+				
+				outerLayer = outerLayer.optimizePath(start);
+				if (insets.length > 0) {
+					insets = insets.optimizePath(outerLayer.lastPoint());
+					fill = fill.optimizePath(insets.lastPoint());
+				}
+				else {
+					fill = fill.optimizePath(outerLayer.lastPoint());
+				}
+
+				if (fill.length > 0) {
+					start = fill.lastPoint();
+				}
+				else if (insets.length > 0) {
+					start = insets.lastPoint();
+				}
+				else {
+					start = outerLayer.lastPoint();
+				}
+				
+				layerData.push({
+					outerLayer: outerLayer.scaleDown(scale),
+					fill: fill.scaleDown(scale),
+					insets: insets.scaleDown(scale)
+				});
 			}
-
-			var fillArea = (inset || outerLayer).offset(-wallThickness/2);
-			//var fillArea = (inset || outerLayer).clone();
-
-			var highFillArea = fillArea.difference(surroundingLayer);
-
-			var lowFillArea = fillArea.difference(highFillArea);
-
-			var fill = new D3D.Paths([], false);
-
-			if (lowFillTemplate.length > 0) {
-				fill.join(lowFillTemplate.intersect(lowFillArea));
-			}
-
-			if (highFillArea.length > 0) {
-				var bounds = highFillArea.bounds();
-				var even = (layer % 2 === 0);
-				var highFillTemplate = this.getFillTemplate(bounds, wallThickness, even, !even);
-				fill.join(highFillTemplate.intersect(highFillArea));
-			}
-			
-			outerLayer = outerLayer.optimizePath(start);
-			if (insets.length > 0) {
-				insets = insets.optimizePath(outerLayer.lastPoint());
-				fill = fill.optimizePath(insets.lastPoint());
-			}
-			else {
-				fill = fill.optimizePath(outerLayer.lastPoint());
-			}
-
-			if (fill.length > 0) {
-				start = fill.lastPoint();
-			}
-			else if (insets.length > 0) {
-				start = insets.lastPoint();
-			}
-			else {
-				start = outerLayer.lastPoint();
-			}
-			
-			layerData.push({
-				outerLayer: outerLayer.scaleDown(scale),
-				fill: fill.scaleDown(scale),
-				insets: insets.scaleDown(scale)
-			});
 		}
 	}
 
