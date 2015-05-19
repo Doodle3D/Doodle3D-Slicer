@@ -69,3 +69,14 @@ function downloadFile (file, data) {
 	button.href = window.URL.createObjectURL(blob);
 	button.click();
 }
+
+Array.prototype.clone = function () {
+	"use strict";
+	var array = [];
+
+	for (var i = 0; i < this.length; i ++) {
+		array[i] = this[i];
+	}
+
+	return array;
+}

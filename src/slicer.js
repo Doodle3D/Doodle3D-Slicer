@@ -431,8 +431,8 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 					}
 				}
 				else {
-					var a = new THREE.Vector2().set(point.X, point.Y);
-					var b = new THREE.Vector2().set(previousPoint.X, previousPoint.Y);
+					var a = new THREE.Vector2(point.X, point.Y);
+					var b = new THREE.Vector2(previousPoint.X, previousPoint.Y);
 					var lineLength = a.distanceTo(b);
 
 					extruder += lineLength * wallThickness * layerHeight / filamentSurfaceArea * flowRate;
@@ -452,7 +452,7 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 		return gcode;
 	}
 
-	var gcode = printer.getStartCode().split("\n");
+	var gcode = printer.getStartCode();
 
 	var extruder = 0.0;
 	var speed = firstLayerSlow ? (bottomSpeed*60).toFixed(3) : (normalSpeed*60).toFixed(3);
@@ -480,7 +480,9 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 		}
 	}
 
-	return gcode.join("\n") + "\n" + printer.getEndCode();
+	gcode = gcode.concat(printer.getEndCode());
+
+	return gcode;
 };
 //only for debug purposes
 D3D.Slicer.prototype.drawPaths = function (printer, min, max) {
