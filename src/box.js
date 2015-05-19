@@ -16,13 +16,15 @@ D3D.Box = function (localIp) {
 	"use strict";
 	var self = this;
 
-	this.batchSize = 512;
-	this.maxBufferedLines = 4096;
+	this.batchSize = 1024 * 10;					//10kb
+	this.maxBufferSize = 1024 * 1024 * 2;		//2mb
+	this.bytesSend = 0;
 
 	this.localIp = localIp;
 	this.api = "http://" + localIp + "/d3dapi/";
 
 	this.config = {};
+	this.status = {};
 
 	this.printBatches = [];
 	this.currentBatch = 0;
@@ -59,7 +61,7 @@ D3D.Box.prototype.update = function () {
 	//Bij error wordt gelijk zelfde data opnieuw gestuurd
 	//Als DoodleBox ontkoppeld wordt komt er een error in de loop waardoor pagina breekt en ververst moet worden
 
-	if (this.printBatches.length > 0 && (this.printer.status["buffered_lines"] + this.batchSize) <= this.maxBufferedLines) {
+	if (this.printBatches.length > 0 && (this.status["buffered_lines"]*30 + this.batchSize) <= this.maxBufferSize) {
 	//if (this.printBatches.length > 0 ) {
 		this.printBatch();
 	}
@@ -73,7 +75,7 @@ D3D.Box.prototype.updateState = function () {
 	var self = this;
 
 	this.getInfoStatus(function (data) {
-		self.printer.status = data;
+		self.status = data;
 
 		if (self.onupdate !== undefined) {
 			self.onupdate(data);
@@ -87,12 +89,9 @@ D3D.Box.prototype.print = function (gcode) {
 
 	this.currentBatch = 0;
 
-	//clone gcode to remove array links
-	gcode = gcode.clone();
-
 	//gcode split in batches
-	while (gcode.length > 0) {
-		var gcodeBatch = gcode.splice(0, Math.min(this.batchSize, gcode.length));
+	for (var i = 0; i < gcode.length; i += this.batchSize) {
+		var gcodeBatch = gcode.substring(i, Math.min(i + this.batchSize, gcode.length));
 		this.printBatches.push(gcodeBatch);
 	}
 
@@ -107,7 +106,7 @@ D3D.Box.prototype.printBatch = function () {
 	this.setPrinterPrint({
 		"start": ((this.currentBatch === 0) ? true : false), 
 		"first": ((this.currentBatch === 0) ? true : false), 
-		"gcode": gcode.join("\n")
+		"gcode": gcode
 	}, function (data) {
 		console.log("batch sent: " + self.currentBatch, data);
 

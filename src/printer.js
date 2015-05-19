@@ -8,7 +8,6 @@
 D3D.Printer = function (config) {
 	"use strict";
 
-	this.status = {};
 	this.config = {};
 
 	this.updateConfig(config);	
@@ -30,7 +29,7 @@ D3D.Printer.prototype.getStartCode = function () {
 	var gcode = this.config["printer.startcode"];
 	gcode = this.subsituteVariables(gcode);
 
-	return gcode.split("\n");
+	return gcode;
 };
 D3D.Printer.prototype.getEndCode = function () {
 	"use strict";
@@ -38,7 +37,7 @@ D3D.Printer.prototype.getEndCode = function () {
 	var gcode = this.config["printer.endcode"];
 	gcode = this.subsituteVariables(gcode);
 
-	return gcode.split("\n");
+	return gcode;
 };
 D3D.Printer.prototype.subsituteVariables = function (gcode) {
 	"use strict";

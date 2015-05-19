@@ -163,7 +163,7 @@ D3D.Slicer.prototype.slice = function (height, step) {
 						index = connects[j];
 
 						if (intersections[index] && done.indexOf(index) === -1) {
-							var a = new THREE.Vector2().set(intersection.x, intersection.y);
+							var a = new THREE.Vector2(intersection.x, intersection.y);
 							var b = intersections[index];
 							var normal = a.sub(b).normal().normalize();
 							var faceNormal = faceNormals[Math.floor(j/2)];
@@ -248,13 +248,13 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 
 	var layerHeight = printer.config["printer.layerHeight"] * scale;
 	var dimensionsZ = printer.config["printer.dimensions.z"] * scale;
-	var wallThickness = printer.config["printer.wallThickness"] * scale;
+	var wallThickness = printer.config["printer.wallThickness"] * scale / 2;
 	var shellThickness = printer.config["printer.shellThickness"] * scale;
 	var fillSize = printer.config["printer.fillSize"] * scale;
 	var brimOffset = printer.config["printer.brimOffset"] * scale;
 	var bottomThickness = printer.config["printer.bottomThickness"] * scale;
 	var topThickness = printer.config["printer.topThickness"] * scale;
-	
+
 	var bottomSkinCount = Math.ceil(bottomThickness/layerHeight);
 	var topSkinCount = Math.ceil(topThickness/layerHeight);
 
@@ -452,7 +452,7 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 		return gcode;
 	}
 
-	var gcode = printer.getStartCode();
+	var gcode = printer.getStartCode().split("\n");
 
 	var extruder = 0.0;
 	var speed = firstLayerSlow ? (bottomSpeed*60).toFixed(3) : (normalSpeed*60).toFixed(3);
@@ -480,8 +480,7 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 		}
 	}
 
-	gcode = gcode.concat(printer.getEndCode());
-	return gcode;
+	return gcode.join("\n") + "\n" + printer.getEndCode();
 };
 //only for debug purposes
 D3D.Slicer.prototype.drawPaths = function (printer, min, max) {

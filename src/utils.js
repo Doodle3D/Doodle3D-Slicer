@@ -11,16 +11,6 @@ var D3D = {
 	"contact": "develop@doodle3d.com"
 };
 
-//add normal function to Three.js Vector class
-THREE.Vector2.prototype.normal = function () {
-	"use strict";
-
-	var x = this.y;
-	var y = -this.x;
-
-	return this.set(x, y);
-};
-
 function sendAPI (url, data, callback) {
 	"use strict";
 
@@ -72,20 +62,10 @@ function getAPI (url, callback) {
 function downloadFile (file, data) {
 	"use strict";
 
+	var blob = new Blob([data], {type:'text/plain'});
+
 	var button = document.createElement("a");
 	button.download = file;
-	button.href = "data:text/plain," + data;
+	button.href = window.URL.createObjectURL(blob);
 	button.click();
 }
-
-Array.prototype.clone = function () {
-	"use strict";
-	
-	var array = [];
-
-	for (var i = 0; i < this.length; i ++) {
-		array[i] = this[i];
-	}
-
-	return array;
-};
