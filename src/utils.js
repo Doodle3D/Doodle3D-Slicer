@@ -59,6 +59,20 @@ function getAPI (url, callback) {
 	});
 }
 
+function loadSettings (url, callback) {
+	"use strict";
+
+	$.ajax({
+		url: url, 
+		dataType: "json", 
+		success: function (response) {
+			if (callback !== undefined) {
+				callback(response);
+			}
+		}
+	});
+}
+
 function downloadFile (file, data) {
 	"use strict";
 

@@ -1,0 +1,18 @@
+{
+	"printer.retraction.speed": 50, 
+	"printer.retraction.minDistance": 5, 
+	"printer.retraction.amount": 3, 
+	"printer.retraction.enabled": true, 
+	"printer.speed": 50, 
+	"printer.wallThickness": 0.4, 
+	"printer.layerHeight": 0.3, 
+	"printer.bottomThickness": 0.4, 
+	"printer.topThickness": 0.8, 
+	"printer.shellThickness": 0.4, 
+	"printer.temperature": 230, 
+	"printer.travelSpeed": 200, 
+	"printer.fillSize": 5, 
+	"printer.firstLayerSlow": true, 
+	"printer.bottomLayerSpeed": 35, 
+	"printer.bottomFlowRate": 1.0
+}

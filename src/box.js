@@ -33,7 +33,6 @@ D3D.Box = function (localIp) {
 	this.getConfigAll(function (data) {
 		self.updateConfig(data);
 
-		self.printer = new D3D.Printer(data);
 		self.update();
 
 		self.loaded = true;
@@ -46,9 +45,7 @@ D3D.Box.prototype.updateConfig = function (config) {
 	"use strict";
 
 	for (var i in config) {
-		if (i.indexOf("doodle3d") === 0) {
-			this.config[i] = config[i];
-		}
+		this.config[i] = config[i];
 	}
 
 	return this;
@@ -174,12 +171,10 @@ D3D.Box.prototype.setConfig = function (data, callback) {
 
 	sendAPI(this.api + "config", data, function (response) {
 		for (var i in response.validation) {
-			if (response.validation[i] !== "ok") {
-				delete data[i];
+			if (response.validation[i] === "ok") {
+				self[i] = data[i];
 			}
 		}
-		self.updateConfig(data);
-		self.printer.updateConfig(data);
 
 		if (callback !== undefined) {
 			callback(response);

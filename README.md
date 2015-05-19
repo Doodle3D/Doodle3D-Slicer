@@ -10,18 +10,20 @@ This is an example of code.
 var localIp = "192.168.5.1";
 var doodleBox = new D3D.Box(localIp);
 
-var geometry = new THREE.BoxGeometry(20, 20, 20, 1, 1, 1);
-var material = new THREE.MeshBasicMaterial({color: 0x000000, wireframe: true});
-var mesh = new THREE.Mesh(geometry, material);
-mesh.position.x = 100;
-mesh.position.z = 100;
-mesh.position.y = 10;
-
 doodleBox.onload = function () {
   "use strict";
+	
+  var printer = new D3D.Printer(printerSettings, userSettings);
+
+  var geometry = new THREE.BoxGeometry(20, 20, 20, 1, 1, 1);
+  var material = new THREE.MeshBasicMaterial({color: 0x000000, wireframe: true});
+  var mesh = new THREE.Mesh(geometry, material);
+  mesh.position.x = 100;
+  mesh.position.z = 100;
+  mesh.position.y = 10;
   
   var slicer = new D3D.Slicer().setMesh(mesh);
-  var gcode = slicer.getGcode(doodleBox.printer);
+  var gcode = slicer.getGcode(printer);
   
   doodleBox.print(gcode);
 };

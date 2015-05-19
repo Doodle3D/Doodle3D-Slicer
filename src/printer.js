@@ -5,12 +5,13 @@
 *
 ******************************************************/
 
-D3D.Printer = function (config) {
+D3D.Printer = function (printerSettings, userSettings) {
 	"use strict";
 
 	this.config = {};
 
-	this.updateConfig(config);	
+	this.updateConfig(printerSettings);	
+	this.updateConfig(userSettings);
 };
 D3D.Printer.prototype.updateConfig = function (config) {
 	"use strict";

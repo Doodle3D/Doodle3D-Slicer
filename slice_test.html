@@ -26,172 +26,158 @@ canvas {border: 1px solid black;}
 <canvas id="canvas" width="400" height="400"></canvas>
 
 <script>
-//nieuwe config
-//geimplimenteerd worden in de doodlebox?
-var printer = new D3D.Printer({
-	"printer.baudrate": "115200", //wat is dit?
-	"printer.bottomFlowRate": 1.0, 
-	"printer.bottomLayerSpeed": 35, 
-	"printer.dimensions.x": 200, 
-	"printer.dimensions.y": 200, 
-	"printer.dimensions.z": 200, 
-	"printer.enableTraveling": true, //wat is dit?
-	"printer.endcode": "M107 ;fan off\nG91 ;relative positioning\nG1 E-1 F300 ;retract the filament a bit before lifting the nozzle, to release some of the pressure\nG1 Z+0.5 E-5 X-20 Y-20 F9000 ;move Z up a bit and retract filament even more\nG28 X0 Y0 ;move X/Y to min endstops, so the head is out of the way\nM84 ;disable axes / steppers\nG90 ;absolute positioning\nM104 S{preheatTemp}\n{if heatedBed}M140 S{preheatBedTemp}\nM117 Done                 ;display message (20 characters to clear whole screen)", 
-	"printer.filamentThickness": 2.89, 
-	"printer.firstLayerSlow": true, 
-	"printer.heatedbed": false, 
-	"printer.heatup.bed.temperature": 70, 
-	"printer.heatup.enabled": true, 
-	"printer.heatup.temperature": 180, 
-	"printer.retraction.amount": 3, 
-	"printer.retraction.minDistance": 5, 
-	"printer.retraction.speed": 50, 
-	"printer.screenToMillimeterScale": 0.3, //????
-	"printer.startcode": ";Generated with Doodle3D (default)\nM109 S{printingTemp} ;set target temperature \n{if heatedBed}M190 S{printingBedTemp} ;set target bed temperature\nG21 ;metric values\nG91 ;relative positioning\nM107 ;start with the fan off\nG28 X0 Y0 ;move X/Y to min endstops\nG28 Z0 ;move Z to min endstops\nG1 Z15 F9000 ;move the platform down 15mm\nG92 E0 ;zero the extruded length\nG1 F200 E10 ;extrude 10mm of feed stock\nG92 E0 ;zero the extruded length again\nG92 E0 ;zero the extruded length again\nG1 F9000\nG90 ;absolute positioning\nM117 Printing Doodle...   ;display message (20 characters to clear whole screen)", 
-	"printer.temperature": 230, 
-	"printer.travelSpeed": 200, 
-	"printer.type": "ultimaker", 
-	"printer.useSubLayers": true, //wat is dit?
+var USER_SETTINGS, PRINTER_SETTINGS;
 
-	"printer.retraction.enabled": true, 
-	"printer.speed": 50, 
-	"printer.wallThickness": 0.4, //nozzle
-	"printer.layerHeight": 0.3, 
+function init () {
+	"use strict";
+	var scene = createScene();
 
-	//variabele toevoegen;
-	//-snelheid, retraction etc voor verschillende types (outerlayer, innerlayer, fill)
-	"printer.bottomThickness": 0.4, 
-	"printer.topThickness": 0.8, 
-	"printer.shellThickness": 0.4, 
-	"printer.fillSize": 5, //dit is het raster aan de binnen kant van de geometry
-	"printer.brimOffset": 5
-});
+	var localIp = location.hash.substring(1);
+	var doodleBox = new D3D.Box(localIp);
 
-var localIp = location.hash.substring(1);
-var doodleBox = new D3D.Box(localIp);
-//var printer = doodleBox.printer;
+	var printer = new D3D.Printer(USER_SETTINGS, PRINTER_SETTINGS);
 
-var scene = new THREE.Scene();
+	var loader = new THREE.STLLoader();
+	loader.load("models/pikachu.stl", function (geometry) {
+		//var geometry = new THREE.BoxGeometry(10, 10, 10, 1, 1, 1);
+		//var geometry = new THREE.SphereGeometry(10, 10, 10);
+		//var geometry = new THREE.TorusGeometry(20, 10, 30, 30);
+		/*
+		var geometry = (function () {
+			"use strict";
 
-var renderer = new THREE.WebGLRenderer({canvas: document.getElementById("3d-preview"), antialias: true});
-renderer.setClearColor(0xffffff, 1);
+			var circle = new THREE.Shape();
+			circle.absarc(0, 0, 10, 0, Math.PI*2, false);
 
-var camera = new THREE.PerspectiveCamera(75, renderer.domElement.width/renderer.domElement.height, 1, 10000);
-scene.add(camera);
+			var hole = new THREE.Path();
+			hole.absarc(0, 0, 5, 0, Math.PI*2, true );
 
-var light = new THREE.AmbientLight(0x404040);
-scene.add(light);
+			circle.holes.push(hole);
 
-var directionalLight = new THREE.PointLight(0xffffff, 0.5);
-camera.add(directionalLight);
+			var matrix = new THREE.Matrix4();
+			matrix.makeRotationX(Math.PI*1.5);
 
-applyMouseControls(renderer, camera, new THREE.Vector3(100, 0, 100), 1000);
+			var geometry = new THREE.ExtrudeGeometry(circle, {
+				amount: 10, 
+				bevelEnabled: false, 
+				steps: 1
+			});
+			geometry.applyMatrix(matrix);
 
-var loader = new THREE.STLLoader();
-loader.load("models/pikachu.stl", function (geometry) {
-	//var geometry = new THREE.BoxGeometry(10, 10, 10, 1, 1, 1);
-	//var geometry = new THREE.SphereGeometry(10, 10, 10);
-	//var geometry = new THREE.TorusGeometry(20, 10, 30, 30);
-	/*
-	var geometry = (function () {
+			return geometry;
+		})();
+		*/
+		var material = new THREE.MeshPhongMaterial({color: 0x00ff00});
+		var mesh = new THREE.Mesh(geometry, material);
+		
+		mesh.rotation.x = -Math.PI/2;
+		//mesh.rotation.z = Math.PI;
+		mesh.scale.x = mesh.scale.y = mesh.scale.z = 1;
+		mesh.position.x = 100;
+		mesh.position.z = 100;
+
+		scene.add(mesh);
+
+		/*(var slicer = new D3D.Slicer().setMesh(mesh);
+
+		var canvas = document.getElementById("canvas");
+		var context = canvas.getContext("2d");
+
+		var img = slicer.drawPaths(printer, 0, 1);
+		context.drawImage(img, 0, 0);
+
+		gcode = slicer.getGcode(printer);*/
+	});
+}
+
+function createScene () {
+	var scene = new THREE.Scene();
+
+	var renderer = new THREE.WebGLRenderer({canvas: document.getElementById("3d-preview"), antialias: true});
+	renderer.setClearColor(0xffffff, 1);
+
+	var camera = new THREE.PerspectiveCamera(75, renderer.domElement.width/renderer.domElement.height, 1, 10000);
+	scene.add(camera);
+
+	var light = new THREE.AmbientLight(0x404040);
+	scene.add(light);
+
+	var directionalLight = new THREE.PointLight(0xffffff, 0.5);
+	camera.add(directionalLight);
+
+	applyMouseControls(renderer, camera, new THREE.Vector3(100, 0, 100), 1000);
+
+	(function animate () {
 		"use strict";
 
-		var circle = new THREE.Shape();
-		circle.absarc(0, 0, 10, 0, Math.PI*2, false);
-
-		var hole = new THREE.Path();
-		hole.absarc(0, 0, 5, 0, Math.PI*2, true );
-
-		circle.holes.push(hole);
-
-		var matrix = new THREE.Matrix4();
-		matrix.makeRotationX(Math.PI*1.5);
-
-		var geometry = new THREE.ExtrudeGeometry(circle, {
-			amount: 10, 
-			bevelEnabled: false, 
-			steps: 1
-		});
-		geometry.applyMatrix(matrix);
-
-		return geometry;
+		requestAnimationFrame(animate);
+		renderer.render(scene, camera);
 	})();
-	*/
-	var material = new THREE.MeshPhongMaterial({color: 0x00ff00});
-	var mesh = new THREE.Mesh(geometry, material);
-	
-	mesh.rotation.x = -Math.PI/2;
-	//mesh.rotation.z = Math.PI;
-	mesh.scale.x = mesh.scale.y = mesh.scale.z = 1;
-	mesh.position.x = 100;
-	mesh.position.z = 100;
 
-	scene.add(mesh);
+	function applyMouseControls (renderer, camera, center, maxDistance) {
+		var distance = 20;
+		var rotX = 0;
+		var rotY = 0;
+		var moveCamera = false;
 
-	slicer = new D3D.Slicer().setMesh(mesh);
+		function updateCamera () {
+			camera.position.set(
+				Math.cos(rotY)*Math.sin(rotX)*distance,
+				Math.sin(rotY)*distance,
+				Math.cos(rotY)*Math.cos(rotX)*distance
+			).add(center);
+			camera.lookAt(center);
+		}
 
-	var canvas = document.getElementById("canvas");
-	var context = canvas.getContext("2d");
+		$(renderer.domElement).on("mousedown", function (e) {
+			moveCamera = true;
+		}).on("wheel", function (e) {
+			var event = e.originalEvent;
 
-	var img = slicer.drawPaths(printer, 0, 1);
-	context.drawImage(img, 0, 0);
-
-	gcode = slicer.getGcode(printer);
-});
-
-(function animate () {
-	"use strict";
-
-	requestAnimationFrame(animate);
-	renderer.render(scene, camera);
-})();
-
-function applyMouseControls (renderer, camera, center, maxDistance) {
-	"use strict";
-	//TODO
-	//impliment touch controls
-	//windows mouse wheel fix
-
-	var distance = 20;
-	var rotX = 0;
-	var rotY = 0;
-	var moveCamera = false;
-
-	function updateCamera () {
-		camera.position.set(
-			Math.cos(rotY)*Math.sin(rotX)*distance,
-			Math.sin(rotY)*distance,
-			Math.cos(rotY)*Math.cos(rotX)*distance
-		).add(center);
-		camera.lookAt(center);
-	}
-
-	$(renderer.domElement).on("mousedown", function (e) {
-		moveCamera = true;
-	}).on("wheel", function (e) {
-		var event = e.originalEvent;
-
-		event.preventDefault();
-		distance = THREE.Math.clamp(distance - event.wheelDelta, 1, maxDistance);
-
-		updateCamera();
-	});
-
-	$(window).on("mouseup", function (e) {
-		moveCamera = false;
-	}).on("mousemove", function (e) {
-		var event = e.originalEvent;
-
-		if (moveCamera === true) {
-			rotX = (rotX - event.webkitMovementX/100) % (2*Math.PI);
-			rotY = THREE.Math.clamp(rotY + event.webkitMovementY/100, -Math.PI/2, Math.PI/2);
+			event.preventDefault();
+			distance = THREE.Math.clamp(distance - event.wheelDelta, 1, maxDistance);
 
 			updateCamera();
-		}
-	});
-	
-	updateCamera();
+		});
+
+		$(window).on("mouseup", function (e) {
+			moveCamera = false;
+		}).on("mousemove", function (e) {
+			var event = e.originalEvent;
+
+			if (moveCamera === true) {
+				rotX = (rotX - event.webkitMovementX/100) % (2*Math.PI);
+				rotY = THREE.Math.clamp(rotY + event.webkitMovementY/100, -Math.PI/2, Math.PI/2);
+
+				updateCamera();
+			}
+		});
+		
+		updateCamera();
+	}
+
+	return scene;
 }
+
+//loadSettings;
+(function () {
+	var loadedItems = 0;
+	function loaded () {
+		loadedItems ++;
+		if (loadedItems === 2) {
+			init();
+		}
+	}
+
+	loadSettings("settings/user_settings.json", function (data) {
+		USER_SETTINGS = data;
+		loaded();
+	});
+	loadSettings("settings/printer_settings.json", function (data) {
+		PRINTER_SETTINGS = data;
+		loaded();
+	});
+})();
 </script>
 
 </body>

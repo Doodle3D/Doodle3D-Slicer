@@ -11,16 +11,6 @@ var D3D = {
 	"contact": "develop@doodle3d.com"
 };
 
-//add normal function to Three.js Vector class
-THREE.Vector2.prototype.normal = function () {
-	"use strict";
-
-	var x = this.y;
-	var y = -this.x;
-
-	return this.set(x, y);
-};
-
 function sendAPI (url, data, callback) {
 	"use strict";
 
@@ -69,18 +59,33 @@ function getAPI (url, callback) {
 	});
 }
 
+function loadSettings (url, callback) {
+	"use strict";
+
+	$.ajax({
+		url: url, 
+		dataType: "json", 
+		success: function (response) {
+			if (callback !== undefined) {
+				callback(response);
+			}
+		}
+	});
+}
+
 function downloadFile (file, data) {
 	"use strict";
-	
-	$(document.createElement("a")).attr({
-		download: file, 
-		href: "data:text/plain," + data
-	})[0].click();
+
+	var blob = new Blob([data], {type:'text/plain'});
+
+	var button = document.createElement("a");
+	button.download = file;
+	button.href = window.URL.createObjectURL(blob);
+	button.click();
 }
 
 Array.prototype.clone = function () {
 	"use strict";
-	
 	var array = [];
 
 	for (var i = 0; i < this.length; i ++) {
@@ -88,7 +93,7 @@ Array.prototype.clone = function () {
 	}
 
 	return array;
-};
+}
 /******************************************************
 *
 * Box
@@ -114,6 +119,7 @@ D3D.Box = function (localIp) {
 	this.api = "http://" + localIp + "/d3dapi/";
 
 	this.config = {};
+	this.status = {};
 
 	this.printBatches = [];
 	this.currentBatch = 0;
@@ -123,7 +129,6 @@ D3D.Box = function (localIp) {
 	this.getConfigAll(function (data) {
 		self.updateConfig(data);
 
-		self.printer = new D3D.Printer(data);
 		self.update();
 
 		self.loaded = true;
@@ -136,9 +141,7 @@ D3D.Box.prototype.updateConfig = function (config) {
 	"use strict";
 
 	for (var i in config) {
-		if (i.indexOf("doodle3d") === 0) {
-			this.config[i] = config[i];
-		}
+		this.config[i] = config[i];
 	}
 
 	return this;
@@ -150,7 +153,7 @@ D3D.Box.prototype.update = function () {
 	//Bij error wordt gelijk zelfde data opnieuw gestuurd
 	//Als DoodleBox ontkoppeld wordt komt er een error in de loop waardoor pagina breekt en ververst moet worden
 
-	if (this.printBatches.length > 0 && (this.printer.status["buffered_lines"] + this.batchSize) <= this.maxBufferedLines) {
+	if (this.printBatches.length > 0 && (this.status["buffered_lines"] + this.batchSize) <= this.maxBufferedLines) {
 	//if (this.printBatches.length > 0 ) {
 		this.printBatch();
 	}
@@ -164,7 +167,7 @@ D3D.Box.prototype.updateState = function () {
 	var self = this;
 
 	this.getInfoStatus(function (data) {
-		self.printer.status = data;
+		self.status = data;
 
 		if (self.onupdate !== undefined) {
 			self.onupdate(data);
@@ -264,12 +267,10 @@ D3D.Box.prototype.setConfig = function (data, callback) {
 
 	sendAPI(this.api + "config", data, function (response) {
 		for (var i in response.validation) {
-			if (response.validation[i] !== "ok") {
-				delete data[i];
+			if (response.validation[i] === "ok") {
+				self[i] = data[i];
 			}
 		}
-		self.updateConfig(data);
-		self.printer.updateConfig(data);
 
 		if (callback !== undefined) {
 			callback(response);
@@ -497,13 +498,13 @@ D3D.Box.prototype.setUpdateClear = function (callback) {
 *
 ******************************************************/
 
-D3D.Printer = function (config) {
+D3D.Printer = function (printerSettings, userSettings) {
 	"use strict";
 
-	this.status = {};
 	this.config = {};
 
-	this.updateConfig(config);	
+	this.updateConfig(printerSettings);	
+	this.updateConfig(userSettings);
 };
 D3D.Printer.prototype.updateConfig = function (config) {
 	"use strict";
@@ -793,8 +794,6 @@ D3D.Paths.prototype.draw = function (context, color) {
 
 D3D.Slicer = function () {
 	"use strict";
-
-	this.lines = [];
 };
 D3D.Slicer.prototype.setMesh = function (mesh) {
 	"use strict";
@@ -823,7 +822,8 @@ D3D.Slicer.prototype.setMesh = function (mesh) {
 	mesh.updateMatrix();
 	geometry.applyMatrix(mesh.matrix);
 	geometry.computeFaceNormals();
-
+	geometry.computeBoundingBox();
+	
 	this.geometry = geometry;
 
 	//get unique lines from geometry;
@@ -841,7 +841,7 @@ D3D.Slicer.prototype.createLines = function () {
 	function addLine (a, b) {
 
 		//think lookup can only be b_a, a_b is only possible when face is flipped
-		var index = lineLookup[a + "_" + b] || lineLookup[b + "_" + a];
+		var index = lineLookup[b + "_" + a] || lineLookup[a + "_" + b];
 
 		if (index === undefined) {
 			index = self.lines.length;
@@ -861,8 +861,8 @@ D3D.Slicer.prototype.createLines = function () {
 	for (var i = 0; i < this.geometry.faces.length; i ++) {
 		var face = this.geometry.faces[i];
 
-		//if (face.normal.y !== 1 && face.normal.y !== -1) {
-			var normal = new THREE.Vector2().set(face.normal.x, face.normal.z).normalize();
+		if (face.normal.y !== 1 && face.normal.y !== -1) {
+			var normal = new THREE.Vector2().set(face.normal.z, face.normal.x).normalize();
 
 			//check for only adding unique lines
 			//returns index of said line
@@ -878,7 +878,7 @@ D3D.Slicer.prototype.createLines = function () {
 			this.lines[a].normals.push(normal);
 			this.lines[b].normals.push(normal);
 			this.lines[c].normals.push(normal);
-		//}
+		}
 	}
 };
 D3D.Slicer.prototype.slice = function (height, step) {
@@ -904,7 +904,10 @@ D3D.Slicer.prototype.slice = function (height, step) {
 
 	var slices = [];
 
+	//still error in first layer, so remove first layer & last layer
+	//see https://github.com/Doodle3D/Doodle3D-Slicer/issues/1
 	for (var layer = 1; layer < layersIntersections.length-1; layer ++) {
+	//for (var layer = 0; layer < layersIntersections.length; layer ++) {
 		var layerIntersections = layersIntersections[layer];
 		var y = layer*step;
 
@@ -917,11 +920,11 @@ D3D.Slicer.prototype.slice = function (height, step) {
 			var x = line.end.x * alpha + line.start.x * (1 - alpha);
 			var z = line.end.z * alpha + line.start.z * (1 - alpha);
 
-			intersections[index] = new THREE.Vector2(x, z);
+			intersections[index] = new THREE.Vector2(z, x);
 		}
 
 		var done = [];
-		var slice = new D3D.Paths([], true);
+		var slice = [];
 		for (var i = 0; i < layerIntersections.length; i ++) {
 			var index = layerIntersections[i];
 
@@ -940,7 +943,7 @@ D3D.Slicer.prototype.slice = function (height, step) {
 						index = connects[j];
 
 						if (intersections[index] && done.indexOf(index) === -1) {
-							var a = new THREE.Vector2().set(intersection.x, intersection.y);
+							var a = new THREE.Vector2(intersection.x, intersection.y);
 							var b = intersections[index];
 							var normal = a.sub(b).normal().normalize();
 							var faceNormal = faceNormals[Math.floor(j/2)];
@@ -1025,21 +1028,25 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 
 	var layerHeight = printer.config["printer.layerHeight"] * scale;
 	var dimensionsZ = printer.config["printer.dimensions.z"] * scale;
-	var wallThickness = printer.config["printer.wallThickness"] * scale;
+	var wallThickness = printer.config["printer.wallThickness"] * scale / 2;
 	var shellThickness = printer.config["printer.shellThickness"] * scale;
 	var fillSize = printer.config["printer.fillSize"] * scale;
 	var brimOffset = printer.config["printer.brimOffset"] * scale;
-	var skinCount = Math.ceil(shellThickness/layerHeight);
+	var bottomThickness = printer.config["printer.bottomThickness"] * scale;
+	var topThickness = printer.config["printer.topThickness"] * scale;
+
+	var bottomSkinCount = Math.ceil(bottomThickness/layerHeight);
+	var topSkinCount = Math.ceil(topThickness/layerHeight);
 
 	var start = new THREE.Vector2(0, 0);
 
 	var data = [];
 
 	var lowFillTemplate = this.getFillTemplate({
-		left: 0, 
-		top: 0, 
-		right: dimensionsZ, 
-		bottom: dimensionsZ
+		left: this.geometry.boundingBox.min.z * scale, 
+		top: this.geometry.boundingBox.min.x * scale, 
+		right: this.geometry.boundingBox.max.z * scale, 
+		bottom: this.geometry.boundingBox.max.x * scale
 	}, fillSize, true, true);
 
 	for (var layer = 0; layer < slices.length; layer ++) {
@@ -1049,78 +1056,81 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 		data.push(layerData);
 		
 		var downSkin = new D3D.Paths([], true);
-		if (layer - skinCount >= 0) {
-			var downLayer = slices[layer - skinCount];
+		if (layer - bottomSkinCount >= 0) {
+			var downLayer = slices[layer - bottomSkinCount];
 			for (var i = 0; i < downLayer.length; i ++) {
 				downSkin.join(downLayer[i]);
 			}
 		}
 		var upSkin = new D3D.Paths([], true);
-		if (layer + skinCount < slices.length) {
-			var downLayer = slices[layer + skinCount];
+		if (layer + topSkinCount < slices.length) {
+			var downLayer = slices[layer + topSkinCount];
 			for (var i = 0; i < downLayer.length; i ++) {
 				upSkin.join(downLayer[i]);
 			}
 		}
-		var surroundingLayer = upSkin.intersect(downSkin).clone().scaleUp(scale);
+		var surroundingLayer = upSkin.intersect(downSkin).scaleUp(scale);
 		var sliceData = [];
 
 		for (var i = 0; i < slice.length; i ++) {
 			var part = slice[i];
 
-			var outerLayer = part.clone();
-			outerLayer.scaleUp(scale);
+			//var outerLayer = part.clone();
+			var outerLayer = part.clone().scaleUp(scale).offset(-wallThickness/2);
 
-			var insets = new D3D.Paths([], true);
-			for (var offset = wallThickness; offset <= shellThickness; offset += wallThickness) {
-				var inset = outerLayer.offset(-offset);
+			if (outerLayer.length > 0) {
+				var insets = new D3D.Paths([], true);
+				for (var offset = wallThickness; offset <= shellThickness; offset += wallThickness) {
+					var inset = outerLayer.offset(-offset);
 
-				insets.join(inset);
-			}
+					insets.join(inset);
+				}
 
-			var fillArea = (inset || outerLayer).offset(-wallThickness/2);
-			//var fillArea = (inset || outerLayer).clone();
+				var fillArea = (inset || outerLayer).offset(-wallThickness/2);
+				//var fillArea = (inset || outerLayer).clone();
 
-			var highFillArea = fillArea.difference(surroundingLayer);
+				var highFillArea = fillArea.difference(surroundingLayer);
 
-			var lowFillArea = fillArea.difference(highFillArea);
+				var lowFillArea = fillArea.difference(highFillArea);
 
-			var fill = new D3D.Paths([], false);
+				var fill = new D3D.Paths([], false);
 
-			if (lowFillTemplate.length > 0) {
-				fill.join(lowFillTemplate.intersect(lowFillArea));
-			}
+				if (lowFillTemplate.length > 0) {
+					fill.join(lowFillTemplate.intersect(lowFillArea));
+				}
 
-			if (highFillArea.length > 0) {
-				var bounds = highFillArea.bounds();
-				var even = (layer % 2 === 0);
-				var highFillTemplate = this.getFillTemplate(bounds, wallThickness, even, !even);
-				fill.join(highFillTemplate.intersect(highFillArea));
+				if (highFillArea.length > 0) {
+					var bounds = highFillArea.bounds();
+					var even = (layer % 2 === 0);
+					var highFillTemplate = this.getFillTemplate(bounds, wallThickness, even, !even);
+					fill.join(highFillTemplate.intersect(highFillArea));
+				}
+				
+				outerLayer = outerLayer.optimizePath(start);
+				if (insets.length > 0) {
+					insets = insets.optimizePath(outerLayer.lastPoint());
+					fill = fill.optimizePath(insets.lastPoint());
+				}
+				else {
+					fill = fill.optimizePath(outerLayer.lastPoint());
+				}
+
+				if (fill.length > 0) {
+					start = fill.lastPoint();
+				}
+				else if (insets.length > 0) {
+					start = insets.lastPoint();
+				}
+				else {
+					start = outerLayer.lastPoint();
+				}
+				
+				layerData.push({
+					outerLayer: outerLayer.scaleDown(scale),
+					fill: fill.scaleDown(scale),
+					insets: insets.scaleDown(scale)
+				});
 			}
-			
-			outerLayer = outerLayer.optimizePath(start);
-			if (insets.length > 0) {
-				insets = insets.optimizePath(outerLayer.lastPoint());
-				fill = fill.optimizePath(insets.lastPoint());
-			}
-			else {
-				fill = fill.optimizePath(outerLayer.lastPoint());
-			}
-			if (fill.length > 0) {
-				start = fill.lastPoint();
-			}
-			else if (insets.length > 0) {
-				start = insets.lastPoint();
-			}
-			else {
-				start = outerLayer.lastPoint();
-			}
-			
-			layerData.push({
-				outerLayer: outerLayer.scaleDown(scale),
-				fill: fill.scaleDown(scale),
-				insets: insets.scaleDown(scale)
-			});
 		}
 	}
 
@@ -1132,12 +1142,12 @@ D3D.Slicer.prototype.getFillTemplate = function (bounds, size, even, uneven) {
 	var paths = new D3D.Paths([], false);
 
 	if (even) {
-		for (var length = Math.floor(bounds.left); length <= Math.ceil(bounds.right); length += size) {
+		for (var length = Math.floor(bounds.left/size)*size; length <= Math.ceil(bounds.right/size)*size; length += size) {
 			paths.push([{X: length, Y: bounds.top}, {X: length, Y: bounds.bottom}]);
 		}
 	}
 	if (uneven) {
-		for (var length = Math.floor(bounds.top); length <= Math.floor(bounds.bottom); length += size) {
+		for (var length = Math.floor(bounds.top/size)*size; length <= Math.floor(bounds.bottom/size)*size; length += size) {
 			paths.push([{X: bounds.left, Y: length}, {X: bounds.right, Y: length}]);
 		}
 	}
@@ -1201,8 +1211,8 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 					}
 				}
 				else {
-					var a = new THREE.Vector2().set(point.X, point.Y);
-					var b = new THREE.Vector2().set(previousPoint.X, previousPoint.Y);
+					var a = new THREE.Vector2(point.X, point.Y);
+					var b = new THREE.Vector2(previousPoint.X, previousPoint.Y);
 					var lineLength = a.distanceTo(b);
 
 					extruder += lineLength * wallThickness * layerHeight / filamentSurfaceArea * flowRate;
@@ -1251,6 +1261,7 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 	}
 
 	gcode = gcode.concat(printer.getEndCode());
+
 	return gcode;
 };
 //only for debug purposes
@@ -1292,29 +1303,16 @@ D3D.Slicer.prototype.getGcode = function (printer) {
 	var start = new Date().getTime();
 	var slices = this.slice(dimensionsZ, layerHeight);
 	var end = new Date().getTime();
-
 	console.log("Slicing: " + (end - start) + "ms");
-
-	//still error in first layer, so remove first layer
-	//see https://github.com/Doodle3D/Doodle3D-Slicer/issues/1
 
 	var start = new Date().getTime();
 	var data = this.slicesToData(slices, printer);
 	var end = new Date().getTime();
-
 	console.log("Data: " + (end - start) + "ms");
-
-	//return data;
-
-	//TODO
-	//make the path more optimized for 3d printers
-	//make the printer follow the shortest path from line to line
-	//see https://github.com/Ultimaker/CuraEngine#gcode-generation
 
 	var start = new Date().getTime();
 	var gcode = this.dataToGcode(data, printer);
 	var end = new Date().getTime();
-
 	console.log("Gcode: " + (end - start) + "ms");
 
 	return gcode;
