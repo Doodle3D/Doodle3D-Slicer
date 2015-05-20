@@ -3,6 +3,7 @@
 * Path
 *
 * Abstraction layer for annoying clipper js
+* ! inherrits from Array !
 *
 ******************************************************/
 

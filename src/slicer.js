@@ -101,23 +101,23 @@ D3D.Slicer.prototype.createLines = function () {
 		}
 	}
 };
-D3D.Slicer.prototype.slice = function (height, step) {
+D3D.Slicer.prototype.slice = function (layerHeight, height) {
 	"use strict";
 
 	var layersIntersections = [];
 
-	for (var i = 0; i < this.lines.length; i ++) {
-		var line = this.lines[i];
+	for (var lineIndex = 0; lineIndex < this.lines.length; lineIndex ++) {
+		var line = this.lines[lineIndex];
 
-		var min = Math.ceil(Math.min(line.line.start.y, line.line.end.y) / step);
-		var max = Math.floor(Math.max(line.line.start.y, line.line.end.y) / step);
+		var min = Math.ceil(Math.min(line.line.start.y, line.line.end.y) / layerHeight);
+		var max = Math.floor(Math.max(line.line.start.y, line.line.end.y) / layerHeight);
 
 		for (var layerIndex = min; layerIndex <= max; layerIndex ++) {
 			if (layerIndex >= 0) {
 				if (layersIntersections[layerIndex] === undefined) {
 					layersIntersections[layerIndex] = [];
 				}
-				layersIntersections[layerIndex].push(i);
+				layersIntersections[layerIndex].push(lineIndex);
 			}
 		}
 	}
@@ -129,7 +129,7 @@ D3D.Slicer.prototype.slice = function (height, step) {
 	for (var layer = 1; layer < layersIntersections.length-1; layer ++) {
 	//for (var layer = 0; layer < layersIntersections.length; layer ++) {
 		var layerIntersections = layersIntersections[layer];
-		var y = layer*step;
+		var y = layer*layerHeight;
 
 		var intersections = [];
 		for (var i = 0; i < layerIntersections.length; i ++) {
@@ -248,7 +248,7 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 
 	var layerHeight = printer.config["printer.layerHeight"] * scale;
 	var dimensionsZ = printer.config["printer.dimensions.z"] * scale;
-	var wallThickness = printer.config["printer.wallThickness"] * scale / 2;
+	var nozzleDiameter = printer.config["printer.nozzleDiameter"] * scale;
 	var shellThickness = printer.config["printer.shellThickness"] * scale;
 	var fillSize = printer.config["printer.fillSize"] * scale;
 	var brimOffset = printer.config["printer.brimOffset"] * scale;
@@ -257,6 +257,7 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 
 	var bottomSkinCount = Math.ceil(bottomThickness/layerHeight);
 	var topSkinCount = Math.ceil(topThickness/layerHeight);
+	var nozzleRadius = nozzleDiameter / 2;
 
 	var start = new THREE.Vector2(0, 0);
 
@@ -296,21 +297,19 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 			var part = slice[i];
 
 			//var outerLayer = part.clone();
-			var outerLayer = part.clone().scaleUp(scale).offset(-wallThickness/2);
+			var outerLayer = part.clone().scaleUp(scale).offset(-nozzleRadius);
 
 			if (outerLayer.length > 0) {
 				var insets = new D3D.Paths([], true);
-				for (var offset = wallThickness; offset <= shellThickness; offset += wallThickness) {
+				for (var offset = nozzleDiameter; offset <= shellThickness; offset += nozzleDiameter) {
 					var inset = outerLayer.offset(-offset);
 
 					insets.join(inset);
 				}
 
-				var fillArea = (inset || outerLayer).offset(-wallThickness/2);
+				var fillArea = (inset || outerLayer).offset(-nozzleRadius);
 				//var fillArea = (inset || outerLayer).clone();
-
 				var highFillArea = fillArea.difference(surroundingLayer);
-
 				var lowFillArea = fillArea.difference(highFillArea);
 
 				var fill = new D3D.Paths([], false);
@@ -322,10 +321,10 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 				if (highFillArea.length > 0) {
 					var bounds = highFillArea.bounds();
 					var even = (layer % 2 === 0);
-					var highFillTemplate = this.getFillTemplate(bounds, wallThickness, even, !even);
+					var highFillTemplate = this.getFillTemplate(bounds, nozzleDiameter, even, !even);
 					fill.join(highFillTemplate.intersect(highFillArea));
 				}
-				
+
 				outerLayer = outerLayer.optimizePath(start);
 				if (insets.length > 0) {
 					insets = insets.optimizePath(outerLayer.lastPoint());
@@ -344,7 +343,7 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 				else {
 					start = outerLayer.lastPoint();
 				}
-				
+
 				layerData.push({
 					outerLayer: outerLayer.scaleDown(scale),
 					fill: fill.scaleDown(scale),
@@ -383,9 +382,10 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 	var bottomSpeed = printer.config["printer.bottomLayerSpeed"];
 	var firstLayerSlow = printer.config["printer.firstLayerSlow"];
 	var bottomFlowRate = printer.config["printer.bottomFlowRate"];
+	var normalFlowRate = printer.config["printer.normalFlowRate"];
 	var travelSpeed = printer.config["printer.travelSpeed"];
 	var filamentThickness = printer.config["printer.filamentThickness"];
-	var wallThickness = printer.config["printer.wallThickness"];
+	var nozzleDiameter = printer.config["printer.nozzleDiameter"];
 	var enableTraveling = printer.config["printer.enableTraveling"];
 	var retractionEnabled = printer.config["printer.retraction.enabled"];
 	var retractionSpeed = printer.config["printer.retraction.speed"];
@@ -435,7 +435,7 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 					var b = new THREE.Vector2(previousPoint.X, previousPoint.Y);
 					var lineLength = a.distanceTo(b);
 
-					extruder += lineLength * wallThickness * layerHeight / filamentSurfaceArea * flowRate;
+					extruder += lineLength * nozzleDiameter * layerHeight / filamentSurfaceArea * flowRate;
 
 					gcode.push([
 						"G1", 
@@ -462,11 +462,11 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 	for (var layer = 0; layer < data.length; layer ++) {
 		var slice = data[layer];
 
-		//turn on fan on layer 2
-		if (layer === 2) {
+		//turn on fan on layer 1
+		if (layer === 1) {
 			gcode.push("M106");
 			speed = (normalSpeed*60).toFixed(3);
-			flowRate = 1;
+			flowRate = normalFlowRate;
 		}
 
 		var z = ((layer + 1) * layerHeight).toFixed(3);
@@ -491,7 +491,7 @@ D3D.Slicer.prototype.drawPaths = function (printer, min, max) {
 	var layerHeight = printer.config["printer.layerHeight"];
 	var dimensionsZ = printer.config["printer.dimensions.z"];
 
-	var slices = this.slice(dimensionsZ, layerHeight);
+	var slices = this.slice(layerHeight, dimensionsZ);
 
 	var data = this.slicesToData(slices, printer);
 
@@ -521,18 +521,18 @@ D3D.Slicer.prototype.getGcode = function (printer) {
 	var dimensionsZ = printer.config["printer.dimensions.z"];
 
 	var start = new Date().getTime();
-	var slices = this.slice(dimensionsZ, layerHeight);
+	var slices = this.slice(layerHeight, dimensionsZ);
 	var end = new Date().getTime();
 	console.log("Slicing: " + (end - start) + "ms");
 
-	var start = new Date().getTime();
+	start = new Date().getTime();
 	var data = this.slicesToData(slices, printer);
-	var end = new Date().getTime();
+	end = new Date().getTime();
 	console.log("Data: " + (end - start) + "ms");
 
-	var start = new Date().getTime();
+	start = new Date().getTime();
 	var gcode = this.dataToGcode(data, printer);
-	var end = new Date().getTime();
+	end = new Date().getTime();
 	console.log("Gcode: " + (end - start) + "ms");
 
 	return gcode;
