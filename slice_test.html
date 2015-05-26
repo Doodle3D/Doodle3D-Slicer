@@ -26,7 +26,6 @@ canvas {border: 1px solid black;}
 <canvas id="canvas" width="400" height="400"></canvas>
 
 <script>
-
 var USER_SETTINGS, PRINTER_SETTINGS, doodleBox, gcode;
 
 function init () {
@@ -39,10 +38,10 @@ function init () {
 	var printer = new D3D.Printer(USER_SETTINGS, PRINTER_SETTINGS["ultimaker"]);
 
 	var loader = new THREE.STLLoader();
-	loader.load("models/diamond.stl", function (geometry) {
+	loader.load("models/pokemon/pikachu.stl", function (geometry) {
 		//var geometry = new THREE.BoxGeometry(10, 10, 10, 1, 1, 1);
-		//var geometry = new THREE.SphereGeometry(10, 10, 10);
-		var geometry = new THREE.TorusGeometry(20, 10, 30, 30);
+		//var geometry = new THREE.SphereGeometry(10, 20, 10);
+		//var geometry = new THREE.TorusGeometry(20, 10, 30, 30);
 		/*
 		var geometry = (function () {
 			"use strict";
@@ -68,9 +67,10 @@ function init () {
 			return geometry;
 		})();
 		*/
-		var material = new THREE.MeshPhongMaterial({color: 0x00ff00, wireframe: true});
+		var material = new THREE.MeshPhongMaterial({color: 0x00ff00, wireframe: false});
 		var mesh = new THREE.Mesh(geometry, material);
 		
+		mesh.rotation.x = -Math.PI/2;
 		mesh.scale.x = mesh.scale.y = mesh.scale.z = 1;
 		mesh.position.x = 100;
 		mesh.position.z = 100;
@@ -165,7 +165,7 @@ function createScene () {
 	function loaded () {
 		loadedItems ++;
 		if (loadedItems === 2) {
-			//init();
+			init();
 		}
 	}
 

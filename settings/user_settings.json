@@ -7,7 +7,7 @@
 	"printer.firstLayerSlow": true, 
 	"printer.layerHeight": 0.2, 	
 	"printer.retraction.amount": 3, 
-	"printer.retraction.enabled": false, 
+	"printer.retraction.enabled": true, 
 	"printer.retraction.speed": 50, 
 	"printer.retraction.minDistance": 5, 
 	"printer.shellThickness": 0.4, 

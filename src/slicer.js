@@ -107,10 +107,10 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 	var layersIntersections = [];
 
 	for (var lineIndex = 0; lineIndex < this.lines.length; lineIndex ++) {
-		var line = this.lines[lineIndex];
+		var line = this.lines[lineIndex].line;
 
-		var min = Math.ceil(Math.min(line.line.start.y, line.line.end.y) / layerHeight);
-		var max = Math.floor(Math.max(line.line.start.y, line.line.end.y) / layerHeight);
+		var min = Math.ceil(Math.min(line.start.y, line.end.y) / layerHeight);
+		var max = Math.floor(Math.max(line.start.y, line.end.y) / layerHeight);
 
 		for (var layerIndex = min; layerIndex <= max; layerIndex ++) {
 			if (layerIndex >= 0) {
@@ -285,9 +285,9 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 		}
 		var upSkin = new D3D.Paths([], true);
 		if (layer + topSkinCount < slices.length) {
-			var downLayer = slices[layer + topSkinCount];
-			for (var i = 0; i < downLayer.length; i ++) {
-				upSkin.join(downLayer[i]);
+			var upLayer = slices[layer + topSkinCount];
+			for (var i = 0; i < upLayer.length; i ++) {
+				upSkin.join(upLayer[i]);
 			}
 		}
 		var surroundingLayer = upSkin.intersect(downSkin).scaleUp(scale);
@@ -392,15 +392,15 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 	var retractionMinDistance = printer.config["printer.retraction.minDistance"];
 	var retractionAmount = printer.config["printer.retraction.amount"];
 
-	function sliceToGcode (slice) {
+	function sliceToGcode (path) {
 		var gcode = [];
 
-		for (var i = 0; i < slice.length; i ++) {
-			var shape = slice[i];
+		for (var i = 0; i < path.length; i ++) {
+			var shape = path[i];
 
 			var previousPoint;
 
-			var length = slice.closed ? (shape.length + 1) : shape.length;
+			var length = path.closed ? (shape.length + 1) : shape.length;
 
 			for (var j = 0; j < length; j ++) {
 				var point = shape[j % shape.length];
@@ -408,13 +408,6 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 				if (j === 0) {
 					//TODO
 					//add retraction
-					if (extruder > retractionMinDistance && retractionEnabled) {
-						gcode.push([
-							"G0", 
-							"E" + (extruder - retractionAmount).toFixed(3), 
-							"F" + (retractionSpeed * 60).toFixed(3)
-						].join(" "));
-					}
 
 					gcode.push([
 						"G0", 
@@ -422,13 +415,15 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 						"F" + (travelSpeed * 60)
 					].join(" "));
 
-					if (extruder > retractionMinDistance && retractionEnabled) {
+					
+					if (extruder > retractionMinDistance && retractionEnabled && j === 0) {
 						gcode.push([
 							"G0", 
 							"E" + extruder.toFixed(3), 
 							"F" + (retractionSpeed * 60).toFixed(3)
 						].join(" "));
 					}
+					
 				}
 				else {
 					var a = new THREE.Vector2(point.X, point.Y);
@@ -447,6 +442,14 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 
 				previousPoint = point;
 			}
+		}
+
+		if (extruder > retractionMinDistance && retractionEnabled) {
+			gcode.push([
+				"G0", 
+				"E" + (extruder - retractionAmount).toFixed(3), 
+				"F" + (retractionSpeed * 60).toFixed(3)
+			].join(" "));
 		}
 
 		return gcode;
