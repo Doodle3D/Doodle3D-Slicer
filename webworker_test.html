@@ -1,69 +1,42 @@
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
-<title>Doedel Drie Dee || Slice Test</title>
-<!--<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>-->
 <script src="library/jquery.js"></script>
 <script src="library/three.js"></script>
 <script src="library/stl_loader.js"></script>
-<script src="library/clipper.js"></script>
 
 <script src="src/utils.js"></script>
 <script src="src/box.js"></script>
-<script src="src/printer.js"></script>
-<script src="src/paths.js"></script>
-<script src="src/slicer.js"></script>
+<script src="src/slicerworker.js"></script>
 
+<title>Doedel Drie Dee || Webworker Test</title>
 <style>
 canvas {border: 1px solid black;}
 </style>
 </head>
 <body>
+
 <canvas id="3d-preview" height="400" width="400"></canvas>
 <canvas id="canvas" width="400" height="400"></canvas>
 
 <script>
-var USER_SETTINGS, PRINTER_SETTINGS, doodleBox, gcode;
+
+var USER_SETTINGS, PRINTER_SETTINGS, doodleBox, gcode, slicerWorker;
+
 
 function init () {
 	"use strict";
 	var scene = createScene();
 
 	var localIp = location.hash.substring(1);
-	//doodleBox = new D3D.Box(localIp);
+	doodleBox = new D3D.Box(localIp);
 
-	var printer = new D3D.Printer().updateConfig(USER_SETTINGS).updateConfig(PRINTER_SETTINGS["ultimaker"]);
+	var slicer = new D3D.SlicerWorker();
+
+	slicer.setSettings(USER_SETTINGS, PRINTER_SETTINGS["ultimaker"]);
 
 	var loader = new THREE.STLLoader();
 	loader.load("models/pokemon/pikachu.stl", function (geometry) {
-		//var geometry = new THREE.BoxGeometry(10, 10, 10, 1, 1, 1);
-		//var geometry = new THREE.SphereGeometry(10, 20, 10);
-		//var geometry = new THREE.TorusGeometry(20, 10, 30, 30);
-		/*
-		var geometry = (function () {
-			"use strict";
-
-			var circle = new THREE.Shape();
-			circle.absarc(0, 0, 10, 0, Math.PI*2, false);
-
-			var hole = new THREE.Path();
-			hole.absarc(0, 0, 5, 0, Math.PI*2, true );
-
-			circle.holes.push(hole);
-
-			var matrix = new THREE.Matrix4();
-			matrix.makeRotationX(Math.PI*1.5);
-
-			var geometry = new THREE.ExtrudeGeometry(circle, {
-				amount: 10, 
-				bevelEnabled: false, 
-				steps: 1
-			});
-			geometry.applyMatrix(matrix);
-
-			return geometry;
-		})();
-		*/
 		var material = new THREE.MeshPhongMaterial({color: 0x00ff00, wireframe: false});
 		var mesh = new THREE.Mesh(geometry, material);
 		
@@ -72,21 +45,10 @@ function init () {
 		mesh.position.x = 100;
 		mesh.position.z = 100;
 
-		//scene.add(mesh);
-
-		mesh.updateMatrix();
-		var slicer = new D3D.Slicer().setMesh(mesh.geometry, mesh.matrix);
-
-		var mesh = new THREE.Mesh(slicer.geometry, material);
 		scene.add(mesh);
-		
-		//var canvas = document.getElementById("canvas");
-		//var context = canvas.getContext("2d");
 
-		//var img = slicer.drawPaths(printer, 0, 1);
-		//context.drawImage(img, 0, 0);
-
-		gcode = slicer.getGcode(printer);
+		slicer.setMesh(mesh);
+		slicer.slice();
 	});
 }
 
@@ -157,8 +119,9 @@ function createScene () {
 	return scene;
 }
 
-//loadSettings;
 (function () {
+	"use strict";
+
 	var loadedItems = 0;
 	function loaded () {
 		loadedItems ++;

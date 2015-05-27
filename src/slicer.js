@@ -15,11 +15,10 @@
 D3D.Slicer = function () {
 	"use strict";
 };
-D3D.Slicer.prototype.setMesh = function (mesh) {
+D3D.Slicer.prototype.setMesh = function (geometry, matrix) {
 	"use strict";
 
 	//convert buffergeometry to geometry;
-	var geometry = mesh.geometry.clone();
 	if (geometry instanceof THREE.BufferGeometry) {
 		geometry = new THREE.Geometry().fromBufferGeometry(geometry);
 	}
@@ -39,8 +38,7 @@ D3D.Slicer.prototype.setMesh = function (mesh) {
 	geometry.mergeVertices();
 
 	//apply mesh matrix on geometry;
-	mesh.updateMatrix();
-	geometry.applyMatrix(mesh.matrix);
+	geometry.applyMatrix(matrix);
 	geometry.computeFaceNormals();
 	geometry.computeBoundingBox();
 	

@@ -9,9 +9,6 @@ D3D.Printer = function (printerSettings, userSettings) {
 	"use strict";
 
 	this.config = {};
-
-	this.updateConfig(printerSettings);	
-	this.updateConfig(userSettings);
 };
 D3D.Printer.prototype.updateConfig = function (config) {
 	"use strict";
