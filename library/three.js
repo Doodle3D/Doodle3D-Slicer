@@ -9342,6 +9342,21 @@ THREE.BufferGeometry.prototype = {
 
 		this.dispatchEvent( { type: 'dispose' } );
 
+	}, 
+
+	getBuffers: function () {
+
+		var buffers = [];
+
+		for ( var i = 0; i < this.attributesKeys.length; i ++ ) {
+			
+			var key = this.attributesKeys[ i ];
+			buffers.push( this.attributes[ key ].array.buffer );
+		
+		}
+
+		return buffers;
+
 	}
 
 };

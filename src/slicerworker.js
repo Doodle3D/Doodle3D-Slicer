@@ -5,6 +5,7 @@ D3D.SlicerWorker = function () {
 
 	this.worker.addEventListener('message', function (event) {
 		console.log(event);
+		gcode = event.data;
 	}, false);
 }
 D3D.SlicerWorker.prototype.setSettings = function (USER_SETTINGS, PRINTER_SETTINGS) {
@@ -23,16 +24,23 @@ D3D.SlicerWorker.prototype.setMesh = function (mesh) {
 		var geometry = new THREE.BufferGeometry().fromGeometry(mesh.geometry);
 	}
 	else {
-		var geometry = mesh.geometry;
+		var geometry = mesh.geometry.clone();
+	}
+	
+	var buffers = [];
+
+	for (var i = 0; i < geometry.attributesKeys.length; i ++) {
+		var key = geometry.attributesKeys[i];
+		buffers.push(geometry.attributes[key].array.buffer);
 	}
 
 	mesh.updateMatrix();
 
 	this.worker.postMessage({
 		"cmd": "SET_MESH", 
-		"geometry": geometry.toJSON().data, 
+		"geometry": geometry, 
 		"matrix": mesh.matrix.toArray()
-	});
+	}, buffers);
 };
 D3D.SlicerWorker.prototype.slice = function () {
 	"use strict";

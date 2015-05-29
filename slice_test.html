@@ -30,12 +30,12 @@ function init () {
 	var scene = createScene();
 
 	var localIp = location.hash.substring(1);
-	//doodleBox = new D3D.Box(localIp);
+	doodleBox = new D3D.Box(localIp);
 
 	var printer = new D3D.Printer().updateConfig(USER_SETTINGS).updateConfig(PRINTER_SETTINGS["ultimaker"]);
 
 	var loader = new THREE.STLLoader();
-	loader.load("models/pokemon/pikachu.stl", function (geometry) {
+	loader.load("models/dom.stl", function (geometry) {
 		//var geometry = new THREE.BoxGeometry(10, 10, 10, 1, 1, 1);
 		//var geometry = new THREE.SphereGeometry(10, 20, 10);
 		//var geometry = new THREE.TorusGeometry(20, 10, 30, 30);

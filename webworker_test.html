@@ -42,6 +42,7 @@ function init () {
 		
 		mesh.rotation.x = -Math.PI/2;
 		mesh.scale.x = mesh.scale.y = mesh.scale.z = 1;
+		mesh.position.y = -9.260265119962973e-17;
 		mesh.position.x = 100;
 		mesh.position.z = 100;
 
@@ -49,6 +50,8 @@ function init () {
 
 		slicer.setMesh(mesh);
 		slicer.slice();
+
+		slicer.close();
 	});
 }
 

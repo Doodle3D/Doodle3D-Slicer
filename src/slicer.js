@@ -19,11 +19,12 @@ D3D.Slicer.prototype.setMesh = function (geometry, matrix) {
 	"use strict";
 
 	//convert buffergeometry to geometry;
-	if (geometry instanceof THREE.BufferGeometry) {
-		geometry = new THREE.Geometry().fromBufferGeometry(geometry);
-	}
+	//if (geometry instanceof THREE.BufferGeometry) {
+	//	geometry = new THREE.Geometry().fromBufferGeometry(geometry);
+	//}
 
 	//remove duplicate vertices;
+	/*
 	for (var i = 0; i < geometry.vertices.length; i ++) {
 		var vertexA = geometry.vertices[i];
 
@@ -35,6 +36,7 @@ D3D.Slicer.prototype.setMesh = function (geometry, matrix) {
 			}
 		}
 	}
+	*/
 	geometry.mergeVertices();
 
 	//apply mesh matrix on geometry;
@@ -111,7 +113,7 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 		var max = Math.floor(Math.max(line.start.y, line.end.y) / layerHeight);
 
 		for (var layerIndex = min; layerIndex <= max; layerIndex ++) {
-			if (layerIndex >= 0) {
+			if (layerIndex >= 0 && layerIndex < height / layerHeight) {
 				if (layersIntersections[layerIndex] === undefined) {
 					layersIntersections[layerIndex] = [];
 				}
@@ -127,7 +129,7 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 	for (var layer = 1; layer < layersIntersections.length-1; layer ++) {
 	//for (var layer = 0; layer < layersIntersections.length; layer ++) {
 		var layerIntersections = layersIntersections[layer];
-		var y = layer*layerHeight;
+		var y = layer * layerHeight;
 
 		var intersections = [];
 		for (var i = 0; i < layerIntersections.length; i ++) {

@@ -1,0 +1,74 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<script src="library/benchmark.js"></script>
+<script src="library/three.js"></script>
+
+<title>Doedel Drie Dee || Webworker Benchmark</title>
+<style>
+</style>
+</head>
+<body>
+
+<script>
+var worker = new Worker('webworker/benchmark.js');
+var geometry = new THREE.BoxGeometry(10, 30, 10).clone();
+//var geometry = new THREE.TorusKnotGeometry(10, 3, 200, 200).clone();
+
+new Benchmark.Suite().add('Buffer Geometry', function () {
+
+	var bufferGeometry = new THREE.BufferGeometry().fromGeometry(geometry);
+
+	worker.postMessage(bufferGeometry);
+
+	//this happens in the worker
+	var workerGeometry = new THREE.Geometry().fromBufferGeometry(bufferGeometry);
+	workerGeometry.mergeVertices();
+
+}).add('Buffer Geometry Transferrable Object', function () {
+
+	var bufferGeometry = new THREE.BufferGeometry().fromGeometry(geometry);
+
+	var buffers = [];
+
+	for (var i = 0; i < bufferGeometry.attributesKeys.length; i ++) {
+		var key = bufferGeometry.attributesKeys[i];
+		buffers.push(bufferGeometry.attributes[key].array.buffer);
+	}
+
+	worker.postMessage(bufferGeometry, buffers);
+
+	//this happens in the worker
+	//this is redundant... 
+	//buffers are transferred to worker so the do not exist in this part of the script
+	//[TEST NOT VIABLE]
+	var workerGeometry = new THREE.Geometry().fromBufferGeometry(bufferGeometry);
+	workerGeometry.mergeVertices();
+
+}).add('Geometry JSON', function () {	
+
+	var json = geometry.toJSON().data;
+	worker.postMessage(json);
+
+	//worker.postMessage(geometry);
+
+	//this happens in the worker
+	var loader = new THREE.JSONLoader();
+	var workerGeometry = loader.parse(json).geometry;
+	workerGeometry.mergeVertices();
+
+}).on('cycle', function (event) {
+
+	document.body.innerHTML += "<p>" + String(event.target) + "</p>";
+
+}).on('complete', function () {
+
+	document.body.innerHTML += "<p>" + 'Fastest is "' + this.filter('fastest').pluck('name') + '"' + "</p>";
+
+}).run({
+	'async': true
+});
+</script>
+
+</body>
+</html> 
