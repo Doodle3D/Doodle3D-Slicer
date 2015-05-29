@@ -1,0 +1,19 @@
+----------- RESULTATEN TORUS KNOT --------------
+
+Buffer Geometry x 0.53 ops/sec ±134.70% (8 runs sampled)
+
+Buffer Geometry Transferrable Object x 63.04 ops/sec ±2.19% (67 runs sampled)
+
+Geometry JSON x 0.50 ops/sec ±6.55% (6 runs sampled)
+
+Fastest is "Buffer Geometry Transferrable Object"
+
+----------- RESULTATEN KUBUS --------------
+
+Buffer Geometry x 5,360 ops/sec ±19.42% (85 runs sampled)
+
+Buffer Geometry Transferrable Object x 1,535 ops/sec ±10.17% (35 runs sampled)
+
+Geometry JSON x 3,831 ops/sec ±2.52% (82 runs sampled)
+
+Fastest is "Buffer Geometry"

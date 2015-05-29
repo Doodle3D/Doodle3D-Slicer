@@ -12,36 +12,38 @@
 <title>Doedel Drie Dee || Webworker Test</title>
 <style>
 canvas {border: 1px solid black;}
+#progress {height: 20px; width: 200px; border: 1px solid black; overflow: hidden;}
+#progress-bar {height: 20px; background-color: lightblue; width: 0%;}
 </style>
 </head>
 <body>
 
 <canvas id="3d-preview" height="400" width="400"></canvas>
 <canvas id="canvas" width="400" height="400"></canvas>
+<div id="progress"><div id="progress-bar"></div></div>
 
 <script>
 
 var USER_SETTINGS, PRINTER_SETTINGS, doodleBox, gcode, slicerWorker;
-
 
 function init () {
 	"use strict";
 	var scene = createScene();
 
 	var localIp = location.hash.substring(1);
-	doodleBox = new D3D.Box(localIp);
+	//doodleBox = new D3D.Box(localIp);
 
 	var slicer = new D3D.SlicerWorker();
 
 	slicer.setSettings(USER_SETTINGS, PRINTER_SETTINGS["ultimaker"]);
 
 	var loader = new THREE.STLLoader();
-	loader.load("models/pokemon/pikachu.stl", function (geometry) {
+	loader.load("models/stanford_bunny_high.stl", function (geometry) {
 		var material = new THREE.MeshPhongMaterial({color: 0x00ff00, wireframe: false});
 		var mesh = new THREE.Mesh(geometry, material);
 		
 		mesh.rotation.x = -Math.PI/2;
-		mesh.scale.x = mesh.scale.y = mesh.scale.z = 1;
+		mesh.scale.x = mesh.scale.y = mesh.scale.z = 0.5;
 		mesh.position.y = -9.260265119962973e-17;
 		mesh.position.x = 100;
 		mesh.position.z = 100;

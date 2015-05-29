@@ -3,7 +3,7 @@
 	"printer.bottomFlowRate": 2.0, 
 	"printer.bottomLayerSpeed": 35.0, 
 	"printer.bottomThickness": 0.4, 
-	"printer.fillSize": 10.0, 
+	"printer.fillSize": 5.0, 
 	"printer.firstLayerSlow": true, 
 	"printer.layerHeight": 0.2, 
 	"printer.retraction.amount": 3.0, 

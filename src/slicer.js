@@ -14,14 +14,21 @@
 
 D3D.Slicer = function () {
 	"use strict";
+
+	this.progress = {
+		totalLayers: 0, 
+		sliceLayer: 0, 
+		dataLayer: 0, 
+		gcodeLayer: 0
+	};
 };
 D3D.Slicer.prototype.setMesh = function (geometry, matrix) {
 	"use strict";
 
 	//convert buffergeometry to geometry;
-	//if (geometry instanceof THREE.BufferGeometry) {
-	//	geometry = new THREE.Geometry().fromBufferGeometry(geometry);
-	//}
+	if (geometry instanceof THREE.BufferGeometry) {
+		geometry = new THREE.Geometry().fromBufferGeometry(geometry);
+	}
 
 	//remove duplicate vertices;
 	/*
@@ -51,6 +58,11 @@ D3D.Slicer.prototype.setMesh = function (geometry, matrix) {
 
 	return this;
 };
+D3D.Slicer.prototype.updateProgress = function () {
+	if (this.onProgress !== undefined) {
+		this.onProgress(this.progress);
+	}
+};
 D3D.Slicer.prototype.createLines = function () {
 	"use strict";
 
@@ -70,8 +82,7 @@ D3D.Slicer.prototype.createLines = function () {
 			self.lines.push({
 				line: new THREE.Line3(self.geometry.vertices[a], self.geometry.vertices[b]), 
 				connects: [], 
-				normals: [],
-				ignore: 0
+				normals: []
 			});
 		}
 
@@ -168,12 +179,12 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 							var normal = a.sub(b).normal().normalize();
 							var faceNormal = faceNormals[Math.floor(j/2)];
 
-							if (normal.dot(faceNormal) > 0) {
+							//if (normal.dot(faceNormal) > 0) {
 								break;
-							}
-							else {
-								index = -1;
-							}
+							//}
+							//else {
+							//	index = -1;
+							//}
 						}
 						else {
 							index = -1;
@@ -237,6 +248,9 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 		else {
 			break;
 		}
+
+		this.progress.sliceLayer = layer;
+		this.updateProgress();
 	}
 
 	return slices;
@@ -351,6 +365,9 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 				});
 			}
 		}
+
+		this.progress.dataLayer = layer;
+		this.updateProgress();
 	}
 
 	return data;
@@ -481,6 +498,9 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 			gcode = gcode.concat(sliceToGcode(layerPart.insets));
 			gcode = gcode.concat(sliceToGcode(layerPart.fill));
 		}
+
+		this.progress.gcodeLayer = layer;
+		this.updateProgress();
 	}
 
 	gcode = gcode.concat(printer.getEndCode());
@@ -522,6 +542,11 @@ D3D.Slicer.prototype.getGcode = function (printer) {
 
 	var layerHeight = printer.config["printer.layerHeight"];
 	var dimensionsZ = printer.config["printer.dimensions.z"];
+
+	this.progress.totalLayers = Math.floor(this.geometry.boundingBox.max.y / layerHeight);
+	this.progress.sliceLayer = 0;
+	this.progress.dataLayer = 0;
+	this.progress.gcodeLayer = 0;
 
 	var start = new Date().getTime();
 	var slices = this.slice(layerHeight, dimensionsZ);

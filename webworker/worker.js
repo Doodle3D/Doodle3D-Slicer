@@ -7,6 +7,16 @@ importScripts("../src/slicer.js");
 
 var printer = new D3D.Printer();
 var slicer = new D3D.Slicer();
+slicer.onProgress = function (progress) {
+	"use strict";
+
+	self.postMessage({
+		"cmd": "PROGRESS", 
+		"progress": progress
+	});
+
+	//console.log(progress);
+};
 
 self.addEventListener("message", function (event) {
 	"use strict";
@@ -29,17 +39,15 @@ self.addEventListener("message", function (event) {
 		case "SLICE":
 			var gcode = slicer.getGcode(printer);
 
-			self.postMessage(gcode);
+			self.postMessage({
+				"cmd": "GCODE", 
+				"gcode": gcode
+			});
 		break;
 
 		case "CLOSE": 			
 			self.close();
 		break;
 
-		default: 
-
-			//console.log(event);
-
-		break;
 	}
 });

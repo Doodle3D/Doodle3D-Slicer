@@ -3,9 +3,21 @@ D3D.SlicerWorker = function () {
 
 	this.worker = new Worker('webworker/worker.js');
 
+	var progressBar = document.getElementById("progress-bar");
+	var scope = this;
 	this.worker.addEventListener('message', function (event) {
-		console.log(event);
-		gcode = event.data;
+
+		switch (event.data["cmd"]) {
+			case "PROGRESS":
+				var progress = event.data["progress"];
+				var procent = (progress.sliceLayer + progress.dataLayer + progress.gcodeLayer) / progress.totalLayers / 3;
+				progressBar.style.width = procent * 100 + "%";
+			break;
+
+			case "GCODE":
+				gcode = event.data["gcode"];
+			break;
+		}
 	}, false);
 }
 D3D.SlicerWorker.prototype.setSettings = function (USER_SETTINGS, PRINTER_SETTINGS) {

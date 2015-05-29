@@ -72,14 +72,11 @@ function init () {
 		mesh.position.x = 100;
 		mesh.position.z = 100;
 
-		//scene.add(mesh);
+		scene.add(mesh);
 
 		mesh.updateMatrix();
 		var slicer = new D3D.Slicer().setMesh(mesh.geometry, mesh.matrix);
 
-		var mesh = new THREE.Mesh(slicer.geometry, material);
-		scene.add(mesh);
-		
 		//var canvas = document.getElementById("canvas");
 		//var context = canvas.getContext("2d");
 
