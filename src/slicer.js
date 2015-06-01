@@ -2,14 +2,6 @@
 *
 * Slicer
 *
-* TODO (optimalisatie)
-* sorteer lijnen op laagste hoogte -> stop loop wanneer hij een lijn zonder intersectie heeft gevonden
-* verwijder lijnen die ooit interactie gehad hebben, maar nu niet meer
-* helft van lijnen toevoegen omdat 4face altijd recht is, en 3face dus te veel data bevat
-* 
-* omliggende lagen -> difference && sum omliggende lijnen
-* voor laag 5 = 5 diff (3 && 4 && 6 && 7))
-*
 ******************************************************/
 
 D3D.Slicer = function () {
@@ -137,8 +129,8 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 
 	//still error in first layer, so remove first layer & last layer
 	//see https://github.com/Doodle3D/Doodle3D-Slicer/issues/1
-	for (var layer = 1; layer < layersIntersections.length-1; layer ++) {
-	//for (var layer = 0; layer < layersIntersections.length; layer ++) {
+	//for (var layer = 1; layer < layersIntersections.length-1; layer ++) {
+	for (var layer = 0; layer < layersIntersections.length; layer ++) {
 		var layerIntersections = layersIntersections[layer];
 		var y = layer * layerHeight;
 

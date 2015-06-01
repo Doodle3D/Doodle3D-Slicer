@@ -10,7 +10,7 @@ D3D.SlicerWorker = function () {
 		switch (event.data["cmd"]) {
 			case "PROGRESS":
 				var progress = event.data["progress"];
-				var procent = (progress.sliceLayer + progress.dataLayer + progress.gcodeLayer) / progress.totalLayers / 3;
+				var procent = (progress.sliceLayer + progress.dataLayer + progress.gcodeLayer) / (progress.totalLayers * 3 - 5);
 				progressBar.style.width = procent * 100 + "%";
 			break;
 
@@ -38,7 +38,7 @@ D3D.SlicerWorker.prototype.setMesh = function (mesh) {
 	else {
 		var geometry = mesh.geometry.clone();
 	}
-	
+
 	var buffers = [];
 
 	for (var i = 0; i < geometry.attributesKeys.length; i ++) {
@@ -50,7 +50,10 @@ D3D.SlicerWorker.prototype.setMesh = function (mesh) {
 
 	this.worker.postMessage({
 		"cmd": "SET_MESH", 
-		"geometry": geometry, 
+		"geometry": {
+			"attributes": geometry.attributes, 
+			"attributesKeys": geometry.attributesKeys
+		}, 
 		"matrix": mesh.matrix.toArray()
 	}, buffers);
 };

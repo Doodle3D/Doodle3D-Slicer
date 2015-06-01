@@ -23,7 +23,11 @@ self.addEventListener("message", function (event) {
 
 	switch (event.data["cmd"]) {
 		case "SET_MESH": 
-
+			
+			//hack...
+			//because boundings loses functions when converting
+			event.data["geometry"].boundingBox = event.data["geometry"].boundingSphere = null;
+			
 			var geometry = new THREE.Geometry().fromBufferGeometry(event.data["geometry"]);
 			var matrix = new THREE.Matrix4().fromArray(event.data["matrix"]);
 
