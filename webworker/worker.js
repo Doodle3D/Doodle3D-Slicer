@@ -4,6 +4,7 @@ importScripts("../src/utils.js");
 importScripts("../src/printer.js");
 importScripts("../src/paths.js");
 importScripts("../src/slicer.js");
+importScripts("../src/gcode.js");
 
 var printer = new D3D.Printer();
 var slicer = new D3D.Slicer();

@@ -8,6 +8,8 @@ D3D.Slicer = function () {
 	"use strict";
 
 	this.progress = {
+		totalFaces: 0,
+		currentFace: 0, 
 		totalLayers: 0, 
 		sliceLayer: 0, 
 		dataLayer: 0, 
@@ -42,7 +44,7 @@ D3D.Slicer.prototype.setMesh = function (geometry, matrix) {
 	geometry.applyMatrix(matrix);
 	geometry.computeFaceNormals();
 	geometry.computeBoundingBox();
-	
+
 	this.geometry = geometry;
 
 	//get unique lines from geometry;
@@ -51,12 +53,24 @@ D3D.Slicer.prototype.setMesh = function (geometry, matrix) {
 	return this;
 };
 D3D.Slicer.prototype.updateProgress = function () {
+	'use strict';
+	
+	var faces = this.progress.currentFace / (this.progress.totalFaces - 1);
+	var slice = this.progress.sliceLayer / (this.progress.totalLayers - 1);
+	var data = this.progress.dataLayer / (this.progress.totalLayers - 2);
+	var gcode = this.progress.gcodeLayer / (this.progress.totalLayers - 2);
+
+	this.progress.procent = (faces + slice + data + gcode) / 4;
+
 	if (this.onProgress !== undefined) {
+
 		this.onProgress(this.progress);
 	}
 };
 D3D.Slicer.prototype.createLines = function () {
 	"use strict";
+
+	this.progress.totalFaces = this.geometry.faces.length;
 
 	this.lines = [];
 	var lineLookup = {};
@@ -102,6 +116,9 @@ D3D.Slicer.prototype.createLines = function () {
 			this.lines[b].normals.push(normal);
 			this.lines[c].normals.push(normal);
 		}
+
+		this.progress.currentFace = i;
+		this.updateProgress();
 	}
 };
 D3D.Slicer.prototype.slice = function (layerHeight, height) {
@@ -129,7 +146,6 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 
 	//still error in first layer, so remove first layer & last layer
 	//see https://github.com/Doodle3D/Doodle3D-Slicer/issues/1
-	//for (var layer = 1; layer < layersIntersections.length-1; layer ++) {
 	for (var layer = 0; layer < layersIntersections.length; layer ++) {
 		var layerIntersections = layersIntersections[layer];
 		var y = layer * layerHeight;
@@ -139,10 +155,15 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 			var index = layerIntersections[i];
 			var line = this.lines[index].line;
 
-			var alpha = (y - line.start.y) / (line.end.y - line.start.y);
-			var x = line.end.x * alpha + line.start.x * (1 - alpha);
-			var z = line.end.z * alpha + line.start.z * (1 - alpha);
-
+			if (line.start.y === line.end.y) {
+				var x = line.start.x;
+				var z = line.start.z;
+			}
+			else {
+				var alpha = (y - line.start.y) / (line.end.y - line.start.y);
+				var x = line.end.x * alpha + line.start.x * (1 - alpha);
+				var z = line.end.z * alpha + line.start.z * (1 - alpha);
+			}
 			intersections[index] = new THREE.Vector2(z, x);
 		}
 
@@ -171,12 +192,12 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 							var normal = a.sub(b).normal().normalize();
 							var faceNormal = faceNormals[Math.floor(j/2)];
 
-							//if (normal.dot(faceNormal) > 0) {
+							if (normal.dot(faceNormal) > 0) {
 								break;
-							//}
-							//else {
-							//	index = -1;
-							//}
+							}
+							else {
+								index = -1;
+							}
 						}
 						else {
 							index = -1;
@@ -383,6 +404,7 @@ D3D.Slicer.prototype.getFillTemplate = function (bounds, size, even, uneven) {
 	//return paths;
 	return paths;
 };
+/*
 D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 	"use strict";
 
@@ -418,19 +440,18 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 					//TODO
 					//add retraction
 
-					gcode.push([
-						"G0", 
-						"X" + point.X.toFixed(3) + " Y" + point.Y.toFixed(3) + " Z" + z, 
-						"F" + (travelSpeed * 60)
-					].join(" "));
-
+					gcode.push(
+						"G0" + 
+						" X" + point.X.toFixed(3) + " Y" + point.Y.toFixed(3) + " Z" + z + 
+						" F" + (travelSpeed * 60)
+					);
 					
 					if (extruder > retractionMinDistance && retractionEnabled && j === 0) {
-						gcode.push([
-							"G0", 
-							"E" + extruder.toFixed(3), 
-							"F" + (retractionSpeed * 60).toFixed(3)
-						].join(" "));
+						gcode.push(
+							"G0" + 
+							" E" + extruder.toFixed(3) + 
+							" F" + (retractionSpeed * 60).toFixed(3)
+						);
 					}
 					
 				}
@@ -441,12 +462,12 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 
 					extruder += lineLength * nozzleDiameter * layerHeight / filamentSurfaceArea * flowRate;
 
-					gcode.push([
-						"G1", 
-						"X" + point.X.toFixed(3) + " Y" + point.Y.toFixed(3) + " Z" + z, 
-						"F" + speed, 
-						"E" + extruder.toFixed(3)
-					].join(" "));
+					gcode.push(
+						"G1" + 
+						" X" + point.X.toFixed(3) + " Y" + point.Y.toFixed(3) + " Z" + z + 
+						" F" + speed + 
+						" E" + extruder.toFixed(3)
+					);
 				}
 
 				previousPoint = point;
@@ -454,11 +475,11 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 		}
 
 		if (extruder > retractionMinDistance && retractionEnabled) {
-			gcode.push([
-				"G0", 
-				"E" + (extruder - retractionAmount).toFixed(3), 
-				"F" + (retractionSpeed * 60).toFixed(3)
-			].join(" "));
+			gcode.push(
+				"G0" +
+				" E" + (extruder - retractionAmount).toFixed(3) + 
+				" F" + (retractionSpeed * 60).toFixed(3)
+			);
 		}
 
 		return gcode;
@@ -499,35 +520,60 @@ D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 
 	return gcode;
 };
-//only for debug purposes
-D3D.Slicer.prototype.drawPaths = function (printer, min, max) {
+*/
+D3D.Slicer.prototype.dataToGcode = function (data, printer) {
 	"use strict";
 
-	var layerHeight = printer.config["printer.layerHeight"];
-	var dimensionsZ = printer.config["printer.dimensions.z"];
+	var gcode = new D3D.GCode().setSettings(printer);
 
-	var slices = this.slice(layerHeight, dimensionsZ);
+	function sliceToGcode (path, retract, unRetract) {
+		for (var i = 0; i < path.length; i ++) {
+			var shape = path[i];
 
-	var data = this.slicesToData(slices, printer);
+			var length = path.closed ? (shape.length + 1) : shape.length;
 
-	var canvas = document.createElement("canvas");
-	canvas.width = 400;
-	canvas.height = 400;
-	var context = canvas.getContext("2d");
+			for (var j = 0; j < length; j ++) {
+				var point = shape[j % shape.length];
 
-	for (var layer = min; layer < max; layer ++) {
-		var slice = data[layer % data.length];
+				if (j === 0) {
+					gcode.moveTo(false, point.X, point.Y, layer);
+
+					if (unRetract) {
+						gcode.unRetract();
+					}
+				}
+				else {
+					gcode.moveTo(true, point.X, point.Y, layer);
+				}
+			}
+		}
+		
+		if (retract) {
+			gcode.retract();
+		}
+	}
+
+	for (var layer = 0; layer < data.length; layer ++) {
+		var slice = data[layer];
+
+		if (layer === 1) {
+			gcode.turnOnFan();
+			gcode.bottom = false;
+		}
 
 		for (var i = 0; i < slice.length; i ++) {
 			var layerPart = slice[i];
 
-			layerPart.insets.draw(context, "blue");
-			layerPart.outerLayer.draw(context, "green");
-			layerPart.fill.draw(context, "red");
+			sliceToGcode(layerPart.outerLayer, false, true);
+			sliceToGcode(layerPart.insets, false, false);
+			sliceToGcode(layerPart.fill, true, false);
 		}
+
+		this.progress.gcodeLayer = layer;
+		this.updateProgress();
 	}
 
-	return canvas;
+	return gcode.getFinal();
 };
 D3D.Slicer.prototype.getGcode = function (printer) {
 	"use strict";
@@ -535,7 +581,7 @@ D3D.Slicer.prototype.getGcode = function (printer) {
 	var layerHeight = printer.config["printer.layerHeight"];
 	var dimensionsZ = printer.config["printer.dimensions.z"];
 
-	this.progress.totalLayers = Math.floor(this.geometry.boundingBox.max.y / layerHeight);
+	this.progress.totalLayers = Math.floor(Math.min(this.geometry.boundingBox.max.y, dimensionsZ) / layerHeight);
 	this.progress.sliceLayer = 0;
 	this.progress.dataLayer = 0;
 	this.progress.gcodeLayer = 0;

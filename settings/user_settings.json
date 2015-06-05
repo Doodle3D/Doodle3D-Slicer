@@ -12,7 +12,7 @@
 	"printer.retraction.minDistance": 5.0, 
 	"printer.shellThickness": 0.4, 
 	"printer.speed": 50.0, 
-	"printer.temperature": 230.0, 
+	"printer.temperature": 210.0, 
 	"printer.topThickness": 0.8, 
 	"printer.travelSpeed": 200.0
 }

@@ -26,6 +26,10 @@ $(document).ready(function () {
 	listSliceTest.append("<li><a href='slice_test.html#192.168.5.1'>Wired Printer</a></li>");
 	listSliceWebworker.append("<li><a href='webworker_test.html#192.168.5.1'>Wired Printer</a></li>");
 
+	listDoodle.append("<li><a href='doodle.html#" + window.location.host + ":3000'>Node Server</a></li>");
+	listSliceTest.append("<li><a href='slice_test.html#" + window.location.host + ":3000'>Node Server</a></li>");
+	listSliceWebworker.append("<li><a href='webworker_test.html#" + window.location.host + ":3000'>Node Server</a></li>");
+
 	/*
 	printers.push({
 		name: "wired box",

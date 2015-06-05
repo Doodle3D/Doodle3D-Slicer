@@ -21,7 +21,7 @@ D3D.Box = function (localIp) {
 
 	this.localIp = localIp;
 	this.api = "http://" + localIp + "/d3dapi/";
-
+	
 	this.config = {};
 	this.status = {};
 
@@ -105,7 +105,8 @@ D3D.Box.prototype.printBatch = function () {
 	this.setPrinterPrint({
 		"start": ((this.currentBatch === 0) ? true : false), 
 		"first": ((this.currentBatch === 0) ? true : false), 
-		"gcode": gcode.join("\n")
+		"gcode": gcode.join("\n"), 
+		"last": ((this.printBatches.length === 0) ? true : false) //only for debug purposes
 	}, function (data) {
 		console.log("batch sent: " + self.currentBatch, data);
 
@@ -120,28 +121,14 @@ D3D.Box.prototype.printBatch = function () {
 		self.updateState();
 	});
 };
-D3D.Box.prototype.stopPrint = function () {
+D3D.Box.prototype.stopPrint = function (printer) {
 	"use strict";
 
 	this.printBatches = [];
 	this.currentBatch = 0;
 
-	var finishMove = [
-		"M107 ;fan off", 
-		"G91 ;relative positioning", 
-		"G1 E-1 F300 ;retract the filament a bit before lifting the nozzle, to release some of the pressure", 
-		"G1 Z+0.5 E-5 X-20 Y-20 F9000 ;move Z up a bit and retract filament even more", 
-		"G28 X0 Y0 ;move X/Y to min endstops, so the head is out of the way", 
-		"M84 ;disable axes / steppers", 
-		"G90 ;absolute positioning", 
-		"M104 S180", 
-		";M140 S70", 
-		"M117 Done                 ;display message (20 characters to clear whole screen)"
-	];
-
 	this.setPrinterStop({
-		//"gcode": {}
-		"gcode": finishMove.join("\n")
+		"gcode": printer.getEndCode().join("\n")
 	}, function (data) {
 		console.log("Printer stop command sent");
 	});
