@@ -36,7 +36,7 @@ function init () {
 	var printer = new D3D.Printer().updateConfig(USER_SETTINGS).updateConfig(PRINTER_SETTINGS["ultimaker"]);
 
 	var loader = new THREE.STLLoader();
-	loader.load("models/dom.stl", function (geometry) {
+	loader.load('models/robot.stl', function (geometry) {
 		//var geometry = new THREE.BoxGeometry(10, 10, 10, 1, 1, 1);
 		//var geometry = new THREE.SphereGeometry(10, 20, 10);
 		//var geometry = new THREE.TorusGeometry(20, 10, 30, 30);
@@ -70,13 +70,12 @@ function init () {
 		
 		mesh.rotation.x = -Math.PI/2;
 		mesh.scale.x = mesh.scale.y = mesh.scale.z = 1;
-		mesh.position.y = -9.260265119962973e-17;
+		mesh.position.y = -0.1;
 		mesh.position.x = 100;
 		mesh.position.z = 100;
 
 		scene.add(mesh);
 
-		mesh.updateMatrix();
 		var slicer = new D3D.Slicer().setMesh(mesh.geometry, mesh.matrix);
 
 		//var canvas = document.getElementById("canvas");
@@ -85,7 +84,7 @@ function init () {
 		//var img = slicer.drawPaths(printer, 0, 1);
 		//context.drawImage(img, 0, 0);
 
-		gcode = slicer.getGcode(printer);
+		gcode = slicer.getGCode(printer);
 	});
 }
 

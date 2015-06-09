@@ -47,19 +47,19 @@ function init () {
 	var scene = createScene();
 
 	var localIp = location.hash.substring(1);
-	doodleBox = new D3D.Box(localIp);
+	//doodleBox = new D3D.Box(localIp);
 
-	doodleBox.onupdate = function (data) {
-		document.getElementById('state').innerHTML = data.state;
-		document.getElementById('bed_temp').innerHTML = data.bed;
-		document.getElementById('bed_target_temp').innerHTML = data.bed_target;
-		document.getElementById('nozzle_temp').innerHTML = data.hotend;
-		document.getElementById('nozzle_target_temp').innerHTML = data.hotend_target;
-		document.getElementById('current_line').innerHTML = data.current_line;
-		document.getElementById('buffered_lines').innerHTML = data.buffered_lines;
-		document.getElementById('total_lines').innerHTML = data.total_lines;
-		document.getElementById('print_batches').innerHTML = doodleBox.printBatches.length;
-	};
+	//doodleBox.onupdate = function (data) {
+	//	document.getElementById('state').innerHTML = data.state;
+	//	document.getElementById('bed_temp').innerHTML = data.bed;
+	//	document.getElementById('bed_target_temp').innerHTML = data.bed_target;
+	//	document.getElementById('nozzle_temp').innerHTML = data.hotend;
+	//	document.getElementById('nozzle_target_temp').innerHTML = data.hotend_target;
+	//	document.getElementById('current_line').innerHTML = data.current_line;
+	//	document.getElementById('buffered_lines').innerHTML = data.buffered_lines;
+	//	document.getElementById('total_lines').innerHTML = data.total_lines;
+	//	document.getElementById('print_batches').innerHTML = doodleBox.printBatches.length;
+	//};
 
 	printer = new D3D.Printer().updateConfig(USER_SETTINGS).updateConfig(PRINTER_SETTINGS['ultimaker2go']);
 
@@ -92,7 +92,7 @@ function init () {
 	};
 
 	var loader = new THREE.STLLoader();
-	loader.load('models/dom.stl', function (geometry) {
+	loader.load('models/robot.stl', function (geometry) {
 		//var geometry = new THREE.TorusGeometry(20, 10, 30, 30).clone();
 
 		var material = new THREE.MeshPhongMaterial({color: 0x00ff00, wireframe: false});

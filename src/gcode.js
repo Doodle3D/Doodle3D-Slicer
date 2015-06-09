@@ -3,19 +3,20 @@
 * GCode
 * 
 * Manages the gcode
+* Also handles different flavours of gcode
 *
 ******************************************************/
 
 D3D.GCode = function () {
 	"use strict";
 
+	this.gcode = [];
 	this.current = {};
 
 	this.extruder = 0.0;
 	this.bottom = true;
 	this.isRetracted = false;
 	this.isFanOn = false;
-	this.gcode = [];
 	this.nozzlePosition = new THREE.Vector2(0, 0);
 };
 D3D.GCode.prototype.addGCode = function (command) {
@@ -24,7 +25,10 @@ D3D.GCode.prototype.addGCode = function (command) {
 	var str = [];
 
 	for (var i in command) {
-		if (this.current[i] !== command[i] || i === "G") {
+		if (i === "G") {
+			str.push(i + command[i]);
+		}
+		else if (this.current[i] !== command[i]) {
 			str.push(i + command[i]);
 			this.current[i] = command[i];
 		}
@@ -111,7 +115,7 @@ D3D.GCode.prototype.moveTo = function (extrude, x, y, layer) {
 	else {
 		var speed = travelSpeed * 60;
 
-		this.addGCode.({
+		this.addGCode({
 			"G": 0, 
 			"X": x.toFixed(3), "Y": y.toFixed(3), "Z": z.toFixed(3), 
 			"F": speed.toFixed(3)
@@ -126,46 +130,50 @@ D3D.GCode.prototype.moveTo = function (extrude, x, y, layer) {
 D3D.GCode.prototype.unRetract = function () {
 	"use strict";
 
-	this.isRetracted = false;
+	if (this.isRetracted) {
+		this.isRetracted = false;
 
-	var retractionAmount = this.settings.config["printer.retraction.amount"];
-	var retractionEnabled = this.settings.config["printer.retraction.enabled"];
-	var retractionMinDistance = this.settings.config["printer.retraction.minDistance"];
-	var retractionSpeed = this.settings.config["printer.retraction.speed"];
+		var retractionAmount = this.settings.config["printer.retraction.amount"];
+		var retractionEnabled = this.settings.config["printer.retraction.enabled"];
+		var retractionMinDistance = this.settings.config["printer.retraction.minDistance"];
+		var retractionSpeed = this.settings.config["printer.retraction.speed"];
 
-	var speed = retractionSpeed * 60;
+		var speed = retractionSpeed * 60;
 
-	if (this.extruder > retractionMinDistance && retractionEnabled) {
-		this.addGCode({
-			"G": 0, 
-			"E": this.extruder.toFixed(3), 
-			"F": speed.toFixed(3)
-		});
+		if (this.extruder > retractionMinDistance && retractionEnabled) {
+			this.addGCode({
+				"G": 0, 
+				"E": this.extruder.toFixed(3), 
+				"F": speed.toFixed(3)
+			});
+		}
+
+		return this;
 	}
-
-	return this;
 };
 D3D.GCode.prototype.retract = function () {
 	"use strict";
 
-	this.isRetracted = true;
+	if (!this.isRetracted) {
+		this.isRetracted = true;
 
-	var retractionAmount = this.settings.config["printer.retraction.amount"];
-	var retractionEnabled = this.settings.config["printer.retraction.enabled"];
-	var retractionMinDistance = this.settings.config["printer.retraction.minDistance"];
-	var retractionSpeed = this.settings.config["printer.retraction.speed"];
+		var retractionAmount = this.settings.config["printer.retraction.amount"];
+		var retractionEnabled = this.settings.config["printer.retraction.enabled"];
+		var retractionMinDistance = this.settings.config["printer.retraction.minDistance"];
+		var retractionSpeed = this.settings.config["printer.retraction.speed"];
 
-	var speed = retractionSpeed * 60;
+		var speed = retractionSpeed * 60;
 
-	if (this.extruder > retractionMinDistance && retractionEnabled) {
-		this.addGCode({
-			"G": 0, 
-			"E": (this.extruder - retractionAmount).toFixed(3), 
-			"F": speed.toFixed(3)
-		});
+		if (this.extruder > retractionMinDistance && retractionEnabled) {
+			this.addGCode({
+				"G": 0, 
+				"E": (this.extruder - retractionAmount).toFixed(3), 
+				"F": speed.toFixed(3)
+			});
+		}
+
+		return this;
 	}
-
-	return this;
 };
 D3D.GCode.prototype.getGCode = function () {
 	"use strict";

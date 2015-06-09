@@ -14,5 +14,11 @@
 	"printer.speed": 50.0, 
 	"printer.temperature": 210.0, 
 	"printer.topThickness": 0.8, 
-	"printer.travelSpeed": 200.0
+	"printer.travelSpeed": 200.0, 
+	"printer.support.minArea": 2.0, 
+	"printer.support.distanceY": 0.15, 
+	"printer.support.use": true, 
+	"printer.support.size": 3, 
+	"printer.support.margin": 1.0, 
+	"printer.support.offset": 1.0
 }
