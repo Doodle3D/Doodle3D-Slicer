@@ -16,7 +16,6 @@ slicer.onProgress = function (progress) {
 		"progress": progress
 	});
 
-	//console.log(progress);
 };
 
 self.addEventListener("message", function (event) {
@@ -42,7 +41,7 @@ self.addEventListener("message", function (event) {
 		break;
 
 		case "SLICE":
-			var gcode = slicer.getGcode(printer);
+			var gcode = slicer.getGCode(printer);
 
 			self.postMessage({
 				"cmd": "GCODE", 

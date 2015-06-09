@@ -1,7 +1,7 @@
 /******************************************************
 *
 * Utils
-* requires jQuery, Three.js
+* dependices Three.js
 *
 ******************************************************/
 
@@ -13,6 +13,37 @@ var D3D = {
 
 function sendAPI (url, data, callback) {
 	"use strict";
+
+	/*
+	var form = new FormData();
+
+	for (var i in data) {
+		form.append(i, JSON.stringify(data[i]));
+	}
+
+	var request = new XMLHttpRequest();
+	request.open('POST', url, true);
+	request.send(data);
+	request.onreadystatechange = function () {
+		if (request.readyState === 4 && request.status === 200) {
+			var response = JSON.parse(request.responseText);
+
+			if (response.status === "success") {
+				if (callback !== undefined) {
+					callback(response.data);
+				}
+			}
+			else {
+				console.warn(response.msg);
+			}
+		}
+		else {
+			console.log(request);
+			console.warn("Failed connecting to " + url);
+			//sendAPI(url, data, callback);
+		}
+	};
+	*/
 
 	$.ajax({
 		url: url, 
@@ -38,7 +69,30 @@ function sendAPI (url, data, callback) {
 
 function getAPI (url, callback) {
 	"use strict";
+	/*
+	var request = new XMLHttpRequest();
+	request.open('GET', url, true);
+	request.send();
+	request.onreadystatechange = function () {
+		if (request.readyState === 4 && request.status === 200) {
+			var response = JSON.parse(request.responseText);
 
+			if (response.status === "success") {
+				if (callback !== undefined) {
+					callback(response.data);
+				}
+			}
+			else {
+				console.warn(response.msg);
+			}
+		}
+		else {
+			console.warn("Failed connecting to " + url);
+			sendAPI(url, callback);
+		}
+	};*/
+
+	
 	$.ajax({
 		url: url, 
 		dataType: "json", 
@@ -57,6 +111,7 @@ function getAPI (url, callback) {
 		console.warn("Failed connecting to " + url);
 		getAPI(url, callback);
 	});
+	
 }
 
 function loadSettings (url, callback) {

@@ -9,11 +9,31 @@
 D3D.GCode = function () {
 	"use strict";
 
+	this.current = {};
+
 	this.extruder = 0.0;
 	this.bottom = true;
 	this.isRetracted = false;
+	this.isFanOn = false;
 	this.gcode = [];
 	this.nozzlePosition = new THREE.Vector2(0, 0);
+};
+D3D.GCode.prototype.addGCode = function (command) {
+	"use strict";
+
+	var str = [];
+
+	for (var i in command) {
+		if (this.current[i] !== command[i] || i === "G") {
+			str.push(i + command[i]);
+			this.current[i] = command[i];
+		}
+	}
+
+	str = str.join(" ");
+	if (str.length > 0) {
+		this.gcode.push(str);
+	}
 };
 D3D.GCode.prototype.setSettings = function (printer) {
 	"use strict";
@@ -22,10 +42,33 @@ D3D.GCode.prototype.setSettings = function (printer) {
 
 	return this;
 };
-D3D.GCode.prototype.turnOnFan = function () {
+D3D.GCode.prototype.turnFanOn = function (fanSpeed) {
 	"use strict";
 
-	this.gcode.push("M106");
+	this.isFanOn = true;
+
+	var gcode = {
+		"M": 106
+	};
+
+	if (fanSpeed !== undefined) {
+		gcode["S"] = fanSpeed;
+	}
+
+	this.addGCode(gcode);
+
+	return this;
+};
+D3D.GCode.prototype.turnFanOff = function () {
+	"use strict";
+
+	this.isFanOn = false;
+
+	this.addGCode({
+		"M": 107
+	});
+
+	return this;
 };
 D3D.GCode.prototype.moveTo = function (extrude, x, y, layer) {
 	"use strict";
@@ -58,30 +101,27 @@ D3D.GCode.prototype.moveTo = function (extrude, x, y, layer) {
 		var filamentSurfaceArea = Math.pow((filamentThickness/2), 2) * Math.PI;
 		this.extruder += lineLength * nozzleDiameter * layerHeight / filamentSurfaceArea * flowRate;
 
-		this.gcode.push(
-			"G1" + 
-			" X" + x.toFixed(3) + 
-			" Y" + y.toFixed(3) + 
-			((z !== this.lastZ) ? (" Z" + z.toFixed(3)) : "") + 
-			((speed !== this.lastSpeed) ? (" F" + speed.toFixed(3)) : "") + 
-			" E" + this.extruder.toFixed(3)
-		);
+		this.addGCode({
+			"G": 1,
+			"X": x.toFixed(3), "Y": y.toFixed(3), "Z": z.toFixed(3), 
+			"F": speed.toFixed(3), 
+			"E": this.extruder.toFixed(3)
+		});
 	}
 	else {
 		var speed = travelSpeed * 60;
 
-		this.gcode.push(
-			"G0" + 
-			" X" + x.toFixed(3) + " Y" + y.toFixed(3) + " Z" + z + 
-			" F" + speed.toFixed(3)
-		);
+		this.addGCode.({
+			"G": 0, 
+			"X": x.toFixed(3), "Y": y.toFixed(3), "Z": z.toFixed(3), 
+			"F": speed.toFixed(3)
+		});
 
 	}
 
-	this.lastSpeed = speed;
-	this.lastZ = z;
-
 	this.nozzlePosition = new THREE.Vector2(x, y);
+
+	return this;
 };
 D3D.GCode.prototype.unRetract = function () {
 	"use strict";
@@ -96,12 +136,14 @@ D3D.GCode.prototype.unRetract = function () {
 	var speed = retractionSpeed * 60;
 
 	if (this.extruder > retractionMinDistance && retractionEnabled) {
-		this.gcode.push(
-			"G0" + 
-			" E" + this.extruder.toFixed(3) + 
-			" F" + (speed * 60).toFixed(3)
-		);
+		this.addGCode({
+			"G": 0, 
+			"E": this.extruder.toFixed(3), 
+			"F": speed.toFixed(3)
+		});
 	}
+
+	return this;
 };
 D3D.GCode.prototype.retract = function () {
 	"use strict";
@@ -116,16 +158,16 @@ D3D.GCode.prototype.retract = function () {
 	var speed = retractionSpeed * 60;
 
 	if (this.extruder > retractionMinDistance && retractionEnabled) {
-		this.gcode.push(
-			"G0" +
-			" E" + (this.extruder - retractionAmount).toFixed(3) + 
-			" F" + speed.toFixed(3)
-		);
+		this.addGCode({
+			"G": 0, 
+			"E": (this.extruder - retractionAmount).toFixed(3), 
+			"F": speed.toFixed(3)
+		});
 	}
 
-	this.lastSpeed = speed;
+	return this;
 };
-D3D.GCode.prototype.getFinal = function () {
+D3D.GCode.prototype.getGCode = function () {
 	"use strict";
 
 	return this.settings.getStartCode().concat(this.gcode, this.settings.getEndCode());

@@ -7,6 +7,7 @@ D3D.SlicerWorker = function () {
 	this.worker.addEventListener('message', function (event) {
 		switch (event.data['cmd']) {
 			case 'PROGRESS':
+
 				if (scope.onprogress !== undefined) {
 					var progress = event.data['progress'];
 
