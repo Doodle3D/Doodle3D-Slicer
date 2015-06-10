@@ -14,7 +14,7 @@
 
 D3D.Box = function (localIp) {
 	"use strict";
-	var self = this;
+	var scope = this;
 
 	this.batchSize = 512;
 	this.maxBufferedLines = 4096;
@@ -31,13 +31,13 @@ D3D.Box = function (localIp) {
 	this.loaded = false;
 
 	this.getConfigAll(function (data) {
-		self.updateConfig(data);
+		scope.updateConfig(data);
 
-		self.update();
+		scope.update();
 
-		self.loaded = true;
-		if (self.onload !== undefined) {
-			self.onload();
+		scope.loaded = true;
+		if (scope.onload !== undefined) {
+			scope.onload();
 		}
 	});
 };
@@ -52,6 +52,7 @@ D3D.Box.prototype.updateConfig = function (config) {
 };
 D3D.Box.prototype.update = function () {
 	"use strict";
+	var scope = this;
 	//TODO
 	//Code is zo op gezet dat maar api call te gelijk is
 	//Bij error wordt gelijk zelfde data opnieuw gestuurd
@@ -62,22 +63,24 @@ D3D.Box.prototype.update = function () {
 		this.printBatch();
 	}
 	else {
-		this.updateState();
+		setTimeout(function () {
+			scope.updateState();
+		}, 1000);
 	}
 };
 D3D.Box.prototype.updateState = function () {
 	//que api calls so they don't overload the d3d box
 	"use strict";
-	var self = this;
+	var scope = this;
 
 	this.getInfoStatus(function (data) {
-		self.status = data;
+		scope.status = data;
 
-		if (self.onupdate !== undefined) {
-			self.onupdate(data);
+		if (scope.onupdate !== undefined) {
+			scope.onupdate(data);
 		}
 
-		self.update();
+		scope.update();
 	});
 };
 D3D.Box.prototype.print = function (gcode) {
@@ -98,7 +101,7 @@ D3D.Box.prototype.print = function (gcode) {
 };
 D3D.Box.prototype.printBatch = function () {
 	"use strict";
-	var self = this;
+	var scope = this;
 
 	var gcode = this.printBatches.shift();
 
@@ -108,17 +111,17 @@ D3D.Box.prototype.printBatch = function () {
 		"gcode": gcode.join("\n"), 
 		"last": ((this.printBatches.length === 0) ? true : false) //only for debug purposes
 	}, function (data) {
-		console.log("batch sent: " + self.currentBatch, data);
+		console.log("batch sent: " + scope.currentBatch, data);
 
-		if (self.printBatches.length > 0) {
+		if (scope.printBatches.length > 0) {
 			//sent new batch
-			self.currentBatch ++;
+			scope.currentBatch ++;
 		}
 		else {
 			//finish sending
 		}
 
-		self.updateState();
+		scope.updateState();
 	});
 };
 D3D.Box.prototype.stopPrint = function (printer) {
@@ -154,12 +157,12 @@ D3D.Box.prototype.getConfigAll = function (callback) {
 };
 D3D.Box.prototype.setConfig = function (data, callback) {
 	"use strict";
-	var self = this;
+	var scope = this;
 
 	sendAPI(this.api + "config", data, function (response) {
 		for (var i in response.validation) {
 			if (response.validation[i] === "ok") {
-				self[i] = data[i];
+				scope[i] = data[i];
 			}
 		}
 

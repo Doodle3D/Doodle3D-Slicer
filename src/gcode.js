@@ -4,6 +4,8 @@
 * 
 * Manages the gcode
 * Also handles different flavours of gcode
+* TODO
+* calculate extrusion length and total time
 *
 ******************************************************/
 

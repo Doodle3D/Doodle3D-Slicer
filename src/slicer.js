@@ -237,7 +237,7 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 
 				//think this check is not nescesary, always higher as 0
 				if (shape.length > 0) {
-					slice.push(new D3D.Paths([shape]));
+					slice.push(new D3D.Paths([shape], true));
 				}
 			}
 		}
@@ -281,20 +281,21 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 
 	var scale = 100;
 
-	var layerHeight = printer.config["printer.layerHeight"] * scale;
-	var dimensionsZ = printer.config["printer.dimensions.z"] * scale;
+	var layerHeight = printer.config["printer.layerHeight"];
 	var nozzleDiameter = printer.config["printer.nozzleDiameter"] * scale;
 	var shellThickness = printer.config["printer.shellThickness"] * scale;
 	var fillSize = printer.config["printer.fillSize"] * scale;
 	var brimOffset = printer.config["printer.brimOffset"] * scale;
-	var bottomThickness = printer.config["printer.bottomThickness"] * scale;
-	var topThickness = printer.config["printer.topThickness"] * scale;
+	var bottomThickness = printer.config["printer.bottomThickness"];
+	var topThickness = printer.config["printer.topThickness"];
 	var useSupport = printer.config["printer.support.use"];
-	var supportSize = printer.config["printer.support.size"] * scale;
-	var supportMinArea = printer.config["printer.support.minArea"] * Math.pow(scale, 2);
+	var supportGritSize = printer.config["printer.support.gritSize"] * scale;
+	var supportAccaptanceSize = printer.config["printer.support.accaptanceSize"] * scale;
 	var supportMargin = printer.config["printer.support.margin"] * scale;
-	var supportOffset = printer.config["printer.support.offset"] * scale;
+	var plateSize = printer.config["printer.support.plateSize"] * scale;
+	var supportDistanceY = printer.config["printer.support.distanceY"];
 
+	var supportDistanceLayers = Math.ceil(supportDistanceY / layerHeight);
 	var bottomSkinCount = Math.ceil(bottomThickness/layerHeight);
 	var topSkinCount = Math.ceil(topThickness/layerHeight);
 	var nozzleRadius = nozzleDiameter / 2;
@@ -395,58 +396,57 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 			top: this.geometry.boundingBox.min.x * scale, 
 			right: this.geometry.boundingBox.max.z * scale, 
 			bottom: this.geometry.boundingBox.max.x * scale
-		}, supportSize, true, true);
+		}, supportGritSize, true, true);
 
 		var supportAreas = new D3D.Paths([], true);
 
-		for (var layer = data.length - 1; layer >= 0; layer --) {
-			var slice = data[layer];
-
+		for (var layer = data.length - 1 - supportDistanceLayers; layer >= 0; layer --) {
 			if (supportAreas.length > 0) {
-				var currentSkin = new D3D.Paths([], true);
-				for (var i = 0; i < slice.length; i ++) {
-					currentSkin.join(slice[i].outerLayer);
+
+				if (layer >= supportDistanceLayers) {
+					var sliceSkin = new D3D.Paths([], true);
+					var slice = data[layer - supportDistanceLayers];
+
+					for (var i = 0; i < slice.length; i ++) {
+						sliceSkin.join(slice[i].outerLayer);
+					}
+					sliceSkin = sliceSkin.offset(supportMargin);
+
+					supportAreas = supportAreas.difference(sliceSkin);
 				}
-				currentSkin = currentSkin.offset(supportMargin);
 
-				supportAreas = supportAreas.difference(currentSkin);
+				var currentSlice = data[layer];
 
-				slice[0].support = supportTemplate.intersect(supportAreas);
+				if (layer === 0) {
+					supportAreas = supportAreas.offset(plateSize).difference(sliceSkin);
+
+					var template = this.getFillTemplate(supportAreas.bounds(), nozzleDiameter, true, false);
+
+					currentSlice[0].support = template.intersect(supportAreas);
+				}
+				else {
+					currentSlice[0].support = supportTemplate.intersect(supportAreas).join(supportAreas.clone());
+				}
 			}
 
-			if (layer !== 0) {
+			var supportSlice = data[layer + supportDistanceLayers - 1];
+			var supportSkin = new D3D.Paths([], true);
+			for (var i = 0; i < supportSlice.length; i ++) {
+				//supportSkin = supportSkin.union(supportSlice[i].outerLayer);
+				supportSkin.join(supportSlice[i].outerLayer);
+			}
 
-				var supportSkin = new D3D.Paths([], true);
-				if (layer - 1 >= 0) {
-					var supportLayer = data[layer - 1];
-					for (var i = 0; i < supportLayer.length; i ++) {
-						supportSkin.join(supportLayer[i].outerLayer);
-					}
-				}
+			var slice = data[layer + supportDistanceLayers];
+			for (var i = 0; i < slice.length; i ++) {
+				var slicePart = slice[i];
+				var outerLayer = slicePart.outerLayer;
 
-				for (var i = 0; i < slice.length; i ++) {
-					var slicePart = slice[i];
-					var outerLayer = slicePart.outerLayer;
+				var overlap = supportSkin.offset(supportAccaptanceSize).intersect(outerLayer);
+				var overhang = outerLayer.difference(overlap);
 
-					var overlap = supportSkin.intersect(outerLayer);
-					var overhang = outerLayer.difference(overlap);
-
-					if (overlap.length === 0) {
-						var supportArea = overhang.offset(supportOffset);
-						supportAreas = supportAreas.union(supportArea);
-					}
-					else if (overhang.length > 0) {
-						var areas = overhang.areas();
-
-						for (var j = 0; j < areas.length; j ++) {
-							var area = areas[i];
-
-							if (area > supportMinArea) {
-								var supportArea = new D3D.Paths([overhang[i]], false).offset(supportOffset);
-								supportAreas = supportAreas.union(supportArea);
-							}
-						}
-					}
+				if (overlap.length === 0 || overhang.length > 0) {
+					var supportArea = outerLayer.difference(supportSkin.intersect(outerLayer));
+					supportAreas = supportAreas.union(supportArea);
 				}
 			}
 		}
@@ -546,10 +546,10 @@ D3D.Slicer.prototype.dataToGCode = function (data, printer) {
 
 			sliceToGCode(layerPart.outerLayer, false, true);
 			sliceToGCode(layerPart.insets, false, false);
-			sliceToGCode(layerPart.fill, (layerPart.support === undefined), false);
+			sliceToGCode(layerPart.fill, true, false);
 
 			if (layerPart.support !== undefined) {
-				sliceToGCode(layerPart.support, true, false);
+				sliceToGCode(layerPart.support, true, true);
 			}
 		}
 

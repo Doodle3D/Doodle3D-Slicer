@@ -168,7 +168,8 @@ D3D.Paths.prototype.areas = function () {
 	for (var i = 0; i < this.length; i ++) {
 		var shape = this[i];
 
-		areas.push(ClipperLib.Clipper.Area(shape));
+		var area = Math.abs(ClipperLib.Clipper.Area(shape));
+		areas.push(area);
 	}
 
 	return areas;
@@ -208,6 +209,16 @@ D3D.Paths.prototype.bounds = function () {
 	"use strict";
 
 	return ClipperLib.Clipper.GetBounds(this);
+};
+D3D.Paths.prototype.boundSize = function () {
+	"use strict";
+
+	var bounds = this.bounds();
+
+	var width = bounds.right - bounds.left;
+	var height = bounds.top - bounds.bottom;
+
+	return width * height;
 };
 D3D.Paths.prototype.draw = function (context, color) {
 	"use strict";
