@@ -5,13 +5,10 @@
 *
 ******************************************************/
 
-D3D.Printer = function (printerSettings, userSettings) {
+D3D.Printer = function () {
 	"use strict";
 
 	this.config = {};
-
-	this.updateConfig(printerSettings);	
-	this.updateConfig(userSettings);
 };
 D3D.Printer.prototype.updateConfig = function (config) {
 	"use strict";
@@ -36,6 +33,7 @@ D3D.Printer.prototype.getEndCode = function () {
 	"use strict";
 	
 	var gcode = this.config["printer.endcode"];
+
 	gcode = this.subsituteVariables(gcode);
 
 	return gcode.split("\n");

@@ -20,9 +20,15 @@ $(document).ready(function () {
 
 	var listDoodle = $("#printers-doodle");
 	var listSliceTest = $("#printers-slicetest");
+	var listSliceWebworker = $("#printers-webworker");
 
 	listDoodle.append("<li><a href='doodle.html#192.168.5.1'>Wired Printer</a></li>");
 	listSliceTest.append("<li><a href='slice_test.html#192.168.5.1'>Wired Printer</a></li>");
+	listSliceWebworker.append("<li><a href='webworker_test.html#192.168.5.1'>Wired Printer</a></li>");
+
+	listDoodle.append("<li><a href='doodle.html#" + window.location.host + ":3000'>Node Server</a></li>");
+	listSliceTest.append("<li><a href='slice_test.html#" + window.location.host + ":3000'>Node Server</a></li>");
+	listSliceWebworker.append("<li><a href='webworker_test.html#" + window.location.host + ":3000'>Node Server</a></li>");
 
 	/*
 	printers.push({
@@ -44,6 +50,7 @@ $(document).ready(function () {
 
 			listDoodle.append("<li><a href='doodle.html#" + box.localip + "'>" + box.wifiboxid + "</a></li>");
 			listSliceTest.append("<li><a href='slice_test.html#" + box.localip + "'>" + box.wifiboxid + "</a></li>");
+			listSliceWebworker.append("<li><a href='webworker_test.html#" + box.localip + "'>" + box.wifiboxid + "</a></li>");
 		}
 	});
 });
@@ -54,6 +61,10 @@ $(document).ready(function () {
 
 <p>Slice Test</p>
 <ul id="printers-slicetest"></ul>
+
+<p>Webworkers</p>
+<ul id="printers-webworker"></ul>
+
 <!--
 <table>
 	<tr>

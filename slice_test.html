@@ -12,10 +12,8 @@
 <script src="src/box.js"></script>
 <script src="src/printer.js"></script>
 <script src="src/paths.js"></script>
+<script src="src/gcode.js"></script>
 <script src="src/slicer.js"></script>
-
-<script src="gcode/testgcode.js"></script>
-<script src="gcode/easterbunny.js"></script>
 
 <style>
 canvas {border: 1px solid black;}
@@ -33,12 +31,12 @@ function init () {
 	var scene = createScene();
 
 	var localIp = location.hash.substring(1);
-	doodleBox = new D3D.Box(localIp);
+	//doodleBox = new D3D.Box(localIp);
 
-	var printer = new D3D.Printer(USER_SETTINGS, PRINTER_SETTINGS["ultimaker"]);
+	var printer = new D3D.Printer().updateConfig(USER_SETTINGS).updateConfig(PRINTER_SETTINGS["ultimaker"]);
 
 	var loader = new THREE.STLLoader();
-	loader.load("models/pokemon/pikachu.stl", function (geometry) {
+	loader.load('models/support_test.stl', function (geometry) {
 		//var geometry = new THREE.BoxGeometry(10, 10, 10, 1, 1, 1);
 		//var geometry = new THREE.SphereGeometry(10, 20, 10);
 		//var geometry = new THREE.TorusGeometry(20, 10, 30, 30);
@@ -72,23 +70,23 @@ function init () {
 		
 		mesh.rotation.x = -Math.PI/2;
 		mesh.scale.x = mesh.scale.y = mesh.scale.z = 1;
-		mesh.position.x = 100;
-		mesh.position.z = 100;
+		mesh.position.y = -0.1;
+		mesh.position.x = 60;
+		mesh.position.z = 60;
 
-		//scene.add(mesh);
+		mesh.updateMatrix();
 
-		var slicer = new D3D.Slicer().setMesh(mesh);
-
-		var mesh = new THREE.Mesh(slicer.geometry, material);
 		scene.add(mesh);
-		
-		var canvas = document.getElementById("canvas");
-		var context = canvas.getContext("2d");
 
-		var img = slicer.drawPaths(printer, 0, 1);
-		context.drawImage(img, 0, 0);
+		var slicer = new D3D.Slicer().setMesh(mesh.geometry, mesh.matrix);
 
-		gcode = slicer.getGcode(printer);
+		//var canvas = document.getElementById("canvas");
+		//var context = canvas.getContext("2d");
+
+		//var img = slicer.drawPaths(printer, 0, 1);
+		//context.drawImage(img, 0, 0);
+
+		gcode = slicer.getGCode(printer);
 	});
 }
 

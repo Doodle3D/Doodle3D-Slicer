@@ -160,6 +160,20 @@ D3D.Paths.prototype.optimizePath = function (start) {
 
 	return optimizedPaths;
 };
+D3D.Paths.prototype.areas = function () {
+	"use strict";
+
+	var areas = [];
+
+	for (var i = 0; i < this.length; i ++) {
+		var shape = this[i];
+
+		var area = Math.abs(ClipperLib.Clipper.Area(shape));
+		areas.push(area);
+	}
+
+	return areas;
+};
 D3D.Paths.prototype.tresholdArea = function (minArea) {
 	//code not tested yet
 	"use strict";
@@ -195,6 +209,16 @@ D3D.Paths.prototype.bounds = function () {
 	"use strict";
 
 	return ClipperLib.Clipper.GetBounds(this);
+};
+D3D.Paths.prototype.boundSize = function () {
+	"use strict";
+
+	var bounds = this.bounds();
+
+	var width = bounds.right - bounds.left;
+	var height = bounds.top - bounds.bottom;
+
+	return width * height;
 };
 D3D.Paths.prototype.draw = function (context, color) {
 	"use strict";
