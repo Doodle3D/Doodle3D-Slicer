@@ -91,7 +91,7 @@ function init () {
 	};
 
 	var loader = new THREE.STLLoader();
-	loader.load('models/pokemon/pikachu.stl', function (geometry) {
+	loader.load('models/support_test.stl', function (geometry) {
 		//var geometry = new THREE.TorusGeometry(20, 10, 30, 30).clone();
 
 		var material = new THREE.MeshPhongMaterial({color: 0x00ff00, wireframe: false});
@@ -99,7 +99,7 @@ function init () {
 		var mesh = new THREE.Mesh(geometry, material);
 
 		mesh.rotation.x = -Math.PI/2;
-		mesh.scale.x = mesh.scale.y = mesh.scale.z = 0.5;
+		mesh.scale.x = mesh.scale.y = mesh.scale.z = 1;
 		mesh.position.y = -0.1;
 		mesh.position.x = 60;
 		mesh.position.z = 60;
