@@ -16,6 +16,8 @@ D3D.Box = function (localIp) {
 	"use strict";
 	var scope = this;
 
+	this.alive = false;
+
 	this.batchSize = 512;
 	this.maxBufferedLines = 4096;
 
@@ -30,16 +32,46 @@ D3D.Box = function (localIp) {
 
 	this.loaded = false;
 
-	this.getConfigAll(function (data) {
-		scope.updateConfig(data);
+	this.init();
+};
+D3D.Box.prototype.init = function () {
+	"use strict";
+	var scope = this;
 
-		scope.update();
+	this.getNetworkAlive(function (error, data) {
+		if (error) {
+			scope.alive = false;
+			console.warn(error);
+			
+			setTimeout(function () {
+				scope.init();
+			}, 1000);
 
-		scope.loaded = true;
-		if (scope.onload !== undefined) {
-			scope.onload();
+			return;
 		}
+
+		scope.alive = true;
+
+		scope.getConfigAll(function (error, data) {
+			if (error) {
+				console.warn(error);
+				scope.init();
+			}
+
+			scope.updateConfig(data);
+
+			if (!scope.loaded) {
+				scope.loaded = true;
+				if (scope.onload !== undefined) {
+					scope.onload();
+				}
+			}
+
+			scope.updateLoop();
+		});
 	});
+
+	return this;
 };
 D3D.Box.prototype.updateConfig = function (config) {
 	"use strict";
@@ -50,7 +82,7 @@ D3D.Box.prototype.updateConfig = function (config) {
 
 	return this;
 };
-D3D.Box.prototype.update = function () {
+D3D.Box.prototype.updateLoop = function () {
 	"use strict";
 	var scope = this;
 	//TODO
@@ -73,14 +105,21 @@ D3D.Box.prototype.updateState = function () {
 	"use strict";
 	var scope = this;
 
-	this.getInfoStatus(function (data) {
+	this.getInfoStatus(function (error, data) {
+		if (error) {
+			console.warn(error);
+			scope.init();
+
+			return;
+		}
+
 		scope.status = data;
 
 		if (scope.onupdate !== undefined) {
 			scope.onupdate(data);
 		}
 
-		scope.update();
+		scope.updateLoop();
 	});
 };
 D3D.Box.prototype.print = function (gcode) {
@@ -110,7 +149,15 @@ D3D.Box.prototype.printBatch = function () {
 		"first": ((this.currentBatch === 0) ? true : false), 
 		"gcode": gcode.join("\n"), 
 		"last": ((this.printBatches.length === 0) ? true : false) //only for debug purposes
-	}, function (data) {
+	}, function (error, data) {
+		if (error) {
+			scope.printBatches.unshift(gcode);
+			console.warn(error);
+			scope.init();
+
+			return;
+		}
+
 		console.log("batch sent: " + scope.currentBatch, data);
 
 		if (scope.printBatches.length > 0) {
@@ -126,13 +173,21 @@ D3D.Box.prototype.printBatch = function () {
 };
 D3D.Box.prototype.stopPrint = function (printer) {
 	"use strict";
+	var scope = this;
 
 	this.printBatches = [];
 	this.currentBatch = 0;
 
 	this.setPrinterStop({
-		"gcode": printer.getEndCode().join("\n")
-	}, function (data) {
+		"gcode": printer.getEndCode()
+	}, function (error, data) {
+		if (error) {
+			console.warn(error);
+			scope.init();
+
+			return;
+		}
+
 		console.log("Printer stop command sent");
 	});
 

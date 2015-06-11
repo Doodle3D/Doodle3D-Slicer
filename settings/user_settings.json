@@ -15,7 +15,7 @@
 	"printer.temperature": 210.0, 
 	"printer.topThickness": 0.8, 
 	"printer.travelSpeed": 200.0, 
-	"printer.support.accaptanceSize": 1.5, 
+	"printer.support.accaptanceMargin": 1.5, 
 	"printer.support.distanceY": 0.4, 
 	"printer.support.use": true, 
 	"printer.support.gritSize": 6.0, 

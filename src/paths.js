@@ -8,7 +8,7 @@
 ******************************************************/
 
 D3D.Paths = function (paths, closed) {
-	"use strict";
+	'use strict';
 
 	Array.call(this);
 
@@ -18,7 +18,7 @@ D3D.Paths = function (paths, closed) {
 };
 D3D.Paths.prototype = Object.create(Array.prototype);
 D3D.Paths.prototype.setPaths = function (paths) {
-	"use strict";
+	'use strict';
 
 	for (var i = 0; i < paths.length; i ++) {
 		var path = paths[i];
@@ -30,7 +30,7 @@ D3D.Paths.prototype.setPaths = function (paths) {
 	return this;
 };
 D3D.Paths.prototype.clip = function (path, type) {
-	"use strict";
+	'use strict';
 
 	var solution = new ClipperLib.Paths();
 
@@ -42,27 +42,27 @@ D3D.Paths.prototype.clip = function (path, type) {
 	return new D3D.Paths(solution, this.closed);
 };
 D3D.Paths.prototype.union = function (path) {
-	"use strict";
+	'use strict';
 
 	return this.clip(path, ClipperLib.ClipType.ctUnion);
 };
 D3D.Paths.prototype.difference = function (path) {
-	"use strict";
+	'use strict';
 
 	return this.clip(path, ClipperLib.ClipType.ctDifference);
 };
 D3D.Paths.prototype.intersect = function (path) {
-	"use strict";
+	'use strict';
 
 	return this.clip(path, ClipperLib.ClipType.ctIntersection);
 };
 D3D.Paths.prototype.xor = function () {
-	"use strict";
+	'use strict';
 
 	return this.clip(path, ClipperLib.ClipType.ctXor);
 };
 D3D.Paths.prototype.offset = function (offset) {
-	"use strict";
+	'use strict';
 
 	var solution = new ClipperLib.Paths();
 	var co = new ClipperLib.ClipperOffset(1, 1);
@@ -72,28 +72,28 @@ D3D.Paths.prototype.offset = function (offset) {
 	return new D3D.Paths(solution);
 };
 D3D.Paths.prototype.scaleUp = function (factor) {
-	"use strict";
+	'use strict';
 
 	var path = ClipperLib.JS.ScaleUpPaths(this, factor);
 
 	return this;
 };
 D3D.Paths.prototype.scaleDown = function (factor) {
-	"use strict";
+	'use strict';
 
 	var path = ClipperLib.JS.ScaleDownPaths(this, factor);
 
 	return this;
 };
 D3D.Paths.prototype.lastPoint = function () {
-	"use strict";
+	'use strict';
 
 	var lastPath = this[this.length - 1];
 	var lastPoint = this.closed ? lastPath[0] : lastPath[lastPath.length - 1];
 	return new THREE.Vector2(lastPoint.X, lastPoint.Y);
 };
 D3D.Paths.prototype.optimizePath = function (start) {
-	"use strict";
+	'use strict';
 
 	var optimizedPaths = new D3D.Paths([], this.closed);
 	var donePaths = [];
@@ -161,7 +161,7 @@ D3D.Paths.prototype.optimizePath = function (start) {
 	return optimizedPaths;
 };
 D3D.Paths.prototype.areas = function () {
-	"use strict";
+	'use strict';
 
 	var areas = [];
 
@@ -176,7 +176,7 @@ D3D.Paths.prototype.areas = function () {
 };
 D3D.Paths.prototype.tresholdArea = function (minArea) {
 	//code not tested yet
-	"use strict";
+	'use strict';
 
 	for (var i = 0; i < this.length; i ++) {
 		var shape = this[i];
@@ -192,7 +192,7 @@ D3D.Paths.prototype.tresholdArea = function (minArea) {
 	return areas;
 };
 D3D.Paths.prototype.join = function (path) {
-	"use strict";
+	'use strict';
 
 	for (var i = 0; i < path.length; i ++) {
 		this.push(path[i]);
@@ -201,17 +201,17 @@ D3D.Paths.prototype.join = function (path) {
 	return this;
 };
 D3D.Paths.prototype.clone = function () {
-	"use strict";
+	'use strict';
 
 	return new D3D.Paths(ClipperLib.JS.Clone(this), this.closed);
 };
 D3D.Paths.prototype.bounds = function () {
-	"use strict";
+	'use strict';
 
 	return ClipperLib.Clipper.GetBounds(this);
 };
 D3D.Paths.prototype.boundSize = function () {
-	"use strict";
+	'use strict';
 
 	var bounds = this.bounds();
 
@@ -221,7 +221,7 @@ D3D.Paths.prototype.boundSize = function () {
 	return width * height;
 };
 D3D.Paths.prototype.draw = function (context, color) {
-	"use strict";
+	'use strict';
 
 	context.strokeStyle = color;
 	for (var i = 0; i < this.length; i ++) {
