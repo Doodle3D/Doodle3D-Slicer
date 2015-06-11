@@ -42,7 +42,7 @@ self.addEventListener("message", function (event) {
 
 		case "SLICE":
 			var gcode = slicer.getGCode(printer);
-			var blob = new Blob([gcode], {type: 'text/html'});
+			var blob = new Blob([gcode], {type: 'text/plain'});
 
 			self.postMessage({
 				"cmd": "GCODE", 

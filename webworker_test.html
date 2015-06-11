@@ -47,8 +47,7 @@ function init () {
 	var scene = createScene();
 
 	var localIp = location.hash.substring(1);
-	doodleBox = new D3D.Box(localIp);
-
+	doodleBox = new D3D.Box(localIp).init();
 	doodleBox.onupdate = function (data) {
 		document.getElementById('state').innerHTML = data.state;
 		document.getElementById('bed_temp').innerHTML = data.bed;
@@ -115,6 +114,8 @@ function init () {
 }
 
 function createScene () {
+	'use strict';
+	
 	var scene = new THREE.Scene();
 
 	var renderer = new THREE.WebGLRenderer({canvas: document.getElementById('3d-preview'), antialias: true});
@@ -192,13 +193,22 @@ function createScene () {
 		}
 	}
 
-	loadSettings('settings/user_settings.json', function (data) {
-		USER_SETTINGS = data;
-		loaded();
+	$.ajax({
+		url: 'settings/user_settings.json', 
+		dataType: 'json', 
+		success: function (response) {
+			USER_SETTINGS = response;
+			loaded();
+		}
 	});
-	loadSettings('settings/printer_settings.json', function (data) {
-		PRINTER_SETTINGS = data;
-		loaded();
+
+	$.ajax({
+		url: 'settings/printer_settings.json', 
+		dataType: 'json', 
+		success: function (response) {
+			PRINTER_SETTINGS = response;
+			loaded();
+		}
 	});
 })();
 </script>

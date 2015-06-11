@@ -1,6 +1,6 @@
 /******************************************************
 *
-* Box
+* WiFi-Box
 * Representation of de Doodle3DBox
 * Handles all communication with the doodle box
 * JavaScript shell for api communication
@@ -31,8 +31,6 @@ D3D.Box = function (localIp) {
 	this.currentBatch = 0;
 
 	this.loaded = false;
-
-	this.init();
 };
 D3D.Box.prototype.init = function () {
 	"use strict";
@@ -40,7 +38,12 @@ D3D.Box.prototype.init = function () {
 
 	this.getNetworkAlive(function (error, data) {
 		if (error) {
-			scope.alive = false;
+			if (scope.alive) {
+				scope.alive = false;
+				if (scope.ondisconnect !== undefined) {
+					scope.ondisconnect();
+				}
+			}
 			console.warn(error);
 			
 			setTimeout(function () {
@@ -51,6 +54,9 @@ D3D.Box.prototype.init = function () {
 		}
 
 		scope.alive = true;
+		if (scope.onconnect !== undefined) {
+			scope.onconnect();
+		}
 
 		scope.getConfigAll(function (error, data) {
 			if (error) {

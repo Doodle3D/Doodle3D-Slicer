@@ -3,10 +3,12 @@
 <head>
 <title>Doedel Drie Dee</title>
 <script src="library/jquery.js"></script>
-<script src="library/three.js"></script>
 <script src="src/utils.js"></script>
 <script src="src/box.js"></script>
-<script src="src/printer.js"></script>
+
+<style>
+.hidden {display: none;}
+</style>
 
 </head>
 <body>
@@ -18,46 +20,55 @@ var printers = [];
 $(document).ready(function () {
 	"use strict";
 
-	var listDoodle = $("#printers-doodle");
+	var known = [];
+
 	var listSliceTest = $("#printers-slicetest");
 	var listSliceWebworker = $("#printers-webworker");
 
-	listDoodle.append("<li><a href='doodle.html#192.168.5.1'>Wired Printer</a></li>");
-	listSliceTest.append("<li><a href='slice_test.html#192.168.5.1'>Wired Printer</a></li>");
-	listSliceWebworker.append("<li><a href='webworker_test.html#192.168.5.1'>Wired Printer</a></li>");
+	function addPrinter (name, localip) {
+		known.push(localip);
 
-	listDoodle.append("<li><a href='doodle.html#" + window.location.host + ":3000'>Node Server</a></li>");
-	listSliceTest.append("<li><a href='slice_test.html#" + window.location.host + ":3000'>Node Server</a></li>");
-	listSliceWebworker.append("<li><a href='webworker_test.html#" + window.location.host + ":3000'>Node Server</a></li>");
+		var slice = $("<li class='hidden'><a href='slice_test.html#" + localip + "'>" + name + "</a></li>");
+		var webworker = $("<li class='hidden'><a href='webworker_test.html#" + localip + "'>" + name + "</a></li>");
+		
+		listSliceTest.append(slice);
+		listSliceWebworker.append(webworker);
 
-	/*
-	printers.push({
-		name: "wired box",
-		d3dbox: new D3D.Box("192.168.5.1")
-	});
-	*/
-	
-	getAPI(api + "list.php", function (boxes) {
-		for (var i = 0; i < boxes.length; i ++) {
-			var box = boxes[i];
+		var box = new D3D.Box(localip).init();
+		box.onconnect = function () {
+			slice.removeClass('hidden');
+			webworker.removeClass('hidden');
+		};
+		box.ondisconnect = function () {
+			slice.addClass('hidden');
+			webworker.addClass('hidden');
+		};
+	}
 
-			/*
-			printers.push({
-				name: box.wifiboxid,
-				d3dbox: new D3D.Box(box.localip)
-			});
-			*/
+	function checkNewBoxes () {
+		getAPI(api + "list.php", function (error, boxes) {
+			if (error) {
+				console.warn('It appears that you are not connected to the internet, or the Doodle3D servers are down');
+				return;
+			}
 
-			listDoodle.append("<li><a href='doodle.html#" + box.localip + "'>" + box.wifiboxid + "</a></li>");
-			listSliceTest.append("<li><a href='slice_test.html#" + box.localip + "'>" + box.wifiboxid + "</a></li>");
-			listSliceWebworker.append("<li><a href='webworker_test.html#" + box.localip + "'>" + box.wifiboxid + "</a></li>");
-		}
-	});
+			for (var i = 0; i < boxes.length; i ++) {
+				var box = boxes[i];
+				if (known.indexOf(box.localip) === -1) {
+
+					addPrinter(box.wifiboxid, box.localip);
+				}
+			}
+		});
+	}
+
+	addPrinter('Wired Printer', '192.168.5.1');
+	addPrinter('Node Server', window.location.host + ":3000");
+
+	setInterval(checkNewBoxes, 10000);
+	checkNewBoxes();
 });
 </script>
-
-<p>Doodle</p>
-<ul id="printers-doodle"></ul>
 
 <p>Slice Test</p>
 <ul id="printers-slicetest"></ul>
@@ -65,19 +76,5 @@ $(document).ready(function () {
 <p>Webworkers</p>
 <ul id="printers-webworker"></ul>
 
-<!--
-<table>
-	<tr>
-		<th>localip</th>
-		<th>wifiboxid</th>
-		<th>date</th>
-	</tr>
-	<tr style="display: none">
-		<td>localip</td>
-		<td>wifiboxid</td>
-		<td>date</td>
-	</tr>
-</table>
--->
 </body>
 </html> 
