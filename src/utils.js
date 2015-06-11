@@ -6,24 +6,24 @@
 ******************************************************/
 
 var D3D = {
-	"version": "0.1", 
-	"website": "http://www.doodle3d.com/", 
-	"contact": "develop@doodle3d.com"
+	'version': '0.1', 
+	'website': 'http://www.doodle3d.com/', 
+	'contact': 'develop@doodle3d.com'
 };
 
 function sendAPI (url, data, callback) {
-	"use strict";
+	'use strict';
 
 	$.ajax({
 		url: url, 
-		type: "POST", 
+		type: 'POST', 
 		data: data, 
-		dataType: "json", 
+		dataType: 'json', 
 		timeout: 10000, 
 		success: function (response) {
-			if (response.status === "success") {
+			if (response.status === 'success') {
 				if (callback !== undefined) {
-					callback(null, response.data);
+					callback(null, response);
 				}
 			}
 			else {
@@ -31,19 +31,19 @@ function sendAPI (url, data, callback) {
 			}
 		}
 	}).fail(function () {
-		callback("Failed connecting to " + url);
+		callback('Failed connecting to ' + url);
 	});
 }
 
 function getAPI (url, callback) {
-	"use strict";
+	'use strict';
 	
 	$.ajax({
 		url: url, 
-		dataType: "json", 
+		dataType: 'json', 
 		timeout: 5000, 
 		success: function (response) {
-			if (response.status === "success") {
+			if (response.status === 'success') {
 				if (callback !== undefined) {
 					callback(null, response.data);
 				}
@@ -53,37 +53,23 @@ function getAPI (url, callback) {
 			}
 		}
 	}).fail(function () {
-		callback("Failed connecting to " + url);
+		callback('Failed connecting to ' + url);
 	});	
 }
 
-function loadSettings (url, callback) {
-	"use strict";
-
-	$.ajax({
-		url: url, 
-		dataType: "json", 
-		success: function (response) {
-			if (callback !== undefined) {
-				callback(response);
-			}
-		}
-	});
-}
-
 function downloadFile (file, data) {
-	"use strict";
+	'use strict';
 
 	var blob = new Blob([data], {type:'text/plain'});
 
-	var button = document.createElement("a");
+	var button = document.createElement('a');
 	button.download = file;
 	button.href = window.URL.createObjectURL(blob);
 	button.click();
 }
 
 Array.prototype.clone = function () {
-	"use strict";
+	'use strict';
 	var array = [];
 
 	for (var i = 0; i < this.length; i ++) {
