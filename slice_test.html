@@ -14,6 +14,7 @@
 <script src="src/paths.js"></script>
 <script src="src/gcode.js"></script>
 <script src="src/slicer.js"></script>
+<script src="src/slice.js"></script>
 
 <style>
 canvas {border: 1px solid black;}
@@ -36,7 +37,7 @@ function init () {
 	var printer = new D3D.Printer().updateConfig(USER_SETTINGS).updateConfig(PRINTER_SETTINGS["ultimaker"]);
 
 	var loader = new THREE.STLLoader();
-	loader.load('models/support_test.stl', function (geometry) {
+	loader.load('models/pokemon/pikachu.stl', function (geometry) {
 		//var geometry = new THREE.BoxGeometry(10, 10, 10, 1, 1, 1);
 		//var geometry = new THREE.SphereGeometry(10, 20, 10);
 		//var geometry = new THREE.TorusGeometry(20, 10, 30, 30);
@@ -159,6 +160,8 @@ function createScene () {
 
 //loadSettings;
 (function () {
+	'use strict';
+
 	var loadedItems = 0;
 	function loaded () {
 		loadedItems ++;
@@ -167,13 +170,22 @@ function createScene () {
 		}
 	}
 
-	loadSettings("settings/user_settings.json", function (data) {
-		USER_SETTINGS = data;
-		loaded();
+	$.ajax({
+		url: 'settings/user_settings.json', 
+		dataType: 'json', 
+		success: function (response) {
+			USER_SETTINGS = response;
+			loaded();
+		}
 	});
-	loadSettings("settings/printer_settings.json", function (data) {
-		PRINTER_SETTINGS = data;
-		loaded();
+
+	$.ajax({
+		url: 'settings/printer_settings.json', 
+		dataType: 'json', 
+		success: function (response) {
+			PRINTER_SETTINGS = response;
+			loaded();
+		}
 	});
 })();
 </script>

@@ -133,10 +133,9 @@ D3D.Box.prototype.print = function (gcode) {
 
 	this.currentBatch = 0;
 
-	//clone gcode to remove array links
-	gcode = gcode.clone();
+	gcode = gcode.split("\n");
 
-	//gcode split in batches
+	//split gcode in batches
 	while (gcode.length > 0) {
 		var gcodeBatch = gcode.splice(0, Math.min(this.batchSize, gcode.length));
 		this.printBatches.push(gcodeBatch);
@@ -158,6 +157,7 @@ D3D.Box.prototype.printBatch = function () {
 	}, function (error, data) {
 		if (error) {
 			scope.printBatches.unshift(gcode);
+			
 			console.warn(error);
 			scope.init();
 
