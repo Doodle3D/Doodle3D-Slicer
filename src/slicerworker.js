@@ -19,7 +19,7 @@ D3D.SlicerWorker = function () {
 				if (scope.onfinish !== undefined) {
 					var reader = new FileReader();
 					reader.addEventListener("loadend", function() {
-						var gcode = reader.result.split("\n");
+						var gcode = reader.result;
 						scope.onfinish(gcode);
 					});
 					reader.readAsBinaryString(event.data['gcode']);

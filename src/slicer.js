@@ -120,6 +120,7 @@ D3D.Slicer.prototype.createLines = function () {
 };
 D3D.Slicer.prototype.slice = function (layerHeight, height) {
 	"use strict";
+
 	var numLayers = height / layerHeight;
 
 	var layersIntersections = [];
@@ -169,7 +170,7 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 		}
 
 		var done = [];
-		var slice = [];
+		var sliceParts = [];
 		for (var i = 0; i < layerIntersections.length; i ++) {
 			var index = layerIntersections[i];
 
@@ -242,39 +243,32 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 
 				//think this check is not nescesary, always higher as 0
 				if (shape.length > 0) {
-					slice.push(new D3D.Paths([shape], true));
+					sliceParts.push(new D3D.Paths([shape], true));
 				}
 			}
 		}
 
+		var slice = new D3D.Slice();
 
-		var layerParts = [];
-
-		for (var i = 0; i < slice.length; i ++) {
-			var layerPart1 = slice[i];
+		for (var i = 0; i < sliceParts.length; i ++) {
+			var slicePart1 = sliceParts[i];
 			var merge = false;
 
-			for (var j = 0; j < layerParts.length; j ++) {
-				var layerPart2 = layerParts[j];
+			for (var j = 0; j < slice.parts.length; j ++) {
+				var slicePart2 = slice.parts[j].intersect;
 
-				if (layerPart2.intersect(layerPart1).length > 0) {
-					layerPart2.join(layerPart1);
+				if (slicePart2.intersect(slicePart1).length > 0) {
+					slicePart2.join(slicePart1);
 					merge = true;
 					break;
 				}
 			}
 			if (!merge) {
-				layerParts.push(layerPart1);
+				slice.addIntersect(slicePart1);
 			}
 		}
 
-		//stop when ther are no intersects
-		if (layerParts.length > 0) {
-			slices.push(layerParts);
-		}
-		else {
-			break;
-		}
+		slices.push(slice);
 
 		this.progress.sliceLayer = layer;
 		this.updateProgress();
@@ -299,6 +293,7 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 	var supportMargin = printer.config["printer.support.margin"] * scale;
 	var plateSize = printer.config["printer.support.plateSize"] * scale;
 	var supportDistanceY = printer.config["printer.support.distanceY"];
+	var brimOffset = printer.config["printer.brimOffset"] * scale;
 
 	var supportDistanceLayers = Math.ceil(supportDistanceY / layerHeight);
 	var bottomSkinCount = Math.ceil(bottomThickness/layerHeight);
@@ -312,81 +307,63 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 		bottom: this.geometry.boundingBox.max.x * scale
 	}, fillSize, true, true);
 
-	var data = [];
-
-	//generate outerLayer and insets
+	console.log("generating outer lines and inner lines");
 	for (var layer = 0; layer < slices.length; layer ++) {
 		var slice = slices[layer];
 
-		var layerData = [];
-		data.push(layerData);
+		for (var i = 0; i < slice.parts.length; i ++) {
+			var part = slice.parts[i];
 
-		for (var i = 0; i < slice.length; i ++) {
-			var part = slice[i];
+			var outerLine = part.intersect.clone().scaleUp(scale).offset(-nozzleRadius);
 
-			var outerLayer = part.clone().scaleUp(scale).offset(-nozzleRadius);
+			if (outerLine.length > 0) {
+				part.outerLine = outerLine;
 
-			var insets = new D3D.Paths([], true);
-			if (outerLayer.length > 0) {
 				for (var offset = nozzleDiameter; offset <= shellThickness; offset += nozzleDiameter) {
-					var inset = outerLayer.offset(-offset);
+					var innerLine = outerLine.offset(-offset);
 
-					insets.join(inset);
+					if (innerLine.length > 0) {
+						part.innerLines.push(innerLine);
+					}
+					else {
+						break;
+					}
 				}
-
-				layerData.push({
-					outerLayer: outerLayer, 
-					insets: insets
-				});
 			}
 		}
 	}
 
-	//generate infills
-	for (var layer = 0; layer < data.length; layer ++) {
-		var slice = data[layer];
+	console.log("generating infills");
+	for (var layer = 0; layer < slices.length; layer ++) {
+		var slice = slices[layer];
 		
-		var downSkin = new D3D.Paths([], true);
-		if (layer - bottomSkinCount >= 0) {
-			var downLayer = data[layer - bottomSkinCount];
-			for (var i = 0; i < downLayer.length; i ++) {
-				downSkin.join(downLayer[i].outerLayer);
-			}
-		}
-		var upSkin = new D3D.Paths([], true);
-		if (layer + topSkinCount < data.length) {
-			var upLayer = data[layer + topSkinCount];
-			for (var i = 0; i < upLayer.length; i ++) {
-				upSkin.join(upLayer[i].outerLayer);
-			}
-		}
-		var surroundingLayer = upSkin.intersect(downSkin);
-		var sliceData = [];
+		var downSkin = (layer - bottomSkinCount >= 0) ? slices[layer - bottomSkinCount].getOutline() : new D3D.Paths([], true);
+		var upSkin = (layer + topSkinCount < slices.length) ? slices[layer + topSkinCount].getOutline() : new D3D.Paths([], true);
+		var surroundingLayer = (downSkin.length === 0 || upSkin.length === 0) ? new D3D.Paths([], true) : upSkin.intersect(downSkin);
 
-		for (var i = 0; i < slice.length; i ++) {
-			var part = slice[i];
-			var outerLayer = part.outerLayer;
-			var insets = part.insets;
+		for (var i = 0; i < slice.parts.length; i ++) {
+			var part = slice.parts[i];
+			var outerLine = part.outerLine;
 
-			if (outerLayer.length > 0) {
-				var fillArea = ((insets.length > 0) ? insets : outerLayer).offset(-nozzleRadius);
+			if (outerLine.length > 0) {
+				var inset = ((part.innerLines.length > 0) ? part.innerLines[part.innerLines.length - 1] : outerLine);
+
+				var fillArea = inset.offset(-nozzleRadius);
 				var highFillArea = fillArea.difference(surroundingLayer);
 				var lowFillArea = fillArea.difference(highFillArea);
 
 				var fill = new D3D.Paths([], false);
 
 				if (lowFillTemplate.length > 0) {
-					fill.join(lowFillTemplate.intersect(lowFillArea));
+					part.fill.join(lowFillTemplate.intersect(lowFillArea));
 				}
 
 				if (highFillArea.length > 0) {
 					var bounds = highFillArea.bounds();
 					var even = (layer % 2 === 0);
 					var highFillTemplate = this.getFillTemplate(bounds, nozzleDiameter, even, !even);
-					fill.join(highFillTemplate.intersect(highFillArea));
+					part.fill.join(highFillTemplate.intersect(highFillArea));
 				}
-
-				part.fill = fill;
 			}
 		}
 
@@ -394,8 +371,9 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 		this.updateProgress();
 	}
 
-	//generate support
 	if (useSupport) {
+		console.log("generating support");
+
 		var supportTemplate = this.getFillTemplate({
 			left: this.geometry.boundingBox.min.z * scale, 
 			top: this.geometry.boundingBox.min.x * scale, 
@@ -405,90 +383,84 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 
 		var supportAreas = new D3D.Paths([], true);
 
-		for (var layer = data.length - 1 - supportDistanceLayers; layer >= 0; layer --) {
+		for (var layer = slices.length - 1 - supportDistanceLayers; layer >= 0; layer --) {
 			if (supportAreas.length > 0) {
 
 				if (layer >= supportDistanceLayers) {
-					var sliceSkin = new D3D.Paths([], true);
-					var slice = data[layer - supportDistanceLayers];
-
-					for (var i = 0; i < slice.length; i ++) {
-						sliceSkin.join(slice[i].outerLayer);
-					}
+					var sliceSkin = slices[layer - supportDistanceLayers].getOutline();
 					sliceSkin = sliceSkin.offset(supportMargin);
 
 					supportAreas = supportAreas.difference(sliceSkin);
 				}
 
-				var currentSlice = data[layer];
+				var currentSlice = slices[layer];
 
 				if (layer === 0) {
 					supportAreas = supportAreas.offset(plateSize).difference(sliceSkin);
 
 					var template = this.getFillTemplate(supportAreas.bounds(), nozzleDiameter, true, false);
 
-					currentSlice[0].support = template.intersect(supportAreas);
+					currentSlice.support = template.intersect(supportAreas);
 				}
 				else {
-					currentSlice[0].support = supportTemplate.intersect(supportAreas).join(supportAreas.clone());
+					currentSlice.support = supportTemplate.intersect(supportAreas).join(supportAreas.clone());
 				}
 			}
 
-			var supportSlice = data[layer + supportDistanceLayers - 1];
-			var supportSkin = new D3D.Paths([], true);
-			for (var i = 0; i < supportSlice.length; i ++) {
-				//supportSkin = supportSkin.union(supportSlice[i].outerLayer);
-				supportSkin.join(supportSlice[i].outerLayer);
-			}
+			var supportSkin = slices[layer + supportDistanceLayers - 1].getOutline();
 
-			var slice = data[layer + supportDistanceLayers];
-			for (var i = 0; i < slice.length; i ++) {
-				var slicePart = slice[i];
-				var outerLayer = slicePart.outerLayer;
+			var slice = slices[layer + supportDistanceLayers];
+			for (var i = 0; i < slice.parts.length; i ++) {
+				var slicePart = slice.parts[i];
+				var outerLine = slicePart.outerLine;
 
-				var overlap = supportSkin.offset(supportAccaptanceMargin).intersect(outerLayer);
-				var overhang = outerLayer.difference(overlap);
+				var overlap = supportSkin.offset(supportAccaptanceMargin).intersect(outerLine);
+				var overhang = outerLine.difference(overlap);
 
 				if (overlap.length === 0 || overhang.length > 0) {
-					//var supportArea = outerLayer.difference(supportSkin.intersect(outerLayer));
+					//var supportArea = outerLine.difference(supportSkin.intersect(outerLine));
 					//supportAreas = supportAreas.union(supportArea);
 
 					//supportAreas = supportAreas.union(overhang);
 
-					supportAreas = supportAreas.union(overhang.offset(supportAccaptanceMargin).intersect(outerLayer));
+					supportAreas = supportAreas.union(overhang.offset(supportAccaptanceMargin).intersect(outerLine));
 				}
 			}
 		}
 	}
 
-	//finalize paths
+	console.log("opimize paths");
 	var start = new THREE.Vector2(0, 0);
-	var order = ["outerLayer", "insets", "fill", "support"];
 
-	for (var layer = 0; layer < data.length; layer ++) {
-		var slice = data[layer];
+	for (var layer = 0; layer < slices.length; layer ++) {
+		var slice = slices[layer];
 
-		for (var i = 0; i < slice.length; i ++) {
-			var part = slice[i];
+		if (layer === 0) {
+			slice.brim = slice.getOutline().offset(brimOffset);
+		}
 
-			for (var j = 0; j < order.length; j ++) {
-				var property = order[j];
-				if (part[property] !== undefined && part[property].length > 0) {
-					part[property] = part[property].optimizePath(start);
-					start = part[property].lastPoint();
-				}
+		var start = slice.optimizePaths(start);
+
+		for (var i = 0; i < slice.parts.length; i ++) {
+			var part = slice.parts[i];
+
+			part.outerLine.scaleDown(scale);
+			for (var j = 0; j < part.innerLines.length; j ++) {
+				var innerLine = part.innerLines[j];
+				innerLine.scaleDown(scale);
 			}
+			part.fill.scaleDown(scale);
+		}
 
-			part.outerLayer.scaleDown(100);
-			part.insets.scaleDown(100);
-			part.fill.scaleDown(100);
-			if (part.support !== undefined) {
-				part.support.scaleDown(100);
-			}
+		if (slice.support !== undefined) {
+			slice.support.scaleDown(scale);
+		}
+		if (slice.brim !== undefined) {
+			slice.brim.scaleDown(scale);
 		}
 	}
 	
-	return data;
+	return slices;
 };
 
 D3D.Slicer.prototype.getFillTemplate = function (bounds, size, even, uneven) {
@@ -550,16 +522,23 @@ D3D.Slicer.prototype.dataToGCode = function (data, printer) {
 			gcode.bottom = false;
 		}
 
-		for (var i = 0; i < slice.length; i ++) {
-			var layerPart = slice[i];
+		if (slice.brim !== undefined) {
+			sliceToGCode(slice.brim, true, true);
+		}
 
-			sliceToGCode(layerPart.outerLayer, false, true);
-			sliceToGCode(layerPart.insets, false, false);
-			sliceToGCode(layerPart.fill, true, false);
+		for (var i = 0; i < slice.parts.length; i ++) {
+			var part = slice.parts[i];
 
-			if (layerPart.support !== undefined) {
-				sliceToGCode(layerPart.support, true, true);
+			sliceToGCode(part.outerLine, false, true);
+			for (var j = 0; j < part.innerLines.length; j ++) {
+				var innerLine = part.innerLines[j];
+				sliceToGCode(innerLine, false, false);
 			}
+			sliceToGCode(part.fill, true, false);
+		}
+
+		if (slice.support !== undefined) {
+			sliceToGCode(slice.support, true, true);
 		}
 
 		this.progress.gcodeLayer = layer;
@@ -585,12 +564,12 @@ D3D.Slicer.prototype.getGCode = function (printer) {
 	console.log("Slicing: " + (end - start) + "ms");
 
 	start = new Date().getTime();
-	var data = this.slicesToData(slices, printer);
+	this.slicesToData(slices, printer);
 	end = new Date().getTime();
 	console.log("Data: " + (end - start) + "ms");
 
 	start = new Date().getTime();
-	var gcode = this.dataToGCode(data, printer);
+	var gcode = this.dataToGCode(slices, printer);
 	end = new Date().getTime();
 	console.log("Gcode: " + (end - start) + "ms");
 
