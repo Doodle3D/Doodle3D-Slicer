@@ -1,25 +1,43 @@
 {
-	"printer.normalFlowRate": 1.0, 
-	"printer.bottomFlowRate": 2.0, 
-	"printer.bottomLayerSpeed": 35.0, 
-	"printer.bottomThickness": 0.4, 
-	"printer.fillSize": 5.0, 
-	"printer.firstLayerSlow": true, 
-	"printer.layerHeight": 0.2, 
-	"printer.retraction.amount": 3.0, 
-	"printer.retraction.enabled": true, 
-	"printer.retraction.speed": 50, 
-	"printer.retraction.minDistance": 5.0, 
-	"printer.shellThickness": 0.4, 
-	"printer.speed": 50.0,
-	"printer.brimOffset": 5.0,  
-	"printer.temperature": 210.0, 
-	"printer.topThickness": 0.8, 
-	"printer.travelSpeed": 200.0, 
-	"printer.support.accaptanceMargin": 1.5, 
-	"printer.support.distanceY": 0.4, 
-	"printer.support.use": true, 
-	"printer.support.gritSize": 6.0, 
-	"printer.support.margin": 2.0,  
-	"printer.support.plateSize": 4.0
+	"layerHeight": 0.2, 
+	"bottomThickness": 0.4, 
+	"topThickness": 0.8, 
+	"shellThickness": 0.4, 
+	"brimOffset": 5.0, 
+	"fillGritSize": 5.0, 
+	"travelSpeed": 200.0, 
+	"retractionAmount": 3.0, 
+	"retractionEnabled": true, 
+	"retractionSpeed": 50.0, 
+	"retractionMinDistance": 5.0, 
+	"supportAccaptanceMargin": 1.5, 
+	"supportDistanceY": 0.4, 
+	"supportUse": true, 
+	"supportGritSize": 6.0, 
+	"supportMargin": 2.0,  
+	"supportPlateSize": 4.0, 
+	"outerLine": {
+		"flowRate": 1.0, 
+		"speed": 50.0
+	},
+	"innerLine": {
+		"flowRate": 1.0, 
+		"speed": 80.0
+	}, 
+	"fill": {
+		"flowRate": 1.0, 
+		"speed": 80.0
+	},
+	"brim": {
+		"flowRate": 1.0, 
+		"speed": 50.0
+	}, 
+	"support": {
+		"flowRate": 0.2, 
+		"speed": 100.0
+	}, 
+	"bottom": {
+		"flowRate": 2.0, 
+		"speed": 30.0
+	}
 }
