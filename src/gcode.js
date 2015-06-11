@@ -12,7 +12,7 @@
 D3D.GCode = function () {
 	"use strict";
 
-	this.gcode = [];
+	this.gcode = "";
 	this.current = {};
 
 	this.extruder = 0.0;
@@ -38,7 +38,7 @@ D3D.GCode.prototype.addGCode = function (command) {
 
 	str = str.join(" ");
 	if (str.length > 0) {
-		this.gcode.push(str);
+		this.gcode += str + "\n";
 	}
 };
 D3D.GCode.prototype.setSettings = function (printer) {
@@ -180,5 +180,5 @@ D3D.GCode.prototype.retract = function () {
 D3D.GCode.prototype.getGCode = function () {
 	"use strict";
 
-	return this.settings.getStartCode().concat(this.gcode, this.settings.getEndCode());
+	return this.settings.getStartCode() + this.gcode + this.settings.getEndCode();
 };

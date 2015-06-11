@@ -24,23 +24,25 @@ D3D.Slicer.prototype.setMesh = function (geometry, matrix) {
 		geometry = new THREE.Geometry().fromBufferGeometry(geometry);
 	}
 
-	//apply mesh matrix on geometry;
-	geometry.applyMatrix(matrix);
-	geometry.mergeVertices();
-	geometry.computeFaceNormals();
-	geometry.computeBoundingBox();
-	
 	/*
+	geometry.computeFaceNormals();
 	for (var i = 0; i < geometry.faces.length; i ++) {
 		var face = geometry.faces[i];
 		var normal = face.normal;
 
 		if (normal.x === 0 && normal.y === 0 && normal.z === 0) {
 			geometry.faces.splice(i, 1);
+			console.log("Tets");
 			i --;
 		}
 	}
 	*/
+
+	//apply mesh matrix on geometry;
+	geometry.applyMatrix(matrix);
+	geometry.mergeVertices();
+	geometry.computeFaceNormals();
+	geometry.computeBoundingBox();
 
 	this.geometry = geometry;
 
@@ -189,14 +191,17 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 							var a = new THREE.Vector2(intersection.x, intersection.y);
 							var b = intersections[index];
 
-							if (a.distanceTo(b) === 0) {
+							var faceNormal = faceNormals[Math.floor(j/2)];
+
+							console.log();
+
+							if (a.distanceTo(b) === 0 || faceNormal.equals(new THREE.Vector2(0, 0))) {
 								connects = connects.concat(this.lines[index].connects);
 								faceNormals = faceNormals.concat(this.lines[index].normals);
 								index = -1;
 							}
 							else {
 								var normal = a.sub(b).normal().normalize();
-								var faceNormal = faceNormals[Math.floor(j/2)];
 
 								if (normal.dot(faceNormal) >= 0) {
 								//if (true) {
@@ -290,7 +295,7 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 	var topThickness = printer.config["printer.topThickness"];
 	var useSupport = printer.config["printer.support.use"];
 	var supportGritSize = printer.config["printer.support.gritSize"] * scale;
-	var supportAccaptanceSize = printer.config["printer.support.accaptanceSize"] * scale;
+	var supportAccaptanceMargin = printer.config["printer.support.accaptanceMargin"] * scale;
 	var supportMargin = printer.config["printer.support.margin"] * scale;
 	var plateSize = printer.config["printer.support.plateSize"] * scale;
 	var supportDistanceY = printer.config["printer.support.distanceY"];
@@ -441,12 +446,16 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 				var slicePart = slice[i];
 				var outerLayer = slicePart.outerLayer;
 
-				var overlap = supportSkin.offset(supportAccaptanceSize).intersect(outerLayer);
+				var overlap = supportSkin.offset(supportAccaptanceMargin).intersect(outerLayer);
 				var overhang = outerLayer.difference(overlap);
 
 				if (overlap.length === 0 || overhang.length > 0) {
-					var supportArea = outerLayer.difference(supportSkin.intersect(outerLayer));
-					supportAreas = supportAreas.union(supportArea);
+					//var supportArea = outerLayer.difference(supportSkin.intersect(outerLayer));
+					//supportAreas = supportAreas.union(supportArea);
+
+					//supportAreas = supportAreas.union(overhang);
+
+					supportAreas = supportAreas.union(overhang.offset(supportAccaptanceMargin).intersect(outerLayer));
 				}
 			}
 		}
