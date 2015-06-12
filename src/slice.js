@@ -17,9 +17,32 @@ D3D.Slice.prototype.optimizePaths = function (start) {
 		start = this.brim.lastPoint();
 	}
 
-	//instead of for loop pick the closest shape to start;
-	for (var i = 0; i < this.parts.length; i ++) {
-		var part = this.parts[i];
+	var parts = [];
+
+	while (this.parts.length > 0) {
+
+		var closestDistance = Infinity;
+		var closestPart;
+
+		for (var i = 0; i < this.parts.length; i ++) {
+			var part = this.parts[i];
+			var bounds = part.outerLine.bounds();
+
+			var top = bounds.top - start.y;
+			var bottom = start.y - bounds.bottom;
+			var left = bounds.left - start.x;
+			var right = start.x - bounds.right;
+
+			var distance = Math.max(top, bottom, left, right);
+
+			if (distance < closestDistance) {
+				closestDistance = distance;
+				closestPart = i;
+			}
+		}
+
+		var part = this.parts.splice(closestPart, 1)[0];
+		parts.push(part);
 
 		if (part.outerLine.length > 0) {
 			part.outerLine = part.outerLine.optimizePath(start);
@@ -30,7 +53,7 @@ D3D.Slice.prototype.optimizePaths = function (start) {
 			var innerLine = part.innerLines[j];
 			if (innerLine.length > 0) {
 				part.innerLines[j] = innerLine.optimizePath(start);
-				//start = part.innerLines[j].lastPoint();
+				start = part.innerLines[j].lastPoint();
 			}
 		}
 
@@ -38,11 +61,15 @@ D3D.Slice.prototype.optimizePaths = function (start) {
 			part.fill = part.fill.optimizePath(start);
 			start = part.fill.lastPoint();
 		}
+
 	}
+
+	this.parts = parts;
+
 
 	if (this.support !== undefined && this.support.length > 0) {
 		this.support = this.support.optimizePath(start);
-		//start = this.support.lastPoint();
+		start = this.support.lastPoint();
 	}
 
 	return start;

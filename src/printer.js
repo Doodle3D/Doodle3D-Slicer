@@ -43,6 +43,7 @@ D3D.Printer.prototype.subsituteVariables = function (gcode) {
 	var bedTemperature = this.config["bedTemperature"];
 	var preheatTemperature = this.config["heatupTemperature"];
 	var preheatBedTemperature = this.config["heatupBedTemperature"];
+	var travelSpeed = this.config["travelSpeed"] * 60;
 	var printerType = this.config["type"];
 	var heatedbed = this.config["heatedbed"];
 
@@ -60,6 +61,7 @@ D3D.Printer.prototype.subsituteVariables = function (gcode) {
 	gcode = gcode.replace(/{preheatTemp}/gi, preheatTemperature);
 	gcode = gcode.replace(/{preheatBedTemp}/gi, preheatBedTemperature);
 	gcode = gcode.replace(/{printerType}/gi, printerType);
+	gcode = gcode.replace(/{travelSpeed}/gi, travelSpeed);
 	gcode = gcode.replace(/{if heatedBed}/gi, heatedBedReplacement);
 
 	return gcode;

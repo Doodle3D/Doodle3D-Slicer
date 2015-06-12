@@ -1,7 +1,7 @@
 D3D.SlicerWorker = function () {
 	'use strict';
 
-	this.worker = new Worker('webworker/worker.js');
+	this.worker = new Worker('../../webworker/worker.js');
 
 	var scope = this;
 	this.worker.addEventListener('message', function (event) {
@@ -27,6 +27,10 @@ D3D.SlicerWorker = function () {
 			break;
 		}
 	}, false);
+
+	this.worker.onerror = function (error) {
+		console.warn("Error in webworker", error);
+	};
 }
 D3D.SlicerWorker.prototype.setSettings = function (USER_SETTINGS, PRINTER_SETTINGS) {
 	'use strict';

@@ -24,25 +24,11 @@ D3D.Slicer.prototype.setMesh = function (geometry, matrix) {
 		geometry = new THREE.Geometry().fromBufferGeometry(geometry);
 	}
 
-	/*
-	geometry.computeFaceNormals();
-	for (var i = 0; i < geometry.faces.length; i ++) {
-		var face = geometry.faces[i];
-		var normal = face.normal;
-
-		if (normal.x === 0 && normal.y === 0 && normal.z === 0) {
-			geometry.faces.splice(i, 1);
-			console.log("Tets");
-			i --;
-		}
-	}
-	*/
-
 	//apply mesh matrix on geometry;
-	geometry.applyMatrix(matrix);
 	geometry.mergeVertices();
-	geometry.computeFaceNormals();
+	geometry.applyMatrix(matrix);
 	geometry.computeBoundingBox();
+	geometry.computeFaceNormals();
 
 	this.geometry = geometry;
 
@@ -124,7 +110,10 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 	var numLayers = height / layerHeight;
 
 	var layersIntersections = [];
-
+	for (var layer = 0; layer < numLayers; layer ++) {
+		layersIntersections[layer] = [];
+	}
+	
 	for (var lineIndex = 0; lineIndex < this.lines.length; lineIndex ++) {
 		var line = this.lines[lineIndex].line;
 
@@ -133,9 +122,6 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 
 		for (var layerIndex = min; layerIndex <= max; layerIndex ++) {
 			if (layerIndex >= 0 && layerIndex < numLayers) {
-				if (layersIntersections[layerIndex] === undefined) {
-					layersIntersections[layerIndex] = [];
-				}
 				layersIntersections[layerIndex].push(lineIndex);
 			}
 		}
@@ -147,6 +133,7 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 	//see https://github.com/Doodle3D/Doodle3D-Slicer/issues/1
 	for (var layer = 0; layer < layersIntersections.length; layer ++) {
 		var layerIntersections = layersIntersections[layer];
+
 		var y = layer * layerHeight;
 
 		var intersections = [];
@@ -163,8 +150,8 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 				var x = line.end.x * alpha + line.start.x * (1 - alpha);
 				var z = line.end.z * alpha + line.start.z * (1 - alpha);
 			}
-
 			intersections[index] = new THREE.Vector2(z, x);
+
 		}
 
 		var done = [];
@@ -215,31 +202,10 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 					}
 				}
 
-				/*
-				for (var i = 0; i < shape.length; i ++) {
-					var point = shape[i];
-					var previousPoint = shape[(i + shape.length - 1) % shape.length];
-					var nextPoint = shape[(i + 1) % shape.length];
-
-					var point = new THREE.Vector2(point.X, point.Y);
-					var previousPoint = new THREE.Vector2(previousPoint.X, previousPoint.Y);
-					var nextPoint = new THREE.Vector2(nextPoint.X, nextPoint.Y);
-					//var lineLength = nextPoint.sub(previousPoint).length();
-
-					var normal = nextPoint.sub(previousPoint).normal().normalize();
-					var distance = Math.abs(normal.dot(point.sub(previousPoint)));
-
-					//something better for offset check
-					if (distance <= 0.01) {
-						shape.splice(i, 1);
-						i --;
-					}
-				}
-				*/
-
 				//think this check is not nescesary, always higher as 0
 				if (shape.length > 0) {
-					sliceParts.push(new D3D.Paths([shape], true));
+					var part = new D3D.Paths([shape]).clean(0.01);
+					sliceParts.push(part);
 				}
 			}
 		}
@@ -289,7 +255,6 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 	var supportMargin = printer.config["supportMargin"] * scale;
 	var plateSize = printer.config["supportPlateSize"] * scale;
 	var supportDistanceY = printer.config["supportDistanceY"];
-	var brimOffset = printer.config["brimOffset"] * scale;
 
 	var supportDistanceLayers = Math.ceil(supportDistanceY / layerHeight);
 	var bottomSkinCount = Math.ceil(bottomThickness/layerHeight);
@@ -484,6 +449,7 @@ D3D.Slicer.prototype.dataToGCode = function (data, printer) {
 	var gcode = new D3D.GCode().setSettings(printer);
 
 	function sliceToGCode (path, retract, unRetract, type) {
+
 		for (var i = 0; i < path.length; i ++) {
 			var shape = path[i];
 
@@ -526,10 +492,12 @@ D3D.Slicer.prototype.dataToGCode = function (data, printer) {
 			var part = slice.parts[i];
 
 			sliceToGCode(part.outerLine, false, true, "outerLine");
+
 			for (var j = 0; j < part.innerLines.length; j ++) {
 				var innerLine = part.innerLines[j];
 				sliceToGCode(innerLine, false, false, "innerLine");
 			}
+
 			sliceToGCode(part.fill, true, false, "fill");
 		}
 
