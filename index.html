@@ -24,24 +24,29 @@ $(document).ready(function () {
 
 	var listSliceTest = $("#printers-slicetest");
 	var listSliceWebworker = $("#printers-webworker");
+	var listEditor = $("#printers-editor");
 
 	function addPrinter (name, localip) {
 		known.push(localip);
 
 		var slice = $("<li class='hidden'><a href='slice_test.html#" + localip + "'>" + name + "</a></li>");
 		var webworker = $("<li class='hidden'><a href='webworker_test.html#" + localip + "'>" + name + "</a></li>");
+		var editor = $("<li class='hidden'><a href='three.js-master/editor_viewer#" + localip + "'>" + name + "</a></li>");
 		
 		listSliceTest.append(slice);
 		listSliceWebworker.append(webworker);
+		listEditor.append(editor);
 
 		var box = new D3D.Box(localip).init();
 		box.onconnect = function () {
 			slice.removeClass('hidden');
 			webworker.removeClass('hidden');
+			editor.removeClass('hidden');
 		};
 		box.ondisconnect = function () {
 			slice.addClass('hidden');
 			webworker.addClass('hidden');
+			editor.addClass('hidden');
 		};
 	}
 
@@ -75,6 +80,9 @@ $(document).ready(function () {
 
 <p>Webworkers</p>
 <ul id="printers-webworker"></ul>
+
+<p>Editor</p>
+<ul id="printers-editor"></ul>
 
 </body>
 </html> 

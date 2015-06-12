@@ -210,6 +210,11 @@ D3D.Paths.prototype.bounds = function () {
 
 	return ClipperLib.Clipper.GetBounds(this);
 };
+D3D.Paths.prototype.clean = function (cleanDelta) {
+	'use strict';
+
+	return new D3D.Paths(ClipperLib.Clipper.CleanPolygons(this, cleanDelta), this.closed);
+}
 D3D.Paths.prototype.boundSize = function () {
 	'use strict';
 

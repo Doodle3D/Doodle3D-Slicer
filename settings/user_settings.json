@@ -9,7 +9,7 @@
 	"retractionAmount": 3.0, 
 	"retractionEnabled": true, 
 	"retractionSpeed": 50.0, 
-	"retractionMinDistance": 5.0, 
+	"retractionMinDistance": 0.0, 
 	"supportAccaptanceMargin": 1.5, 
 	"supportDistanceY": 0.4, 
 	"supportUse": true, 
@@ -33,7 +33,7 @@
 		"speed": 50.0
 	}, 
 	"support": {
-		"flowRate": 0.2, 
+		"flowRate": 0.8, 
 		"speed": 100.0
 	}, 
 	"bottom": {
