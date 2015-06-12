@@ -1,7 +1,7 @@
 D3D.SlicerWorker = function () {
 	'use strict';
 
-	this.worker = new Worker('../../webworker/worker.js');
+	this.worker = new Worker(window.location.origin + '/webworker/worker.js');
 
 	var scope = this;
 	this.worker.addEventListener('message', function (event) {

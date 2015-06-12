@@ -134,106 +134,109 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 	for (var layer = 0; layer < layersIntersections.length; layer ++) {
 		var layerIntersections = layersIntersections[layer];
 
-		var y = layer * layerHeight;
+		if (layerIntersections.length > 0) {
 
-		var intersections = [];
-		for (var i = 0; i < layerIntersections.length; i ++) {
-			var index = layerIntersections[i];
-			var line = this.lines[index].line;
+			var y = layer * layerHeight;
 
-			if (line.start.y === line.end.y) {
-				var x = line.start.x;
-				var z = line.start.z;
+			var intersections = [];
+			for (var i = 0; i < layerIntersections.length; i ++) {
+				var index = layerIntersections[i];
+				var line = this.lines[index].line;
+
+				if (line.start.y === line.end.y) {
+					var x = line.start.x;
+					var z = line.start.z;
+				}
+				else {
+					var alpha = (y - line.start.y) / (line.end.y - line.start.y);
+					var x = line.end.x * alpha + line.start.x * (1 - alpha);
+					var z = line.end.z * alpha + line.start.z * (1 - alpha);
+				}
+				intersections[index] = new THREE.Vector2(z, x);
+
 			}
-			else {
-				var alpha = (y - line.start.y) / (line.end.y - line.start.y);
-				var x = line.end.x * alpha + line.start.x * (1 - alpha);
-				var z = line.end.z * alpha + line.start.z * (1 - alpha);
-			}
-			intersections[index] = new THREE.Vector2(z, x);
 
-		}
+			var done = [];
+			var sliceParts = [];
+			for (var i = 0; i < layerIntersections.length; i ++) {
+				var index = layerIntersections[i];
 
-		var done = [];
-		var sliceParts = [];
-		for (var i = 0; i < layerIntersections.length; i ++) {
-			var index = layerIntersections[i];
+				if (done.indexOf(index) === -1) {
+					var shape = [];
 
-			if (done.indexOf(index) === -1) {
-				var shape = [];
+					while (index !== -1) {
+						var intersection = intersections[index];
+						shape.push({X: intersection.x, Y: intersection.y});
 
-				while (index !== -1) {
-					var intersection = intersections[index];
-					shape.push({X: intersection.x, Y: intersection.y});
+						var connects = this.lines[index].connects;
+						var faceNormals = this.lines[index].normals;
+						for (var j = 0; j < connects.length; j ++) {
+							index = connects[j];
 
-					var connects = this.lines[index].connects;
-					var faceNormals = this.lines[index].normals;
-					for (var j = 0; j < connects.length; j ++) {
-						index = connects[j];
+							if (intersections[index] !== undefined && done.indexOf(index) === -1) {
+								done.push(index);
 
-						if (intersections[index] !== undefined && done.indexOf(index) === -1) {
-							done.push(index);
+								var a = new THREE.Vector2(intersection.x, intersection.y);
+								var b = intersections[index];
 
-							var a = new THREE.Vector2(intersection.x, intersection.y);
-							var b = intersections[index];
+								var faceNormal = faceNormals[Math.floor(j/2)];
 
-							var faceNormal = faceNormals[Math.floor(j/2)];
-
-							if (a.distanceTo(b) === 0 || faceNormal.equals(new THREE.Vector2(0, 0))) {
-								connects = connects.concat(this.lines[index].connects);
-								faceNormals = faceNormals.concat(this.lines[index].normals);
-								index = -1;
-							}
-							else {
-								var normal = a.sub(b).normal().normalize();
-
-								if (normal.dot(faceNormal) >= 0) {
-								//if (true) {
-									break;
-								}
-								else {
+								if (a.distanceTo(b) === 0 || faceNormal.equals(new THREE.Vector2(0, 0))) {
+									connects = connects.concat(this.lines[index].connects);
+									faceNormals = faceNormals.concat(this.lines[index].normals);
 									index = -1;
 								}
+								else {
+									var normal = a.sub(b).normal().normalize();
+
+									if (normal.dot(faceNormal) >= 0) {
+									//if (true) {
+										break;
+									}
+									else {
+										index = -1;
+									}
+								}
+							}
+							else {
+								index = -1;
 							}
 						}
-						else {
-							index = -1;
-						}
+					}
+
+					//think this check is not nescesary, always higher as 0
+					if (shape.length > 1) {
+						var part = new D3D.Paths([shape]).clean(0.01);
+						sliceParts.push(part);
 					}
 				}
+			}
 
-				//think this check is not nescesary, always higher as 0
-				if (shape.length > 0) {
-					var part = new D3D.Paths([shape]).clean(0.01);
-					sliceParts.push(part);
+			var slice = new D3D.Slice();
+
+			for (var i = 0; i < sliceParts.length; i ++) {
+				var slicePart1 = sliceParts[i];
+				var merge = false;
+
+				for (var j = 0; j < slice.parts.length; j ++) {
+					var slicePart2 = slice.parts[j].intersect;
+
+					if (slicePart2.intersect(slicePart1).length > 0) {
+						slicePart2.join(slicePart1);
+						merge = true;
+						break;
+					}
+				}
+				if (!merge) {
+					slice.addIntersect(slicePart1);
 				}
 			}
+
+			slices.push(slice);
+
+			this.progress.sliceLayer = layer;
+			this.updateProgress();
 		}
-
-		var slice = new D3D.Slice();
-
-		for (var i = 0; i < sliceParts.length; i ++) {
-			var slicePart1 = sliceParts[i];
-			var merge = false;
-
-			for (var j = 0; j < slice.parts.length; j ++) {
-				var slicePart2 = slice.parts[j].intersect;
-
-				if (slicePart2.intersect(slicePart1).length > 0) {
-					slicePart2.join(slicePart1);
-					merge = true;
-					break;
-				}
-			}
-			if (!merge) {
-				slice.addIntersect(slicePart1);
-			}
-		}
-
-		slices.push(slice);
-
-		this.progress.sliceLayer = layer;
-		this.updateProgress();
 	}
 	return slices;
 };
@@ -245,13 +248,13 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 	var layerHeight = printer.config["layerHeight"];
 	var nozzleDiameter = printer.config["nozzleDiameter"] * scale;
 	var shellThickness = printer.config["shellThickness"] * scale;
-	var fillGritSize = printer.config["fillGritSize"] * scale;
+	var fillGridSize = printer.config["fillGridSize"] * scale;
 	var brimOffset = printer.config["brimOffset"] * scale;
 	var bottomThickness = printer.config["bottomThickness"];
 	var topThickness = printer.config["topThickness"];
 	var useSupport = printer.config["supportUse"];
-	var supportGritSize = printer.config["supportGritSize"] * scale;
-	var supportAccaptanceMargin = printer.config["supportAccaptanceMargin"] * scale;
+	var supportGridSize = printer.config["supportGridSize"] * scale;
+	var supportAcceptanceMargin = printer.config["supportAcceptanceMargin"] * scale;
 	var supportMargin = printer.config["supportMargin"] * scale;
 	var plateSize = printer.config["supportPlateSize"] * scale;
 	var supportDistanceY = printer.config["supportDistanceY"];
@@ -266,11 +269,15 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 		top: this.geometry.boundingBox.min.x * scale, 
 		right: this.geometry.boundingBox.max.z * scale, 
 		bottom: this.geometry.boundingBox.max.x * scale
-	}, fillGritSize, true, true);
+	}, fillGridSize, true, true);
 
 	console.log("generating outer lines and inner lines");
 	for (var layer = 0; layer < slices.length; layer ++) {
 		var slice = slices[layer];
+
+		if (layer === 0) {
+			console.log(slice.parts[0]);
+		}
 
 		for (var i = 0; i < slice.parts.length; i ++) {
 			var part = slice.parts[i];
@@ -340,7 +347,7 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 			top: this.geometry.boundingBox.min.x * scale, 
 			right: this.geometry.boundingBox.max.z * scale, 
 			bottom: this.geometry.boundingBox.max.x * scale
-		}, supportGritSize, true, true);
+		}, supportGridSize, true, true);
 
 		var supportAreas = new D3D.Paths([], true);
 
@@ -375,7 +382,7 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 				var slicePart = slice.parts[i];
 				var outerLine = slicePart.outerLine;
 
-				var overlap = supportSkin.offset(supportAccaptanceMargin).intersect(outerLine);
+				var overlap = supportSkin.offset(supportAcceptanceMargin).intersect(outerLine);
 				var overhang = outerLine.difference(overlap);
 
 				if (overlap.length === 0 || overhang.length > 0) {
@@ -384,7 +391,7 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 
 					//supportAreas = supportAreas.union(overhang);
 
-					supportAreas = supportAreas.union(overhang.offset(supportAccaptanceMargin).intersect(outerLine));
+					supportAreas = supportAreas.union(overhang.offset(supportAcceptanceMargin).intersect(outerLine));
 				}
 			}
 		}
