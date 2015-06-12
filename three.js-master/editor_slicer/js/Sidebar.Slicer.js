@@ -125,7 +125,6 @@ Sidebar.Slicer = function ( editor ) {
 		var slicer = new D3D.SlicerWorker();
 
 		slicer.onprogress = function (_progress) {
-			console.log(_progress);
 			progress.setValue(Math.round(_progress.procent * 100) + "%");
 		};
 		slicer.onfinish = function (gcode) {

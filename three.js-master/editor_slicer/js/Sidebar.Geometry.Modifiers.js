@@ -65,6 +65,19 @@ Sidebar.Geometry.Modifiers = function ( signals, object ) {
 
 	}
 
+	var button = new UI.Button( 'Snap to grid' );
+	button.onClick( function () {
+
+		geometry.computeBoundingBox();
+
+		object.position.y = -geometry.boundingBox.min.y;
+		
+		object.updateMatrix();
+
+	} );
+
+	container.add( button );
+
 	//
 
 	return container;
