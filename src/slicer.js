@@ -131,7 +131,7 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 
 	//still error in first layer, so remove first layer & last layer
 	//see https://github.com/Doodle3D/Doodle3D-Slicer/issues/1
-	for (var layer = 0; layer < layersIntersections.length; layer ++) {
+	for (var layer = 1; layer < layersIntersections.length; layer ++) {
 		var layerIntersections = layersIntersections[layer];
 
 		if (layerIntersections.length > 0) {
@@ -275,10 +275,6 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 	for (var layer = 0; layer < slices.length; layer ++) {
 		var slice = slices[layer];
 
-		if (layer === 0) {
-			console.log(slice.parts[0]);
-		}
-
 		for (var i = 0; i < slice.parts.length; i ++) {
 			var part = slice.parts[i];
 
@@ -352,7 +348,7 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 		var supportAreas = new D3D.Paths([], true);
 
 		for (var layer = slices.length - 1 - supportDistanceLayers; layer >= 0; layer --) {
-			if (supportAreas.length > 0) {
+			if (supportAreas.length > 1) {
 
 				if (layer >= supportDistanceLayers) {
 					var sliceSkin = slices[layer - supportDistanceLayers].getOutline();

@@ -282,6 +282,27 @@ Sidebar.Object3D = function ( editor ) {
 
 	container.add( objectUserDataRow );
 
+	var button = new UI.Button( 'Snap to grid' );
+	button.onClick( function () {
+
+		var object = editor.selected;
+		object.updateMatrix();
+
+		var geometry = object.geometry.clone();
+
+		geometry.applyMatrix(object.matrix);
+
+		geometry.computeBoundingBox();
+
+
+		objectPositionY.setValue( object.position.y - geometry.boundingBox.min.y );
+		
+		update();
+
+	} );
+
+	container.add( button );
+
 
 	//
 

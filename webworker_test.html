@@ -3,7 +3,7 @@
 <head>
 <script src='library/jquery.js'></script>
 <script src='library/three.js'></script>
-<script src='library/stl_loader.js'></script>
+<script src='three.js-master/examples/js/loaders/STLLoader.js'></script>
 
 <script src='src/utils.js'></script>
 <script src='src/box.js'></script>
@@ -91,7 +91,7 @@ function init () {
 	};
 
 	var loader = new THREE.STLLoader();
-	loader.load('models/stanford_bunny_high.stl', function (geometry) {
+	loader.load('models/dom.stl', function (geometry) {
 		//var geometry = new THREE.TorusGeometry(20, 10, 30, 30).clone();
 
 		var material = new THREE.MeshPhongMaterial({color: 0x00ff00, wireframe: false});
@@ -100,7 +100,6 @@ function init () {
 
 		mesh.rotation.x = -Math.PI/2;
 		mesh.scale.x = mesh.scale.y = mesh.scale.z = 1;
-		//mesh.position.y = -0.1;
 		mesh.position.x = 60;
 		mesh.position.z = 60;
 
