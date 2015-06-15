@@ -40,6 +40,8 @@ D3D.SlicerWorker.prototype.setSettings = function (USER_SETTINGS, PRINTER_SETTIN
 		'USER_SETTINGS': USER_SETTINGS, 
 		'PRINTER_SETTINGS': PRINTER_SETTINGS
 	});
+
+	return this;
 };
 D3D.SlicerWorker.prototype.setMesh = function (mesh) {
 	'use strict';
@@ -68,6 +70,8 @@ D3D.SlicerWorker.prototype.setMesh = function (mesh) {
 		}, 
 		'matrix': mesh.matrix.toArray()
 	}, buffers);
+
+	return this;
 };
 D3D.SlicerWorker.prototype.slice = function () {
 	'use strict';
@@ -75,6 +79,8 @@ D3D.SlicerWorker.prototype.slice = function () {
 	this.worker.postMessage({
 		'cmd': 'SLICE'
 	});
+
+	return this;
 };
 D3D.SlicerWorker.prototype.close = function () {
 	'use strict';
@@ -82,4 +88,6 @@ D3D.SlicerWorker.prototype.close = function () {
 	this.worker.postMessage({
 		'cmd': 'CLOSE'
 	});
+
+	return this;
 };

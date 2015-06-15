@@ -134,6 +134,7 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 	for (var layer = 1; layer < layersIntersections.length; layer ++) {
 		var layerIntersections = layersIntersections[layer];
 
+		//why have a slice with only support?
 		if (layerIntersections.length > 0) {
 
 			var y = layer * layerHeight;
@@ -300,10 +301,12 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 	console.log("generating infills");
 	for (var layer = 0; layer < slices.length; layer ++) {
 		var slice = slices[layer];
-		
-		var downSkin = (layer - bottomSkinCount >= 0) ? slices[layer - bottomSkinCount].getOutline() : new D3D.Paths([], true);
-		var upSkin = (layer + topSkinCount < slices.length) ? slices[layer + topSkinCount].getOutline() : new D3D.Paths([], true);
-		var surroundingLayer = (downSkin.length === 0 || upSkin.length === 0) ? new D3D.Paths([], true) : upSkin.intersect(downSkin);
+
+		if (layer - bottomSkinCount >= 0 && layer + topSkinCount < slices.length) {
+			var downSkin =  slices[layer - bottomSkinCount].getOutline();
+			var upSkin = slices[layer + topSkinCount].getOutline();
+			var surroundingLayer = upSkin.intersect(downSkin);
+		}		
 
 		for (var i = 0; i < slice.parts.length; i ++) {
 			var part = slice.parts[i];
@@ -313,7 +316,7 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 				var inset = ((part.innerLines.length > 0) ? part.innerLines[part.innerLines.length - 1] : outerLine);
 
 				var fillArea = inset.offset(-nozzleRadius);
-				var highFillArea = fillArea.difference(surroundingLayer);
+				var highFillArea = (surroundingLayer !== undefined) ? fillArea.difference(surroundingLayer) : fillArea;
 				var lowFillArea = fillArea.difference(highFillArea);
 
 				var fill = new D3D.Paths([], false);
@@ -326,6 +329,7 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 					var bounds = highFillArea.bounds();
 					var even = (layer % 2 === 0);
 					var highFillTemplate = this.getFillTemplate(bounds, nozzleDiameter, even, !even);
+
 					part.fill.join(highFillTemplate.intersect(highFillArea));
 				}
 			}
@@ -337,13 +341,6 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 
 	if (useSupport) {
 		console.log("generating support");
-
-		var supportTemplate = this.getFillTemplate({
-			left: this.geometry.boundingBox.min.z * scale, 
-			top: this.geometry.boundingBox.min.x * scale, 
-			right: this.geometry.boundingBox.max.z * scale, 
-			bottom: this.geometry.boundingBox.max.x * scale
-		}, supportGridSize, true, true);
 
 		var supportAreas = new D3D.Paths([], true);
 
@@ -367,6 +364,8 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 					currentSlice.support = template.intersect(supportAreas);
 				}
 				else {
+					var supportTemplate = this.getFillTemplate(supportAreas.bounds(), supportGridSize, true, true);
+
 					currentSlice.support = supportTemplate.intersect(supportAreas).join(supportAreas.clone());
 				}
 			}
@@ -382,11 +381,6 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 				var overhang = outerLine.difference(overlap);
 
 				if (overlap.length === 0 || overhang.length > 0) {
-					//var supportArea = outerLine.difference(supportSkin.intersect(outerLine));
-					//supportAreas = supportAreas.union(supportArea);
-
-					//supportAreas = supportAreas.union(overhang);
-
 					supportAreas = supportAreas.union(overhang.offset(supportAcceptanceMargin).intersect(outerLine));
 				}
 			}
@@ -433,17 +427,28 @@ D3D.Slicer.prototype.getFillTemplate = function (bounds, size, even, uneven) {
 	var paths = new D3D.Paths([], false);
 
 	if (even) {
-		for (var length = Math.floor(bounds.left/size)*size; length <= Math.ceil(bounds.right/size)*size; length += size) {
-			paths.push([{X: length, Y: bounds.top}, {X: length, Y: bounds.bottom}]);
+		var left = Math.floor(bounds.left/size)*size;
+		var right = Math.ceil(bounds.right/size)*size;
+
+		for (var length = left; length <= right; length += size) {
+			paths.push([
+				{X: length, Y: bounds.top}, 
+				{X: length, Y: bounds.bottom}
+			]);
 		}
 	}
 	if (uneven) {
-		for (var length = Math.floor(bounds.top/size)*size; length <= Math.floor(bounds.bottom/size)*size; length += size) {
-			paths.push([{X: bounds.left, Y: length}, {X: bounds.right, Y: length}]);
+		var top = Math.floor(bounds.top/size)*size;
+		var bottom = Math.floor(bounds.bottom/size)*size;
+
+		for (var length = top; length <= bottom; length += size) {
+			paths.push([
+				{X: bounds.left, Y: length}, 
+				{X: bounds.right, Y: length}
+			]);
 		}
 	}
 	
-	//return paths;
 	return paths;
 };
 D3D.Slicer.prototype.dataToGCode = function (data, printer) {
@@ -451,7 +456,7 @@ D3D.Slicer.prototype.dataToGCode = function (data, printer) {
 
 	var gcode = new D3D.GCode().setSettings(printer);
 
-	function sliceToGCode (path, retract, unRetract, type) {
+	function pathToGCode (path, retract, unRetract, type) {
 
 		for (var i = 0; i < path.length; i ++) {
 			var shape = path[i];
@@ -488,24 +493,24 @@ D3D.Slicer.prototype.dataToGCode = function (data, printer) {
 		}
 
 		if (slice.brim !== undefined) {
-			sliceToGCode(slice.brim, true, true, "brim");
+			pathToGCode(slice.brim, true, true, "brim");
 		}
 
 		for (var i = 0; i < slice.parts.length; i ++) {
 			var part = slice.parts[i];
 
-			sliceToGCode(part.outerLine, false, true, "outerLine");
+			pathToGCode(part.outerLine, false, true, "outerLine");
 
 			for (var j = 0; j < part.innerLines.length; j ++) {
 				var innerLine = part.innerLines[j];
-				sliceToGCode(innerLine, false, false, "innerLine");
+				pathToGCode(innerLine, false, false, "innerLine");
 			}
 
-			sliceToGCode(part.fill, true, false, "fill");
+			pathToGCode(part.fill, true, false, "fill");
 		}
 
 		if (slice.support !== undefined) {
-			sliceToGCode(slice.support, true, true, "support");
+			pathToGCode(slice.support, true, true, "support");
 		}
 
 		this.progress.gcodeLayer = layer;
@@ -525,7 +530,7 @@ D3D.Slicer.prototype.getGCode = function (printer) {
 	this.progress.dataLayer = 0;
 	this.progress.gcodeLayer = 0;
 
-	var start = new Date().getTime();
+	/*var start = new Date().getTime();
 	var slices = this.slice(layerHeight, dimensionsZ);
 	var end = new Date().getTime();
 	console.log("Slicing: " + (end - start) + "ms");
@@ -538,7 +543,13 @@ D3D.Slicer.prototype.getGCode = function (printer) {
 	start = new Date().getTime();
 	var gcode = this.dataToGCode(slices, printer);
 	end = new Date().getTime();
-	console.log("Gcode: " + (end - start) + "ms");
+	console.log("Gcode: " + (end - start) + "ms");*/
+
+	var slices = this.slice(layerHeight, dimensionsZ);
+
+	this.slicesToData(slices, printer);
+
+	var gcode = this.dataToGCode(slices, printer);
 
 	return gcode;
 };

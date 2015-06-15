@@ -40,6 +40,7 @@ D3D.Box.prototype.init = function () {
 		if (error) {
 			if (scope.alive) {
 				scope.alive = false;
+
 				if (scope.ondisconnect !== undefined) {
 					scope.ondisconnect();
 				}
@@ -64,7 +65,7 @@ D3D.Box.prototype.init = function () {
 				scope.init();
 			}
 
-			scope.updateConfig(data);
+			scope.config = data;
 
 			if (!scope.loaded) {
 				scope.loaded = true;
@@ -79,15 +80,6 @@ D3D.Box.prototype.init = function () {
 
 	return this;
 };
-D3D.Box.prototype.updateConfig = function (config) {
-	"use strict";
-
-	for (var i in config) {
-		this.config[i] = config[i];
-	}
-
-	return this;
-};
 D3D.Box.prototype.updateLoop = function () {
 	"use strict";
 	var scope = this;
@@ -96,7 +88,7 @@ D3D.Box.prototype.updateLoop = function () {
 	//Bij error wordt gelijk zelfde data opnieuw gestuurd
 	//Als DoodleBox ontkoppeld wordt komt er een error in de loop waardoor pagina breekt en ververst moet worden
 
-	if (this.printBatches.length > 0 && (this.status["buffered_lines"] + this.batchSize) <= this.maxBufferedLines) {
+	if (this.printBatches.length > 0 && (this.status["buffered_lines"] + this.batches[0].length) <= this.maxBufferedLines) {
 	//if (this.printBatches.length > 0 ) {
 		this.printBatch();
 	}
@@ -167,11 +159,10 @@ D3D.Box.prototype.printBatch = function () {
 		console.log("batch sent: " + scope.currentBatch, data);
 
 		if (scope.printBatches.length > 0) {
-			//sent new batch
 			scope.currentBatch ++;
 		}
 		else {
-			//finish sending
+			console.log("Finish sending model to printer");
 		}
 
 		scope.updateState();
@@ -199,6 +190,7 @@ D3D.Box.prototype.stopPrint = function (printer) {
 
 	return this;
 };
+
 
 //COMMUNICATION SHELL
 //see http://www.doodle3d.com/help/api-documentation

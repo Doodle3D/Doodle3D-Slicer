@@ -1,17 +1,36 @@
 Sidebar.Slicer = function ( editor ) {
 
-	var USER_SETTINGS, PRINTER_SETTINGS, selectedPrinter, printer;
+	var USER_SETTINGS, PRINTER_SETTINGS, selectedPrinter;
 
 	function settingsLoaded () {
+
+		printer.updateConfig(USER_SETTINGS);
 
 		var options = {};
 
 		for (var i in PRINTER_SETTINGS) {
 			options[i] = i;
 		}
+
 		printerType.setOptions(options);
 
 	}
+
+	var container = new UI.CollapsiblePanel();
+	container.setCollapsed( editor.config.getKey( 'ui/sidebar/slicer/collapsed' ) );
+	container.onCollapsedChange( function ( boolean ) {
+
+		editor.config.setKey( 'ui/sidebar/slicer/collapsed', boolean );
+
+	} );
+
+	var printer = new D3D.Printer();
+
+	var localIp = location.hash.substring(1);
+	var doodleBox = new D3D.Box(localIp).init();
+
+	container.addStatic( new UI.Text( 'SLICER' ) );
+	container.add( new UI.Break() );
 
 	function createRow (name) {
 
@@ -27,22 +46,6 @@ Sidebar.Slicer = function ( editor ) {
 		return fill;
 
 	}
-
-	var localIp = location.hash.substring(1);
-	var doodleBox = new D3D.Box(localIp).init();
-
-	var signals = editor.signals;
-
-	var container = new UI.CollapsiblePanel();
-	container.setCollapsed( editor.config.getKey( 'ui/sidebar/slicer/collapsed' ) );
-	container.onCollapsedChange( function ( boolean ) {
-
-		editor.config.setKey( 'ui/sidebar/slicer/collapsed', boolean );
-
-	} );
-
-	container.addStatic( new UI.Text( 'SLICER' ) );
-	container.add( new UI.Break() );
 
 	var state = createRow('State');
 	var bedTemperature = createRow('Bed Temperature');
@@ -66,8 +69,6 @@ Sidebar.Slicer = function ( editor ) {
 		printBatches.setValue(doodleBox.printBatches.length);
 	};
 
-	var ignoreObjectSelectedSignal = false;
-
 	var printerTypeRow = new UI.Panel();
 	var printerType = new UI.Select().setWidth( '150px' );
 	printerType.onChange( function () {
@@ -75,7 +76,7 @@ Sidebar.Slicer = function ( editor ) {
 		var type = printerType.getValue();
 		selectedPrinter = type;
 
-		printer = new D3D.Printer().updateConfig(USER_SETTINGS).updateConfig(PRINTER_SETTINGS[selectedPrinter]);
+		printer.updateConfig(PRINTER_SETTINGS[selectedPrinter]);
 
 	} );
 
@@ -84,9 +85,7 @@ Sidebar.Slicer = function ( editor ) {
 
 	container.add( printerTypeRow );
 
-
 	var progress = createRow("Progress");
-
 	
 	var slice = new UI.Button( 'Slice' );
 	slice.onClick( function () {
