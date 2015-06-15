@@ -23,12 +23,15 @@ D3D.Slicer.prototype.setMesh = function (geometry, matrix) {
 	if (geometry instanceof THREE.BufferGeometry) {
 		geometry = new THREE.Geometry().fromBufferGeometry(geometry);
 	}
+	else {
+		geometry = geometry.clone();
+	}
 
 	//apply mesh matrix on geometry;
-	geometry.mergeVertices();
 	geometry.applyMatrix(matrix);
 	geometry.computeBoundingBox();
 	geometry.computeFaceNormals();
+	geometry.mergeVertices();
 
 	this.geometry = geometry;
 
@@ -82,7 +85,7 @@ D3D.Slicer.prototype.createLines = function () {
 		var face = this.geometry.faces[i];
 
 		if (face.normal.y !== 1 && face.normal.y !== -1) {
-			var normal = new THREE.Vector2().set(face.normal.z, face.normal.x).normalize();
+			var normal = new THREE.Vector2(face.normal.z, face.normal.x).normalize();
 
 			//check for only adding unique lines
 			//returns index of said line
@@ -106,6 +109,8 @@ D3D.Slicer.prototype.createLines = function () {
 };
 D3D.Slicer.prototype.slice = function (layerHeight, height) {
 	"use strict";
+
+	var testData = [];
 
 	var numLayers = height / layerHeight;
 
@@ -132,6 +137,8 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 	for (var layer = 1; layer < layersIntersections.length; layer ++) {
 		var layerIntersections = layersIntersections[layer];
 
+		var testPoints = [];
+
 		if (layerIntersections.length > 0) {
 
 			var y = layer * layerHeight;
@@ -152,6 +159,13 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 				}
 				intersections[index] = new THREE.Vector2(z, x);
 
+				testPoints.push({
+					x: z, 
+					y: x, 
+					connects: this.lines[index].connects, 
+					index: index, 
+					normals: this.lines[index].normals
+				});
 			}
 
 			var done = [];
@@ -163,23 +177,26 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 					var shape = [];
 
 					while (index !== -1) {
+						done.push(index);
+						
 						var intersection = intersections[index];
 						shape.push({X: intersection.x, Y: intersection.y});
 
-						var connects = this.lines[index].connects;
-						var faceNormals = this.lines[index].normals;
+						var connects = this.lines[index].connects.clone();
+						var faceNormals = this.lines[index].normals.clone();
 						for (var j = 0; j < connects.length; j ++) {
 							index = connects[j];
 
 							if (intersections[index] !== undefined && done.indexOf(index) === -1) {
-								done.push(index);
 
 								var a = new THREE.Vector2(intersection.x, intersection.y);
 								var b = intersections[index];
 
 								var faceNormal = faceNormals[Math.floor(j/2)];
 
-								if (a.distanceTo(b) === 0 || faceNormal.equals(new THREE.Vector2(0, 0))) {
+								if (a.distanceTo(b) === 0 || faceNormal.length() === 0) {
+									done.push(index);
+
 									connects = connects.concat(this.lines[index].connects);
 									faceNormals = faceNormals.concat(this.lines[index].normals);
 									index = -1;
@@ -187,8 +204,7 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 								else {
 									var normal = a.sub(b).normal().normalize();
 
-									if (normal.dot(faceNormal) >= 0) {
-									//if (true) {
+									if (normal.dot(faceNormal) > 0) {
 										break;
 									}
 									else {
@@ -202,8 +218,8 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 						}
 					}
 
-					if (shape.length > 1) {
-						var part = new D3D.Paths([shape]).clean(0.01);
+					var part = new D3D.Paths([shape]).clean(0.01);
+					if (part.length > 0) {
 						sliceParts.push(part);
 					}
 				}
@@ -231,10 +247,20 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 
 			slices.push(slice);
 
+			if (layer === 222) {
+				testData.push({
+					testPoints: testPoints, 
+					pathData: slice.parts
+				});
+			}
+
 			this.progress.sliceLayer = layer;
 			this.updateProgress();
 		}
 	}
+
+	console.log(JSON.stringify(testData));
+
 	return slices;
 };
 D3D.Slicer.prototype.slicesToData = function (slices, printer) {
@@ -393,7 +419,7 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 			slice.brim = slice.getOutline().offset(brimOffset);
 		}
 
-		var start = slice.optimizePaths(start);
+		start = slice.optimizePaths(start);
 
 		for (var i = 0; i < slice.parts.length; i ++) {
 			var part = slice.parts[i];
@@ -423,8 +449,8 @@ D3D.Slicer.prototype.getFillTemplate = function (bounds, size, even, uneven) {
 	var paths = new D3D.Paths([], false);
 
 	if (even) {
-		var left = Math.floor(bounds.left/size)*size;
-		var right = Math.ceil(bounds.right/size)*size;
+		var left = Math.floor(bounds.left / size) * size;
+		var right = Math.ceil(bounds.right / size) * size;
 
 		for (var length = left; length <= right; length += size) {
 			paths.push([
@@ -434,8 +460,8 @@ D3D.Slicer.prototype.getFillTemplate = function (bounds, size, even, uneven) {
 		}
 	}
 	if (uneven) {
-		var top = Math.floor(bounds.top/size)*size;
-		var bottom = Math.floor(bounds.bottom/size)*size;
+		var top = Math.floor(bounds.top / size) * size;
+		var bottom = Math.floor(bounds.bottom / size) * size;
 
 		for (var length = top; length <= bottom; length += size) {
 			paths.push([
