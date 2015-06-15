@@ -23,12 +23,18 @@ D3D.Slicer.prototype.setMesh = function (geometry, matrix) {
 	if (geometry instanceof THREE.BufferGeometry) {
 		geometry = new THREE.Geometry().fromBufferGeometry(geometry);
 	}
-	else {
+	else if (geometry instanceof THREE.Geometry) {
 		geometry = geometry.clone();
+	}
+	else {
+		console.warn("Geometry is not an instance of BufferGeometry or Geometry");
+		return;
 	}
 
 	//apply mesh matrix on geometry;
-	geometry.applyMatrix(matrix);
+	if (matrix instanceof THREE.Matrix4) {
+		geometry.applyMatrix(matrix);
+	}
 	geometry.computeBoundingBox();
 	geometry.computeFaceNormals();
 	geometry.mergeVertices();
@@ -247,7 +253,7 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 
 			slices.push(slice);
 
-			if (layer === 222) {
+			if (layer === 218) {
 				testData.push({
 					testPoints: testPoints, 
 					pathData: slice.parts
@@ -448,25 +454,28 @@ D3D.Slicer.prototype.getFillTemplate = function (bounds, size, even, uneven) {
 
 	var paths = new D3D.Paths([], false);
 
-	if (even) {
-		var left = Math.floor(bounds.left / size) * size;
-		var right = Math.ceil(bounds.right / size) * size;
+	var left = Math.floor(bounds.left / size) * size;
+	var right = Math.ceil(bounds.right / size) * size;
+	var top = Math.floor(bounds.top / size) * size;
+	var bottom = Math.floor(bounds.bottom / size) * size;
 
-		for (var length = left; length <= right; length += size) {
+	var width = right - left;
+
+	if (even) {
+
+		for (var y = top; y <= bottom + width; y += size) {
 			paths.push([
-				{X: length, Y: bounds.top}, 
-				{X: length, Y: bounds.bottom}
+				{X: left, Y: y}, 
+				{X: right, Y: y - width}
 			]);
 		}
 	}
 	if (uneven) {
-		var top = Math.floor(bounds.top / size) * size;
-		var bottom = Math.floor(bounds.bottom / size) * size;
 
-		for (var length = top; length <= bottom; length += size) {
+		for (var y = top - width; y <= bottom; y += size) {
 			paths.push([
-				{X: bounds.left, Y: length}, 
-				{X: bounds.right, Y: length}
+				{X: left, Y: y}, 
+				{X: right, Y: y + width}
 			]);
 		}
 	}
