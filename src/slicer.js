@@ -292,6 +292,7 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 	var bottomSkinCount = Math.ceil(bottomThickness/layerHeight);
 	var topSkinCount = Math.ceil(topThickness/layerHeight);
 	var nozzleRadius = nozzleDiameter / 2;
+	var hightemplateSize = Math.sqrt(2 * Math.pow(nozzleDiameter, 2));
 
 	var lowFillTemplate = this.getFillTemplate({
 		left: this.geometry.boundingBox.min.z * scale, 
@@ -356,7 +357,7 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 				if (highFillArea.length > 0) {
 					var bounds = highFillArea.bounds();
 					var even = (layer % 2 === 0);
-					var highFillTemplate = this.getFillTemplate(bounds, nozzleDiameter, even, !even);
+					var highFillTemplate = this.getFillTemplate(bounds, hightemplateSize, even, !even);
 
 					part.fill.join(highFillTemplate.intersect(highFillArea));
 				}
