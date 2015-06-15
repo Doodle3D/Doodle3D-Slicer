@@ -19,9 +19,9 @@ D3D.GCode = function () {
 	this.bottom = true;
 	this.isRetracted = false;
 	this.isFanOn = false;
-	this.nozzlePosition = new THREE.Vector2(0, 0);
+	this._nozzlePosition = new THREE.Vector2(0, 0);
 };
-D3D.GCode.prototype.addGCode = function (command) {
+D3D.GCode.prototype._addGCode = function (command) {
 	"use strict";
 
 	var str = [];
@@ -62,7 +62,7 @@ D3D.GCode.prototype.turnFanOn = function (fanSpeed) {
 		gcode["S"] = fanSpeed;
 	}
 
-	this.addGCode(gcode);
+	this._addGCode(gcode);
 
 	return this;
 };
@@ -71,7 +71,7 @@ D3D.GCode.prototype.turnFanOff = function () {
 
 	this.isFanOn = false;
 
-	this.addGCode({
+	this._addGCode({
 		"M": 107
 	});
 
@@ -86,13 +86,13 @@ D3D.GCode.prototype.moveTo = function (x, y, layer) {
 	var z = (layer + 1) * layerHeight;
 	var speed = travelSpeed * 60;
 
-	this.addGCode({
+	this._addGCode({
 		"G": 0, 
 		"X": x.toFixed(3), "Y": y.toFixed(3), "Z": z.toFixed(3), 
 		"F": speed.toFixed(3)
 	});
 	
-	this.nozzlePosition.set(x, y);
+	this._nozzlePosition.set(x, y);
 
 	return this;
 };
@@ -112,19 +112,19 @@ D3D.GCode.prototype.lineTo = function (x, y, layer, type) {
 	var flowRate = profile["flowRate"];
 	var z = (layer + 1) * layerHeight;
 
-	var lineLength = this.nozzlePosition.distanceTo(newNozzlePosition);
+	var lineLength = this._nozzlePosition.distanceTo(newNozzlePosition);
 
 	var filamentSurfaceArea = Math.pow((filamentThickness/2), 2) * Math.PI;
 	this.extruder += lineLength * nozzleDiameter * layerHeight / filamentSurfaceArea * flowRate;
 
-	this.addGCode({
+	this._addGCode({
 		"G": 1,
 		"X": x.toFixed(3), "Y": y.toFixed(3), "Z": z.toFixed(3), 
 		"F": speed.toFixed(3), 
 		"E": this.extruder.toFixed(3)
 	});
 
-	this.nozzlePosition.copy(newNozzlePosition);
+	this._nozzlePosition.copy(newNozzlePosition);
 
 	return this;
 };
@@ -141,7 +141,7 @@ D3D.GCode.prototype.unRetract = function () {
 		var speed = retractionSpeed * 60;
 
 		if (this.extruder > retractionMinDistance) {
-			this.addGCode({
+			this._addGCode({
 				"G": 0, 
 				"E": this.extruder.toFixed(3), 
 				"F": speed.toFixed(3)
@@ -165,7 +165,7 @@ D3D.GCode.prototype.retract = function () {
 		var speed = retractionSpeed * 60;
 
 		if (this.extruder > retractionMinDistance && retractionEnabled) {
-			this.addGCode({
+			this._addGCode({
 				"G": 0, 
 				"E": (this.extruder - retractionAmount).toFixed(3), 
 				"F": speed.toFixed(3)

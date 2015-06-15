@@ -74,7 +74,7 @@ D3D.Box.prototype.init = function () {
 				}
 			}
 
-			scope.updateLoop();
+			scope.updateState();
 		});
 	});
 
@@ -88,7 +88,7 @@ D3D.Box.prototype.updateLoop = function () {
 	//Bij error wordt gelijk zelfde data opnieuw gestuurd
 	//Als DoodleBox ontkoppeld wordt komt er een error in de loop waardoor pagina breekt en ververst moet worden
 
-	if (this.printBatches.length > 0 && (this.status["buffered_lines"] + this.batches[0].length) <= this.maxBufferedLines) {
+	if (this.printBatches.length > 0 && (this.status["buffered_lines"] + this.printBatches[0].length) <= this.maxBufferedLines) {
 	//if (this.printBatches.length > 0 ) {
 		this.printBatch();
 	}
