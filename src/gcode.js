@@ -25,21 +25,22 @@ D3D.GCode.prototype.addGCode = function (command) {
 	"use strict";
 
 	var str = [];
+	var first = true;
 
 	for (var i in command) {
-		if (i === "G") {
-			str.push(i + command[i]);
+		if (first) {
+			str = i + command[i];
+
+			first = false;
 		}
 		else if (this.current[i] !== command[i]) {
-			str.push(i + command[i]);
+			str += " " + i + command[i];
+
 			this.current[i] = command[i];
 		}
 	}
 
-	str = str.join(" ");
-	if (str.length > 0) {
-		this.gcode += str + "\n";
-	}
+	this.gcode += str + "\n";
 };
 D3D.GCode.prototype.setSettings = function (printer) {
 	"use strict";
@@ -146,9 +147,9 @@ D3D.GCode.prototype.unRetract = function () {
 				"F": speed.toFixed(3)
 			});
 		}
-
-		return this;
 	}
+
+	return this;
 };
 D3D.GCode.prototype.retract = function () {
 	"use strict";
@@ -170,9 +171,9 @@ D3D.GCode.prototype.retract = function () {
 				"F": speed.toFixed(3)
 			});
 		}
-
-		return this;
 	}
+
+	return this;
 };
 D3D.GCode.prototype.getGCode = function () {
 	"use strict";
