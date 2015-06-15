@@ -129,12 +129,9 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 
 	var slices = [];
 
-	//still error in first layer, so remove first layer & last layer
-	//see https://github.com/Doodle3D/Doodle3D-Slicer/issues/1
 	for (var layer = 1; layer < layersIntersections.length; layer ++) {
 		var layerIntersections = layersIntersections[layer];
 
-		//why have a slice with only support?
 		if (layerIntersections.length > 0) {
 
 			var y = layer * layerHeight;
@@ -205,7 +202,6 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 						}
 					}
 
-					//think this check is not nescesary, always higher as 0
 					if (shape.length > 1) {
 						var part = new D3D.Paths([shape]).clean(0.01);
 						sliceParts.push(part);
@@ -451,7 +447,7 @@ D3D.Slicer.prototype.getFillTemplate = function (bounds, size, even, uneven) {
 	
 	return paths;
 };
-D3D.Slicer.prototype.dataToGCode = function (data, printer) {
+D3D.Slicer.prototype.dataToGCode = function (slices, printer) {
 	"use strict";
 
 	var gcode = new D3D.GCode().setSettings(printer);
@@ -484,8 +480,8 @@ D3D.Slicer.prototype.dataToGCode = function (data, printer) {
 		}
 	}
 
-	for (var layer = 0; layer < data.length; layer ++) {
-		var slice = data[layer];
+	for (var layer = 0; layer < slices.length; layer ++) {
+		var slice = slices[layer];
 
 		if (layer === 1) {
 			gcode.turnFanOn();
