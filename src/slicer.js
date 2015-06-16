@@ -31,10 +31,10 @@ D3D.Slicer.prototype.setMesh = function (geometry, matrix) {
 		return;
 	}
 
-	//apply mesh matrix on geometry;
 	if (matrix instanceof THREE.Matrix4) {
 		geometry.applyMatrix(matrix);
 	}
+
 	geometry.computeBoundingBox();
 	geometry.computeFaceNormals();
 	geometry.mergeVertices();
@@ -287,6 +287,7 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 	var supportMargin = printer.config["supportMargin"] * scale;
 	var plateSize = printer.config["supportPlateSize"] * scale;
 	var supportDistanceY = printer.config["supportDistanceY"];
+	var infillOverlap = printer.config["infillOverlap"] * scale;
 
 	var supportDistanceLayers = Math.ceil(supportDistanceY / layerHeight);
 	var bottomSkinCount = Math.ceil(bottomThickness/layerHeight);
@@ -345,7 +346,7 @@ D3D.Slicer.prototype.slicesToData = function (slices, printer) {
 				var inset = ((part.innerLines.length > 0) ? part.innerLines[part.innerLines.length - 1] : outerLine);
 
 				var fillArea = inset.offset(-nozzleRadius);
-				var highFillArea = (surroundingLayer !== undefined) ? fillArea.difference(surroundingLayer) : fillArea;
+				var highFillArea = (surroundingLayer !== undefined) ? fillArea.difference(surroundingLayer).offset(infillOverlap).intersect(fillArea) : fillArea;
 				var lowFillArea = fillArea.difference(highFillArea);
 
 				var fill = new D3D.Paths([], false);
