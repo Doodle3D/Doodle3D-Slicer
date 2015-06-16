@@ -57,6 +57,7 @@ function getAPI (url, callback) {
 	});	
 }
 
+//button doesnt work in firefox!!!
 function downloadFile (file, data) {
 	'use strict';
 

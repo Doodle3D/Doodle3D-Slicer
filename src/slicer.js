@@ -358,10 +358,15 @@ D3D.Slicer.prototype.generateInfills = function (slices, printer) {
 	for (var layer = 0; layer < slices.length; layer ++) {
 		var slice = slices[layer];
 
+		console.log(layer + topSkinCount < slices.length);
+
 		if (layer - bottomSkinCount >= 0 && layer + topSkinCount < slices.length) {
 			var downSkin =  slices[layer - bottomSkinCount].getOutline();
 			var upSkin = slices[layer + topSkinCount].getOutline();
 			var surroundingLayer = upSkin.intersect(downSkin);
+		}
+		else {
+			var surroundingLayer = false;
 		}		
 
 		for (var i = 0; i < slice.parts.length; i ++) {
@@ -372,7 +377,7 @@ D3D.Slicer.prototype.generateInfills = function (slices, printer) {
 				var inset = ((part.innerLines.length > 0) ? part.innerLines[part.innerLines.length - 1] : outerLine);
 
 				var fillArea = inset.offset(-nozzleRadius);
-				if (surroundingLayer !== undefined) {
+				if (surroundingLayer) {
 					var highFillArea = fillArea.difference(surroundingLayer).offset(infillOverlap).intersect(fillArea);
 				}
 				else {
