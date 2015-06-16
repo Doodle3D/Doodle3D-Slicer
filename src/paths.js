@@ -66,7 +66,7 @@ D3D.Paths.prototype.offset = function (offset) {
 
 	var solution = new ClipperLib.Paths();
 	var co = new ClipperLib.ClipperOffset(1, 1);
-	co.AddPaths(this, ClipperLib.JoinType.jtRound, ClipperLib.EndType.etClosedPolygon);
+	co.AddPaths(this, ClipperLib.JoinType.jtMiter, ClipperLib.EndType.etClosedPolygon);
 	co.Execute(solution, offset);
 
 	return new D3D.Paths(solution);

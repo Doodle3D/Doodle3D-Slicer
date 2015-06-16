@@ -4,7 +4,12 @@
 <title>Doodle 3D App</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+<link href="css/main.css" rel="stylesheet" />
+<link id="theme" href="css/light.css" rel="stylesheet" />
+
 <script src="../three.js-master/build/three.js"></script>
+<script src="lib/paper-core.js"></script>
 
 <script src="../three.js-master/examples/js/controls/EditorControls.js"></script>
 <script src="../three.js-master/examples/js/controls/TransformControls.js"></script>
@@ -13,34 +18,38 @@
 
 <script src="../three.js-master/editor/js/libs/signals.min.js"></script>
 <script src="../three.js-master/editor/js/libs/ui.js"></script>
-<script src="../three.js-master/editor/js/libs/ui.three.js"></script>
 
 <script src="../three.js-master/editor/js/Storage.js"></script>
 
-<script src="../three.js-master/editor/js/Editor.js"></script>
-<script src="../three.js-master/editor/js/Config.js"></script>
-<script src="../three.js-master/editor/js/Loader.js"></script>
-<script src="../three.js-master/editor/js/Viewport.js"></script>
-<script src="../three.js-master/editor/js/Viewport.info.js"></script>
-<style>
-* {padding: 0px; margin: 0px;}
-canvas {border: 1px solid black; margin: 5px;}
-.menu_bar {border: 1px solid black; height: 40px; margin: 5px;}
-</style>
+<script src="js/DrawCanvas.js"></script>
+
+
+<script src="ui/Editor.js"></script>
+<script src="ui/Config.js"></script>
+<script src="ui/Preview.js"></script>
+<script src="ui/Design.js"></script>
 </head>
 <body>
-<div class="menu_bar"></div>
-<canvas id="design"></canvas>
-<canvas id="preview"></canvas>
-<div class="menu_bar"></div>
 
 <script>
 
-	var editor = new Editor();
+var editor = new Editor();
 
-	var viewport = new Viewport( editor );
+var design = new Design(editor);
+document.body.appendChild(design.dom);
 
-	document.body.appendChild( viewport.dom );
+var preview = new Preview(editor);
+document.body.appendChild(preview.dom);
+
+var onWindowResize = function (event) {
+	"use strict";
+
+	editor.signals.windowResize.dispatch();
+};
+
+window.addEventListener('resize', onWindowResize, false);
+
+onWindowResize();
 
 
 </script>
