@@ -8,25 +8,17 @@ var Config = function () {
 
 	var storage = {
 		'autosave': true,
-		'theme': '../three.js-master/editor/css/light.css',
 
 		'project/renderer': 'WebGLRenderer',
 		'project/renderer/antialias': true,
 		'project/vr': false,
 
 		'camera/position': [ 500, 250, 500 ],
-		'camera/target': [ 0, 0, 0 ],
+		'camera/target': [ 0, 0, 0 ]
 
-		'ui/sidebar/animation/collapsed': true,
-		'ui/sidebar/geometry/collapsed': true,
-		'ui/sidebar/material/collapsed': true,
-		'ui/sidebar/object3d/collapsed': false,
-		'ui/sidebar/project/collapsed': true,
-		'ui/sidebar/scene/collapsed': false,
-		'ui/sidebar/script/collapsed': true
 	};
 
-	if ( window.localStorage[ name ] === undefined ) {
+	if ( window.localStorage[ name ] === undefined || true ) {
 
 		window.localStorage[ name ] = JSON.stringify( storage );
 

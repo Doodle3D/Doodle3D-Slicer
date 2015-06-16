@@ -2,15 +2,17 @@
  * @author mrdoob / http://mrdoob.com/
  */
 
-var Viewport = function ( editor ) {
+var Preview = function ( editor ) {
 
 	var signals = editor.signals;
 
 	var container = new UI.Panel();
-	container.setId( 'viewport' );
+	container.setId( 'preview' );
 	container.setPosition( 'absolute' );
-
-	container.add( new Viewport.Info( editor ) );
+	container.setWidth( '50%' );
+	container.setTop( '0px' );
+	container.setRight( '0px' );
+	container.setBottom( '0px' );
 
 	var scene = editor.scene;
 	var sceneHelpers = editor.sceneHelpers;
@@ -20,7 +22,15 @@ var Viewport = function ( editor ) {
 	// helpers
 
 	var grid = new THREE.GridHelper( 200, 10 );
+	grid.setColors( 0x444444, 0x888888 );
 	sceneHelpers.add( grid );
+
+	var directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+	directionalLight.position.set(0, 1, 0);
+	scene.add(directionalLight);
+
+	var light = new THREE.AmbientLight(0x404040); // soft white light
+	scene.add(light);
 
 	//
 
@@ -228,27 +238,6 @@ var Viewport = function ( editor ) {
 	signals.editorCleared.add( function () {
 
 		controls.center.set( 0, 0, 0 );
-		render();
-
-	} );
-
-	signals.themeChanged.add( function ( value ) {
-
-		switch ( value ) {
-
-			case '../three.js-master/editor/css/light.css':
-				grid.setColors( 0x444444, 0x888888 );
-				clearColor = 0xaaaaaa;
-				break;
-			case '../three.js-master/editor/css/dark.css':
-				grid.setColors( 0xbbbbbb, 0x888888 );
-				clearColor = 0x333333;
-				break;
-
-		}
-
-		renderer.setClearColor( clearColor );
-
 		render();
 
 	} );
@@ -488,26 +477,6 @@ var Viewport = function ( editor ) {
 
 	} );
 
-	var animations = [];
-
-	signals.playAnimation.add( function ( animation ) {
-
-		animations.push( animation );
-
-	} );
-
-	signals.stopAnimation.add( function ( animation ) {
-
-		var index = animations.indexOf( animation );
-
-		if ( index !== -1 ) {
-
-			animations.splice( index, 1 );
-
-		}
-
-	} );
-
 	//
 
 	var createRenderer = function ( type, antialias ) {
@@ -528,13 +497,10 @@ var Viewport = function ( editor ) {
 
 	};
 
-	var clearColor;
+	var clearColor = 0xaaaaaa;
 	var renderer = createRenderer( editor.config.getKey( 'project/renderer' ), editor.config.getKey( 'project/renderer/antialias' ) );
 	container.dom.appendChild( renderer.domElement );
 
-	animate();
-
-	//
 
 	function updateMaterials() {
 
@@ -574,33 +540,6 @@ var Viewport = function ( editor ) {
 
 	}
 
-	function animate() {
-
-		requestAnimationFrame( animate );
-
-		// animations
-
-		if ( THREE.AnimationHandler.animations.length > 0 ) {
-
-			THREE.AnimationHandler.update( 0.016 );
-
-			for ( var i = 0, l = sceneHelpers.children.length; i < l; i ++ ) {
-
-				var helper = sceneHelpers.children[ i ];
-
-				if ( helper instanceof THREE.SkeletonHelper ) {
-
-					helper.update();
-
-				}
-
-			}
-
-			render();
-
-		}
-
-	}
 
 	function render() {
 
@@ -610,11 +549,7 @@ var Viewport = function ( editor ) {
 		renderer.clear();
 		renderer.render( scene, camera );
 
-		if ( renderer instanceof THREE.RaytracingRenderer === false ) {
-
-			renderer.render( sceneHelpers, camera );
-
-		}
+		renderer.render( sceneHelpers, camera );
 
 	}
 

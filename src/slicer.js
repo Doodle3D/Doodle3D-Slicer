@@ -167,11 +167,10 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 	}
 
 	var slices = [];
+	var testPoints = [];
 
 	for (var layer = 1; layer < layersIntersections.length; layer ++) {
 		var layerIntersections = layersIntersections[layer];
-
-		var testPoints = [];
 
 		if (layerIntersections.length > 0) {
 
@@ -428,7 +427,7 @@ D3D.Slicer.prototype.generateSupport = function (slices, printer) {
 	var supportAreas = new D3D.Paths([], true);
 
 	for (var layer = slices.length - 1 - supportDistanceLayers; layer >= 0; layer --) {
-		if (supportAreas.length > 1) {
+		if (supportAreas.length > 0) {
 
 			if (layer >= supportDistanceLayers) {
 				var sliceSkin = slices[layer - supportDistanceLayers].getOutline();
