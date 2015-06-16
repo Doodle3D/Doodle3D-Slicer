@@ -5,6 +5,7 @@
 	"shellThickness": 0.4, 
 	"brimOffset": 5.0, 
 	"fillGridSize": 5.0, 
+	"infillOverlap": 0.5, 
 	"travelSpeed": 200.0, 
 	"retractionAmount": 3.0, 
 	"retractionEnabled": true, 
