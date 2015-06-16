@@ -47,7 +47,7 @@ function init () {
 	var scene = createScene();
 
 	var localIp = location.hash.substring(1);
-	/*doodleBox = new D3D.Box(localIp).init();
+	doodleBox = new D3D.Box(localIp).init();
 	doodleBox.onupdate = function (data) {
 		document.getElementById('state').innerHTML = data.state;
 		document.getElementById('bed_temp').innerHTML = data.bed;
@@ -58,7 +58,7 @@ function init () {
 		document.getElementById('buffered_lines').innerHTML = data.buffered_lines;
 		document.getElementById('total_lines').innerHTML = data.total_lines;
 		document.getElementById('print_batches').innerHTML = doodleBox.printBatches.length;
-	};*/
+	};
 
 	printer = new D3D.Printer().updateConfig(USER_SETTINGS).updateConfig(PRINTER_SETTINGS['ultimaker2go']);
 
@@ -99,7 +99,7 @@ function init () {
 		var mesh = new THREE.Mesh(geometry, material);
 
 		mesh.rotation.x = -Math.PI/2;
-		mesh.scale.x = mesh.scale.y = mesh.scale.z = 1;
+		mesh.scale.x = mesh.scale.y = mesh.scale.z = 0.7;
 		mesh.position.x = 60;
 		mesh.position.z = 60;
 
