@@ -66,7 +66,6 @@ D3D.Slice.prototype.optimizePaths = function (start) {
 
 	this.parts = parts;
 
-
 	if (this.support !== undefined && this.support.length > 0) {
 		this.support = this.support.optimizePath(start);
 		start = this.support.lastPoint();

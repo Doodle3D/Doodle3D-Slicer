@@ -96,12 +96,15 @@ events.forEach( function ( event ) {
 
 // Panel
 
-UI.Panel = function () {
+UI.Panel = function ( dom ) {
 
 	UI.Element.call( this );
 
-	var dom = document.createElement( 'div' );
+	if ( dom === undefined ) {
+		var dom = document.createElement( 'div' );
+	}
 	dom.className = 'Panel';
+
 
 	this.dom = dom;
 
