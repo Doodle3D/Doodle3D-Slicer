@@ -12,7 +12,7 @@
 	"retractionSpeed": 50.0, 
 	"retractionMinDistance": 0.0, 
 	"supportAcceptanceMargin": 1.5, 
-	"supportDistanceY": 0.2, 
+	"supportDistanceY": 0.4, 
 	"supportUse": true, 
 	"supportGridSize": 6.0, 
 	"supportMargin": 2.0,  

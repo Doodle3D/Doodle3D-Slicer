@@ -44,6 +44,7 @@ self.addEventListener('message', function (event) {
 
 			//need to send the buffer of blob sepperatly;
 			//not sure how to send that
+
 			self.postMessage({
 				'cmd': 'GCODE', 
 				'gcode': blob

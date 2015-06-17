@@ -2,6 +2,14 @@ Sidebar.Slicer = function ( editor ) {
 
 	var USER_SETTINGS, PRINTER_SETTINGS, selectedPrinter;
 
+	var sceneHelper = editor.sceneHelpers;
+
+	var boundingBox = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshBasicMaterial());
+
+	var bbox = new THREE.BoundingBoxHelper( boundingBox, 0xff0000 );
+	bbox.update();
+	sceneHelper.add( bbox );
+
 	function settingsLoaded () {
 
 		printer.updateConfig(USER_SETTINGS);
@@ -77,6 +85,13 @@ Sidebar.Slicer = function ( editor ) {
 		selectedPrinter = type;
 
 		printer.updateConfig(PRINTER_SETTINGS[selectedPrinter]);
+
+		boundingBox.geometry = new THREE.BoxGeometry(printer.config.dimensionsY, printer.config.dimensionsZ, printer.config.dimensionsX);
+		boundingBox.position.x = printer.config.dimensionsY/2;
+		boundingBox.position.y = printer.config.dimensionsZ/2;
+		boundingBox.position.z = printer.config.dimensionsX/2;
+
+		bbox.update();
 
 	} );
 

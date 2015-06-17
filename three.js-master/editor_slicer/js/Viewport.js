@@ -520,7 +520,7 @@ var Viewport = function ( editor ) {
 
 		var renderer = new THREE[ type ]( { antialias: antialias } );
 		renderer.setClearColor( clearColor );
-		renderer.setPixelRatio( window.devicePixelRatio );
+		//renderer.setPixelRatio( window.devicePixelRatio );
 		renderer.autoClear = false;
 		renderer.autoUpdateScene = false;
 

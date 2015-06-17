@@ -93,6 +93,8 @@ function init () {
 	var loader = new THREE.STLLoader();
 	loader.load('models/dom.stl', function (geometry) {
 		//var geometry = new THREE.TorusGeometry(20, 10, 30, 30).clone();
+		var geometry = new THREE.TorusKnotGeometry( 100, 43, 64, 8 );
+
 
 		var material = new THREE.MeshPhongMaterial({color: 0x00ff00, wireframe: false});
 		//var material = new THREE.MeshBasicMaterial({color: 0x000000, wireframe: true});
@@ -174,7 +176,7 @@ function createScene () {
 	}
 
 	(function animate () {
-		requestAnimationFrame(animate);
+		//requestAnimationFrame(animate);
 		renderer.render(scene, camera);
 	})();
 
