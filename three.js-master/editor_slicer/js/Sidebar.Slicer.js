@@ -66,7 +66,7 @@ Sidebar.Slicer = function ( editor ) {
 		currentLine.setValue(data["current_line"]);
 		bufferedLines.setValue(data["buffered_lines"]);
 		totalLines.setValue(data["total_lines"]);
-		printBatches.setValue(doodleBox.printBatches.length);
+		printBatches.setValue(doodleBox._printBatches.length);
 	};
 
 	var printerTypeRow = new UI.Panel();
