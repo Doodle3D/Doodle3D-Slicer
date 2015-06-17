@@ -1,7 +1,7 @@
 /******************************************************
 *
 * WiFi-Box
-* Representation of de Doodle3DBox
+* Representation of de Doodle3D-WiFi Box
 * Handles all communication with the doodle box
 * JavaScript shell for api communication
 * Check http://www.doodle3d.com/help/api-documentation
@@ -27,8 +27,8 @@ D3D.Box = function (localIp) {
 	this.config = {};
 	this.status = {};
 
-	this.printBatches = [];
-	this.currentBatch = 0;
+	this._printBatches = [];
+	this._currentBatch = 0;
 
 	this.loaded = false;
 };
@@ -74,13 +74,13 @@ D3D.Box.prototype.init = function () {
 				}
 			}
 
-			scope.updateState();
+			scope._updateState();
 		});
 	});
 
 	return this;
 };
-D3D.Box.prototype.updateLoop = function () {
+D3D.Box.prototype._updateLoop = function () {
 	"use strict";
 	var scope = this;
 	//TODO
@@ -88,17 +88,17 @@ D3D.Box.prototype.updateLoop = function () {
 	//Bij error wordt gelijk zelfde data opnieuw gestuurd
 	//Als DoodleBox ontkoppeld wordt komt er een error in de loop waardoor pagina breekt en ververst moet worden
 
-	if (this.printBatches.length > 0 && (this.status["buffered_lines"] + this.printBatches[0].length) <= this.maxBufferedLines) {
-	//if (this.printBatches.length > 0 ) {
-		this.printBatch();
+	if (this._printBatches.length > 0 && (this.status["buffered_lines"] + this._printBatches[0].length) <= this.maxBufferedLines) {
+	//if (this._printBatches.length > 0 ) {
+		this._printBatch();
 	}
 	else {
 		setTimeout(function () {
-			scope.updateState();
+			scope._updateState();
 		}, 1000);
 	}
 };
-D3D.Box.prototype.updateState = function () {
+D3D.Box.prototype._updateState = function () {
 	//que api calls so they don't overload the d3d box
 	"use strict";
 	var scope = this;
@@ -117,38 +117,38 @@ D3D.Box.prototype.updateState = function () {
 			scope.onupdate(data);
 		}
 
-		scope.updateLoop();
+		scope._updateLoop();
 	});
 };
 D3D.Box.prototype.print = function (gcode) {
 	"use strict";
 
-	this.currentBatch = 0;
+	this._currentBatch = 0;
 
 	gcode = gcode.split("\n");
 
 	//split gcode in batches
 	while (gcode.length > 0) {
 		var gcodeBatch = gcode.splice(0, Math.min(this.batchSize, gcode.length));
-		this.printBatches.push(gcodeBatch);
+		this._printBatches.push(gcodeBatch);
 	}
 
 	return this;
 };
-D3D.Box.prototype.printBatch = function () {
+D3D.Box.prototype._printBatch = function () {
 	"use strict";
 	var scope = this;
 
-	var gcode = this.printBatches.shift();
+	var gcode = this._printBatches.shift();
 
 	this.setPrinterPrint({
-		"start": ((this.currentBatch === 0) ? true : false), 
-		"first": ((this.currentBatch === 0) ? true : false), 
+		"start": ((this._currentBatch === 0) ? true : false), 
+		"first": ((this._currentBatch === 0) ? true : false), 
 		"gcode": gcode.join("\n"), 
-		"last": ((this.printBatches.length === 0) ? true : false) //only for debug purposes
+		"last": ((this._printBatches.length === 0) ? true : false) //only for debug purposes
 	}, function (error, data) {
 		if (error) {
-			scope.printBatches.unshift(gcode);
+			scope._printBatches.unshift(gcode);
 			
 			console.warn(error);
 			scope.init();
@@ -156,24 +156,24 @@ D3D.Box.prototype.printBatch = function () {
 			return;
 		}
 
-		console.log("batch sent: " + scope.currentBatch, data);
+		console.log("batch sent: " + scope._currentBatch, data);
 
-		if (scope.printBatches.length > 0) {
-			scope.currentBatch ++;
+		if (scope._printBatches.length > 0) {
+			scope._currentBatch ++;
 		}
 		else {
 			console.log("Finish sending model to printer");
 		}
 
-		scope.updateState();
+		scope._updateState();
 	});
 };
 D3D.Box.prototype.stopPrint = function (printer) {
 	"use strict";
 	var scope = this;
 
-	this.printBatches = [];
-	this.currentBatch = 0;
+	this._printBatches = [];
+	this._currentBatch = 0;
 
 	this.setPrinterStop({
 		"gcode": printer.getEndCode()

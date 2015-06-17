@@ -29,7 +29,7 @@ D3D.Paths.prototype.setPaths = function (paths) {
 
 	return this;
 };
-D3D.Paths.prototype.clip = function (path, type) {
+D3D.Paths.prototype._clip = function (path, type) {
 	'use strict';
 
 	var solution = new ClipperLib.Paths();
@@ -44,22 +44,22 @@ D3D.Paths.prototype.clip = function (path, type) {
 D3D.Paths.prototype.union = function (path) {
 	'use strict';
 
-	return this.clip(path, ClipperLib.ClipType.ctUnion);
+	return this._clip(path, ClipperLib.ClipType.ctUnion);
 };
 D3D.Paths.prototype.difference = function (path) {
 	'use strict';
 
-	return this.clip(path, ClipperLib.ClipType.ctDifference);
+	return this._clip(path, ClipperLib.ClipType.ctDifference);
 };
 D3D.Paths.prototype.intersect = function (path) {
 	'use strict';
 
-	return this.clip(path, ClipperLib.ClipType.ctIntersection);
+	return this._clip(path, ClipperLib.ClipType.ctIntersection);
 };
 D3D.Paths.prototype.xor = function () {
 	'use strict';
 
-	return this.clip(path, ClipperLib.ClipType.ctXor);
+	return this._clip(path, ClipperLib.ClipType.ctXor);
 };
 D3D.Paths.prototype.offset = function (offset) {
 	'use strict';

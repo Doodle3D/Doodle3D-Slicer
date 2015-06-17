@@ -23,7 +23,7 @@ D3D.Printer.prototype.getStartCode = function () {
 	"use strict";
 	
 	var gcode = this.config["startCode"];
-	gcode = this.subsituteVariables(gcode);
+	gcode = this._subsituteVariables(gcode);
 
 	return gcode;
 };
@@ -32,11 +32,11 @@ D3D.Printer.prototype.getEndCode = function () {
 	
 	var gcode = this.config["endCode"];
 
-	gcode = this.subsituteVariables(gcode);
+	gcode = this._subsituteVariables(gcode);
 
 	return gcode;
 };
-D3D.Printer.prototype.subsituteVariables = function (gcode) {
+D3D.Printer.prototype._subsituteVariables = function (gcode) {
 	"use strict";
 
 	var temperature = this.config["temperature"];

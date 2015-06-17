@@ -42,7 +42,7 @@ D3D.Slicer.prototype.setMesh = function (geometry, matrix) {
 	this.geometry = geometry;
 
 	//get unique lines from geometry;
-	this.createLines();
+	this._createLines();
 
 	return this;
 };
@@ -58,23 +58,23 @@ D3D.Slicer.prototype.getGCode = function (printer) {
 	this.progress.dataLayer = 0;
 	this.progress.gcodeLayer = 0;
 
-	var slices = this.slice(layerHeight, dimensionsZ);
+	var slices = this._slice(layerHeight, dimensionsZ);
 
-	this.generateInnerLines(slices, printer);
+	this._generateInnerLines(slices, printer);
 	
-	this.generateInfills(slices, printer);
+	this._generateInfills(slices, printer);
 
 	if (useSupport) {
-		this.generateSupport(slices, printer);
+		this._generateSupport(slices, printer);
 	}
 	
-	this.optimizePaths(slices, printer);
+	this._optimizePaths(slices, printer);
 
-	var gcode = this.slicesToGCode(slices, printer);
+	var gcode = this._slicesToGCode(slices, printer);
 
 	return gcode;
 };
-D3D.Slicer.prototype.updateProgress = function () {
+D3D.Slicer.prototype._updateProgress = function () {
 	'use strict';
 	
 	var faces = this.progress.currentFace / (this.progress.totalFaces - 1);
@@ -89,12 +89,12 @@ D3D.Slicer.prototype.updateProgress = function () {
 		this.onProgress(this.progress);
 	}
 };
-D3D.Slicer.prototype.createLines = function () {
+D3D.Slicer.prototype._createLines = function () {
 	"use strict";
 
 	this.progress.totalFaces = this.geometry.faces.length;
 
-	this.lines = [];
+	this._lines = [];
 	var lineLookup = {};
 
 	var self = this;
@@ -102,10 +102,10 @@ D3D.Slicer.prototype.createLines = function () {
 		var index = lineLookup[b + "_" + a];
 
 		if (index === undefined) {
-			index = self.lines.length;
+			index = self._lines.length;
 			lineLookup[a + "_" + b] = index;
 
-			self.lines.push({
+			self._lines.push({
 				line: new THREE.Line3(self.geometry.vertices[a], self.geometry.vertices[b]), 
 				connects: [], 
 				normals: []
@@ -128,20 +128,20 @@ D3D.Slicer.prototype.createLines = function () {
 			var c = addLine(face.c, face.a);
 
 			//set connecting lines (based on face)
-			this.lines[a].connects.push(b, c);
-			this.lines[b].connects.push(c, a);
-			this.lines[c].connects.push(a, b);
+			this._lines[a].connects.push(b, c);
+			this._lines[b].connects.push(c, a);
+			this._lines[c].connects.push(a, b);
 
-			this.lines[a].normals.push(normal);
-			this.lines[b].normals.push(normal);
-			this.lines[c].normals.push(normal);
+			this._lines[a].normals.push(normal);
+			this._lines[b].normals.push(normal);
+			this._lines[c].normals.push(normal);
 		}
 
 		this.progress.currentFace = i;
-		this.updateProgress();
+		this._updateProgress();
 	}
 };
-D3D.Slicer.prototype.slice = function (layerHeight, height) {
+D3D.Slicer.prototype._slice = function (layerHeight, height) {
 	"use strict";
 
 	var testData = [];
@@ -153,8 +153,8 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 		layersIntersections[layer] = [];
 	}
 	
-	for (var lineIndex = 0; lineIndex < this.lines.length; lineIndex ++) {
-		var line = this.lines[lineIndex].line;
+	for (var lineIndex = 0; lineIndex < this._lines.length; lineIndex ++) {
+		var line = this._lines[lineIndex].line;
 
 		var min = Math.ceil(Math.min(line.start.y, line.end.y) / layerHeight);
 		var max = Math.floor(Math.max(line.start.y, line.end.y) / layerHeight);
@@ -179,7 +179,7 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 			var intersections = [];
 			for (var i = 0; i < layerIntersections.length; i ++) {
 				var index = layerIntersections[i];
-				var line = this.lines[index].line;
+				var line = this._lines[index].line;
 
 				if (line.start.y === line.end.y) {
 					var x = line.start.x;
@@ -195,9 +195,9 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 				testPoints.push({
 					x: z, 
 					y: x, 
-					connects: this.lines[index].connects, 
+					connects: this._lines[index].connects, 
 					index: index, 
-					normals: this.lines[index].normals
+					normals: this._lines[index].normals
 				});
 			}
 
@@ -211,39 +211,39 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 
 					while (index !== -1) {
 						done.push(index);
-						
+
 						var intersection = intersections[index];
-						//uppercase X and Y because data goes to clipper
+						//uppercase X and Y because clipper vector
 						shape.push({X: intersection.x, Y: intersection.y});
 
-						var connects = this.lines[index].connects.clone();
-						var faceNormals = this.lines[index].normals.clone();
+						var connects = this._lines[index].connects.clone();
+						var faceNormals = this._lines[index].normals.clone();
 						for (var j = 0; j < connects.length; j ++) {
 							index = connects[j];
 
 							if (intersections[index] !== undefined && done.indexOf(index) === -1) {
 
 								var a = new THREE.Vector2(intersection.x, intersection.y);
-								var b = intersections[index];
+								var b = new THREE.Vector2(intersections[index].x, intersections[index].y);
 
 								var faceNormal = faceNormals[Math.floor(j/2)];
 
 								if (a.distanceTo(b) === 0 || faceNormal.length() === 0) {
 									done.push(index);
 
-									connects = connects.concat(this.lines[index].connects);
-									faceNormals = faceNormals.concat(this.lines[index].normals);
+									connects = connects.concat(this._lines[index].connects);
+									faceNormals = faceNormals.concat(this._lines[index].normals);
 									index = -1;
 								}
 								else {
 									var normal = a.sub(b).normal().normalize();
 
-									//if (normal.dot(faceNormal) > 0) {
+									if (normal.dot(faceNormal) > 0) {
 										break;
-									//}
-									//else {
-									//	index = -1;
-									//}
+									}
+									else {
+										index = -1;
+									}
 								}
 							}
 							else {
@@ -289,7 +289,7 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 			}
 
 			this.progress.sliceLayer = layer;
-			this.updateProgress();
+			this._updateProgress();
 		}
 	}
 
@@ -297,12 +297,12 @@ D3D.Slicer.prototype.slice = function (layerHeight, height) {
 
 	return slices;
 };
-D3D.Slicer.prototype.generateInnerLines = function (slices, printer) {
+D3D.Slicer.prototype._generateInnerLines = function (slices, printer) {
 	"use strict";
 
 	console.log("generating outer lines and inner lines");
 
-	//need to scale up everything because of clipper rounding
+	//need to scale up everything because of clipper rounding errors
 	var scale = 100;
 
 	var layerHeight = printer.config["layerHeight"];
@@ -335,12 +335,12 @@ D3D.Slicer.prototype.generateInnerLines = function (slices, printer) {
 		}
 	}
 };
-D3D.Slicer.prototype.generateInfills = function (slices, printer) {
+D3D.Slicer.prototype._generateInfills = function (slices, printer) {
 	"use strict";
 
 	console.log("generating infills");
 
-	//need to scale up everything because of clipper rounding
+	//need to scale up everything because of clipper rounding errors
 	var scale = 100;
 
 	var layerHeight = printer.config["layerHeight"];
@@ -349,6 +349,7 @@ D3D.Slicer.prototype.generateInfills = function (slices, printer) {
 	var topThickness = printer.config["topThickness"];
 	var nozzleDiameter = printer.config["nozzleDiameter"] * scale;
 	var infillOverlap = printer.config["infillOverlap"] * scale;
+	
 	var bottomSkinCount = Math.ceil(bottomThickness/layerHeight);
 	var topSkinCount = Math.ceil(topThickness/layerHeight);
 	var nozzleRadius = nozzleDiameter / 2;
@@ -356,8 +357,6 @@ D3D.Slicer.prototype.generateInfills = function (slices, printer) {
 
 	for (var layer = 0; layer < slices.length; layer ++) {
 		var slice = slices[layer];
-
-		console.log(layer + topSkinCount < slices.length);
 
 		if (layer - bottomSkinCount >= 0 && layer + topSkinCount < slices.length) {
 			var downSkin =  slices[layer - bottomSkinCount].getOutline();
@@ -388,7 +387,7 @@ D3D.Slicer.prototype.generateInfills = function (slices, printer) {
 
 				if (lowFillArea.length > 0) {
 					var bounds = lowFillArea.bounds();
-					var lowFillTemplate = this.getFillTemplate(bounds, fillGridSize, true, true);
+					var lowFillTemplate = this._getFillTemplate(bounds, fillGridSize, true, true);
 
 					part.fill.join(lowFillTemplate.intersect(lowFillArea));
 				}
@@ -396,7 +395,7 @@ D3D.Slicer.prototype.generateInfills = function (slices, printer) {
 				if (highFillArea.length > 0) {
 					var bounds = highFillArea.bounds();
 					var even = (layer % 2 === 0);
-					var highFillTemplate = this.getFillTemplate(bounds, hightemplateSize, even, !even);
+					var highFillTemplate = this._getFillTemplate(bounds, hightemplateSize, even, !even);
 
 					part.fill.join(highFillTemplate.intersect(highFillArea));
 				}
@@ -404,15 +403,15 @@ D3D.Slicer.prototype.generateInfills = function (slices, printer) {
 		}
 
 		this.progress.dataLayer = layer;
-		this.updateProgress();
+		this._updateProgress();
 	}
 };
-D3D.Slicer.prototype.generateSupport = function (slices, printer) {
+D3D.Slicer.prototype._generateSupport = function (slices, printer) {
 	"use strict";
 
 	console.log("generating support");
 
-	//need to scale up everything because of clipper rounding
+	//need to scale up everything because of clipper rounding errors
 	var scale = 100;
 
 	var layerHeight = printer.config["layerHeight"];
@@ -441,12 +440,12 @@ D3D.Slicer.prototype.generateSupport = function (slices, printer) {
 			if (layer === 0) {
 				supportAreas = supportAreas.offset(plateSize).difference(sliceSkin);
 
-				var template = this.getFillTemplate(supportAreas.bounds(), nozzleDiameter, true, false);
+				var template = this._getFillTemplate(supportAreas.bounds(), nozzleDiameter, true, false);
 
 				currentSlice.support = template.intersect(supportAreas);
 			}
 			else {
-				var supportTemplate = this.getFillTemplate(supportAreas.bounds(), supportGridSize, true, true);
+				var supportTemplate = this._getFillTemplate(supportAreas.bounds(), supportGridSize, true, true);
 
 				currentSlice.support = supportTemplate.intersect(supportAreas).join(supportAreas.clone());
 			}
@@ -468,12 +467,12 @@ D3D.Slicer.prototype.generateSupport = function (slices, printer) {
 		}
 	}
 };
-D3D.Slicer.prototype.optimizePaths = function (slices, printer) {
+D3D.Slicer.prototype._optimizePaths = function (slices, printer) {
 	"use strict";
 
 	console.log("opimize paths");
 
-	//need to scale up everything because of clipper rounding
+	//need to scale up everything because of clipper rounding errors
 	var scale = 100;
 
 	var brimOffset = printer.config["brimOffset"] * scale;
@@ -508,7 +507,7 @@ D3D.Slicer.prototype.optimizePaths = function (slices, printer) {
 		}
 	}
 }
-D3D.Slicer.prototype.getFillTemplate = function (bounds, size, even, uneven) {
+D3D.Slicer.prototype._getFillTemplate = function (bounds, size, even, uneven) {
 	"use strict";
 
 	var paths = new D3D.Paths([], false);
@@ -539,7 +538,7 @@ D3D.Slicer.prototype.getFillTemplate = function (bounds, size, even, uneven) {
 	
 	return paths;
 };
-D3D.Slicer.prototype.slicesToGCode = function (slices, printer) {
+D3D.Slicer.prototype._slicesToGCode = function (slices, printer) {
 	"use strict";
 
 	var gcode = new D3D.GCode().setSettings(printer);
@@ -602,7 +601,7 @@ D3D.Slicer.prototype.slicesToGCode = function (slices, printer) {
 		}
 
 		this.progress.gcodeLayer = layer;
-		this.updateProgress();
+		this._updateProgress();
 	}
 
 	return gcode.getGCode();
