@@ -36,7 +36,7 @@
 		"dimensionsX": 120, 
 		"dimensionsY": 120, 
 		"dimensionsZ": 115, 
-		"endCode": "M107 ;fan off\nG91 ;relative positioning\nG1 E-1 F300 ;retract the filament a bit before lifting the nozzle, to release some of the pressure\nG1 Z+5.5 E-5 X-20 Y-20 F9000 ;move Z up a bit and retract filament even more\nG28 ;home the printer\nM84 ;disable axes / steppers\nG90 ;absolute positioning\nM104 S{preheatTemp}\n{if heatedBed}M140 S{preheatBedTemp}\nM117 Done                 ;display message (20 characters to clear whole screen)\n",
+		"endCode": "M107 ;fan off\nG91 ;relative positioning\nG1 E-1 F300 ;retract the filament a bit before lifting the nozzle, to release some of the pressure\nG1 E-5 X-20 Y-20 F9000 ;move Z up a bit and retract filament even more\nG28 ;home the printer\nM84 ;disable axes / steppers\nG90 ;absolute positioning\nM104 S{preheatTemp}\n{if heatedBed}M140 S{preheatBedTemp}\nM117 Done                 ;display message (20 characters to clear whole screen)\n",
 		"filamentThickness": 2.85, 
 		"heatedBed": false, 
 		"heatupBedTemperature": 70, 

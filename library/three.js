@@ -1578,18 +1578,6 @@ THREE.Vector2.prototype = {
 
 		return new THREE.Vector2( this.x, this.y );
 
-	},
-
-	normal : function () {
-
-		var x = this.y;
-		var y = -this.x;
-
-		this.x = x;
-		this.y = y;
-
-		return this;
-
 	}
 
 };
