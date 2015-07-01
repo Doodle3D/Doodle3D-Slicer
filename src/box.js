@@ -82,6 +82,7 @@ D3D.Box.prototype.init = function () {
 };
 D3D.Box.prototype._updateLoop = function () {
 	"use strict";
+	console.log("loop", this.status["buffered_lines"]);
 	var scope = this;
 	//TODO
 	//Code is zo op gezet dat maar api call te gelijk is

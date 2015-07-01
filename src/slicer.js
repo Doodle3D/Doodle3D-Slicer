@@ -8,12 +8,13 @@ D3D.Slicer = function () {
 	"use strict";
 
 	this.progress = {
-		totalFaces: 0,
-		currentFace: 0, 
-		totalLayers: 0, 
-		sliceLayer: 0, 
-		dataLayer: 0, 
-		gcodeLayer: 0
+		createdLines: false, 
+		sliced: false, 
+		generatedInnerLines: false, 
+		generatedInfills: false, 
+		generatedSupport: false, 
+		optimizedPaths: false,  
+		generatedGCode: false
 	};
 };
 D3D.Slicer.prototype.setMesh = function (geometry, matrix) {
@@ -76,23 +77,27 @@ D3D.Slicer.prototype.getGCode = function (printer) {
 };
 D3D.Slicer.prototype._updateProgress = function () {
 	'use strict';
-	
-	var faces = this.progress.currentFace / (this.progress.totalFaces - 1);
-	var slice = this.progress.sliceLayer / (this.progress.totalLayers - 1);
-	var data = this.progress.dataLayer / (this.progress.totalLayers - 2);
-	var gcode = this.progress.gcodeLayer / (this.progress.totalLayers - 2);
 
-	this.progress.procent = (faces + slice + data + gcode) / 4;
+	var progress = {};
+
+	var procent = 0;
+	var length = 0;
+	for (var i in this.progress) {
+		progress[i] = this.progress[i];
+		procent += this.progress[i] ? 1 : 0;
+		length ++;
+	}
+
+	console.log(procent, length);
+	progress.procent = procent / length;
 
 	if (this.onProgress !== undefined) {
 
-		this.onProgress(this.progress);
+		this.onProgress(progress);
 	}
 };
 D3D.Slicer.prototype._createLines = function () {
 	"use strict";
-
-	this.progress.totalFaces = this.geometry.faces.length;
 
 	this._lines = [];
 	var lineLookup = {};
@@ -136,10 +141,10 @@ D3D.Slicer.prototype._createLines = function () {
 			this._lines[b].normals.push(normal);
 			this._lines[c].normals.push(normal);
 		}
-
-		this.progress.currentFace = i;
-		this._updateProgress();
 	}
+
+	this.progress.createdLines = true;
+	this._updateProgress();
 };
 D3D.Slicer.prototype._slice = function (layerHeight, height) {
 	"use strict";
@@ -287,13 +292,13 @@ D3D.Slicer.prototype._slice = function (layerHeight, height) {
 					pathData: slice.parts
 				});
 			}
-
-			this.progress.sliceLayer = layer;
-			this._updateProgress();
 		}
 	}
 
-	console.log(JSON.stringify(testData));
+	//console.log(JSON.stringify(testData));
+
+	this.progress.sliced = true;
+	this._updateProgress();
 
 	return slices;
 };
@@ -316,7 +321,7 @@ D3D.Slicer.prototype._generateInnerLines = function (slices, printer) {
 		for (var i = 0; i < slice.parts.length; i ++) {
 			var part = slice.parts[i];
 
-			var outerLine = part.intersect.clone().scaleUp(scale).offset(-nozzleRadius);
+			var outerLine = part.intersect.clone().scaleUp(scale);
 
 			if (outerLine.length > 0) {
 				part.outerLine = outerLine;
@@ -334,6 +339,9 @@ D3D.Slicer.prototype._generateInnerLines = function (slices, printer) {
 			}
 		}
 	}
+
+	this.progress.generatedInnerLines = true;
+	this._updateProgress();
 };
 D3D.Slicer.prototype._generateInfills = function (slices, printer) {
 	"use strict";
@@ -401,10 +409,10 @@ D3D.Slicer.prototype._generateInfills = function (slices, printer) {
 				}
 			}
 		}
-
-		this.progress.dataLayer = layer;
-		this._updateProgress();
 	}
+
+	this.progress.generatedInfills = true;
+	this._updateProgress();
 };
 D3D.Slicer.prototype._generateSupport = function (slices, printer) {
 	"use strict";
@@ -466,6 +474,10 @@ D3D.Slicer.prototype._generateSupport = function (slices, printer) {
 			}
 		}
 	}
+
+	this.progress.generatedSupport = true;
+	this._updateProgress();
+
 };
 D3D.Slicer.prototype._optimizePaths = function (slices, printer) {
 	"use strict";
@@ -506,6 +518,10 @@ D3D.Slicer.prototype._optimizePaths = function (slices, printer) {
 			slice.brim.scaleDown(scale);
 		}
 	}
+
+	this.progress.optimizedPaths = true;
+	this._updateProgress();
+
 }
 D3D.Slicer.prototype._getFillTemplate = function (bounds, size, even, uneven) {
 	"use strict";
@@ -599,10 +615,11 @@ D3D.Slicer.prototype._slicesToGCode = function (slices, printer) {
 		if (slice.support !== undefined) {
 			pathToGCode(slice.support, true, true, "support");
 		}
-
-		this.progress.gcodeLayer = layer;
-		this._updateProgress();
 	}
+
+	this.progress.generatedGCode = true;
+	this._updateProgress();
+
 
 	return gcode.getGCode();
 };
