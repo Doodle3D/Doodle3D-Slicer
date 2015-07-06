@@ -4884,8 +4884,8 @@
   else ClipperLib.Clipper.Round = R2; // eg. browser.chrome || browser.firefox || browser.opera
   ClipperLib.Clipper.TopX = function (edge, currentY)
   {
-    //if (edge.Bot == edge.Curr) console.warn ("edge.Bot = edge.Curr");
-    //if (edge.Bot == edge.Top) console.warn ("edge.Bot = edge.Top");
+    //if (edge.Bot == edge.Curr) alert ("edge.Bot = edge.Curr");
+    //if (edge.Bot == edge.Top) alert ("edge.Bot = edge.Top");
     if (currentY == edge.Top.Y)
       return edge.Top.X;
     return edge.Bot.X + ClipperLib.Clipper.Round(edge.Dx * (currentY - edge.Bot.Y));
@@ -6596,7 +6596,7 @@
     }
     catch (err)
     {
-      //console.warn(err.message);
+      console.warn(err.message);
     }
   };
   // ---------------------------------

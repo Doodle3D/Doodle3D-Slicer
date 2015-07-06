@@ -3,7 +3,7 @@
 	"bottomThickness": 0.4, 
 	"topThickness": 0.8, 
 	"shellThickness": 0.4, 
-	"brimOffset": 5.0, 
+	"brimOffset": 4.0, 
 	"fillGridSize": 5.0, 
 	"infillOverlap": 0.5, 
 	"travelSpeed": 200.0, 
