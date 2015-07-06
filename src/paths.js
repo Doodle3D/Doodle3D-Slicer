@@ -32,14 +32,16 @@ D3D.Paths.prototype.setPaths = function (paths) {
 D3D.Paths.prototype._clip = function (path, type) {
 	'use strict';
 
-	var solution = new ClipperLib.Paths();
+	var solution = new ClipperLib.PolyTree();
 
 	var clipper = new ClipperLib.Clipper();
 	clipper.AddPaths(this, ClipperLib.PolyType.ptSubject, this.closed);
 	clipper.AddPaths(path, ClipperLib.PolyType.ptClip, path.closed);
 	clipper.Execute(type, solution);
 
-	return new D3D.Paths(solution, this.closed);
+	var paths = this.closed ? ClipperLib.Clipper.ClosedPathsFromPolyTree(solution) : ClipperLib.Clipper.OpenPathsFromPolyTree(solution);
+
+	return new D3D.Paths(paths, this.closed);
 };
 D3D.Paths.prototype.union = function (path) {
 	'use strict';
@@ -236,11 +238,13 @@ D3D.Paths.prototype.draw = function (context, color) {
 		//context.fillText(i, point.X*2, point.Y*2);
 
 		context.beginPath();
-		var length = this.closed ? (shape.length + 1) : shape.length;
-		for (var j = 0; j < length; j ++) {
+		for (var j = 0; j < shape.length; j ++) {
 			var point = shape[j % shape.length];
 
 			context.lineTo(point.X*2, point.Y*2);
+		}
+		if (this.closed) {
+			context.closePath();
 		}
 		context.stroke();
 	}
