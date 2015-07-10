@@ -160,7 +160,7 @@ Sidebar.Slicer = function ( editor ) {
 
 		slicer.setSettings(USER_SETTINGS, PRINTER_SETTINGS[selectedPrinter]);
 
-		var matrix = new THREE.Matrix().setPosition(new THREE.Vector(0, -geometryCombined.boundingBox.min.y, 0));
+		var matrix = new THREE.Matrix4().setPosition(new THREE.Vector3(0, -geometryCombined.boundingBox.min.y, 0));
 		slicer.setGeometry(geometryCombined, matrix);
 
 		slicer.slice();
