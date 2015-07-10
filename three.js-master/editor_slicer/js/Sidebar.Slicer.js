@@ -133,9 +133,6 @@ Sidebar.Slicer = function ( editor ) {
 
 		geometryCombined.computeBoundingBox();
 
-		var mesh = new THREE.Mesh(geometryCombined, new THREE.MeshBasicMaterial);
-		mesh.position.y = -geometryCombined.boundingBox.min.y; 
-
 		var slicer = new D3D.SlicerWorker();
 
 		slicer.onprogress = function (_progress) {
@@ -162,7 +159,9 @@ Sidebar.Slicer = function ( editor ) {
 		};
 
 		slicer.setSettings(USER_SETTINGS, PRINTER_SETTINGS[selectedPrinter]);
-		slicer.setMesh(mesh);
+
+		var matrix = new THREE.Matrix().setPosition(new THREE.Vector(0, -geometryCombined.boundingBox.min.y, 0));
+		slicer.setGeometry(geometryCombined, matrix);
 
 		slicer.slice();
 

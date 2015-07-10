@@ -73,7 +73,7 @@ function getAPI (url, callback) {
 function downloadFile (file, data) {
 	'use strict';
 
-	var blob = new Blob([data], {type:'text/plain'});
+	var blob = new Blob([data], {type: 'text/plain'});
 
 	var button = document.createElement('a');
 	button.download = file;

@@ -17,7 +17,14 @@ D3D.Slicer = function () {
 		generatedGCode: false
 	};
 };
-D3D.Slicer.prototype.setMesh = function (geometry, matrix) {
+D3D.Slicer.prototype.setMesh = function (mesh) {
+	"use strict";
+
+	this.setGeometry(mesh.geometry, mesh.matrix);
+
+	return this;
+};
+D3D.Slicer.prototype.setGeometry = function (geometry, matrix) {
 	"use strict";
 
 	//convert buffergeometry to geometry;
@@ -46,15 +53,12 @@ D3D.Slicer.prototype.setMesh = function (geometry, matrix) {
 };
 D3D.Slicer.prototype.getGCode = function (printer) {
 	"use strict";
-
-	var layerHeight = printer.config["layerHeight"];
-	var dimensionsZ = printer.config["dimensionsZ"];
 	var useSupport = printer.config["supportUse"];
 
 	//get unique lines from geometry;
-	this._createLines(printer);
+	var lines = this._createLines(printer);
 
-	var slices = this._slice(printer);
+	var slices = this._slice(lines, printer);
 
 	this._generateInnerLines(slices, printer);
 	
@@ -70,36 +74,10 @@ D3D.Slicer.prototype.getGCode = function (printer) {
 
 	return gcode;
 };
-D3D.Slicer.prototype._updateProgress = function () {
-	'use strict';
-
-	var useSupport = printer.config["supportUse"];
-
-	var progress = {};
-
-	var procent = 0;
-	var length = 0;
-	for (var i in this.progress) {
-		if (!(!useSupport && i === "generatedSupport")) {
-			progress[i] = this.progress[i];
-			if (this.progress[i]) {
-				procent ++;
-			}
-			length ++;
-		}
-	}
-
-	progress.procent = procent / length;
-
-	if (this.onProgress !== undefined) {
-
-		this.onProgress(progress);
-	}
-};
 D3D.Slicer.prototype._createLines = function (printer) {
 	"use strict";
 
-	this._lines = [];
+	var lines = [];
 	var lineLookup = {};
 
 	var self = this;
@@ -107,10 +85,10 @@ D3D.Slicer.prototype._createLines = function (printer) {
 		var index = lineLookup[b + "_" + a];
 
 		if (index === undefined) {
-			index = self._lines.length;
+			index = lines.length;
 			lineLookup[a + "_" + b] = index;
 
-			self._lines.push({
+			lines.push({
 				line: new THREE.Line3(self.geometry.vertices[a], self.geometry.vertices[b]), 
 				connects: [], 
 				normals: []
@@ -133,20 +111,22 @@ D3D.Slicer.prototype._createLines = function (printer) {
 			var c = addLine(face.c, face.a);
 
 			//set connecting lines (based on face)
-			this._lines[a].connects.push(b, c);
-			this._lines[b].connects.push(c, a);
-			this._lines[c].connects.push(a, b);
+			lines[a].connects.push(b, c);
+			lines[b].connects.push(c, a);
+			lines[c].connects.push(a, b);
 
-			this._lines[a].normals.push(normal);
-			this._lines[b].normals.push(normal);
-			this._lines[c].normals.push(normal);
+			lines[a].normals.push(normal);
+			lines[b].normals.push(normal);
+			lines[c].normals.push(normal);
 		}
 	}
 
 	this.progress.createdLines = true;
 	this._updateProgress(printer);
+
+	return lines;
 };
-D3D.Slicer.prototype._slice = function (printer) {
+D3D.Slicer.prototype._slice = function (lines, printer) {
 	"use strict";
 
 	var layerHeight = printer.config["layerHeight"];
@@ -161,8 +141,8 @@ D3D.Slicer.prototype._slice = function (printer) {
 		layersIntersections[layer] = [];
 	}
 	
-	for (var lineIndex = 0; lineIndex < this._lines.length; lineIndex ++) {
-		var line = this._lines[lineIndex].line;
+	for (var lineIndex = 0; lineIndex < lines.length; lineIndex ++) {
+		var line = lines[lineIndex].line;
 
 		var min = Math.ceil(Math.min(line.start.y, line.end.y) / layerHeight);
 		var max = Math.floor(Math.max(line.start.y, line.end.y) / layerHeight);
@@ -187,7 +167,7 @@ D3D.Slicer.prototype._slice = function (printer) {
 			var intersections = [];
 			for (var i = 0; i < layerIntersections.length; i ++) {
 				var index = layerIntersections[i];
-				var line = this._lines[index].line;
+				var line = lines[index].line;
 
 				if (line.start.y === line.end.y) {
 					var x = line.start.x;
@@ -203,9 +183,9 @@ D3D.Slicer.prototype._slice = function (printer) {
 				/*testPoints.push({
 					x: z, 
 					y: x, 
-					connects: this._lines[index].connects, 
+					connects: lines[index].connects, 
 					index: index, 
-					normals: this._lines[index].normals
+					normals: lines[index].normals
 				});*/
 			}
 
@@ -224,8 +204,8 @@ D3D.Slicer.prototype._slice = function (printer) {
 						//uppercase X and Y because clipper vector
 						shape.push({X: intersection.x, Y: intersection.y});
 
-						var connects = this._lines[index].connects.clone();
-						var faceNormals = this._lines[index].normals.clone();
+						var connects = lines[index].connects.clone();
+						var faceNormals = lines[index].normals.clone();
 						for (var j = 0; j < connects.length; j ++) {
 							index = connects[j];
 
@@ -239,8 +219,8 @@ D3D.Slicer.prototype._slice = function (printer) {
 								if (a.distanceTo(b) === 0 || faceNormal.length() === 0) {
 									done.push(index);
 
-									connects = connects.concat(this._lines[index].connects);
-									faceNormals = faceNormals.concat(this._lines[index].normals);
+									connects = connects.concat(lines[index].connects);
+									faceNormals = faceNormals.concat(lines[index].normals);
 									index = -1;
 								}
 								else {
@@ -387,7 +367,12 @@ D3D.Slicer.prototype._generateInfills = function (slices, printer) {
 
 				var fillArea = inset.offset(-nozzleRadius);
 				if (surroundingLayer) {
-					var highFillArea = fillArea.difference(surroundingLayer).offset(infillOverlap).intersect(fillArea);
+					if (infillOverlap === 0) {
+						var highFillArea = fillArea.difference(surroundingLayer).intersect(fillArea);
+					}
+					else {
+						var highFillArea = fillArea.difference(surroundingLayer).offset(infillOverlap).intersect(fillArea);
+					}
 				}
 				else {
 					var highFillArea = fillArea;
@@ -573,6 +558,8 @@ D3D.Slicer.prototype._slicesToGCode = function (slices, printer) {
 				var point = shape[j % shape.length];
 
 				if (j === 0) {
+					//TODO
+					//moveTo should impliment combing
 					gcode.moveTo(point.X, point.Y, layer);
 
 					if (unRetract) {
@@ -625,4 +612,29 @@ D3D.Slicer.prototype._slicesToGCode = function (slices, printer) {
 
 
 	return gcode.getGCode();
+};
+D3D.Slicer.prototype._updateProgress = function () {
+	'use strict';
+
+	if (this.onProgress !== undefined) {
+		var useSupport = printer.config["supportUse"];
+
+		var progress = {};
+
+		var procent = 0;
+		var length = 0;
+		for (var i in this.progress) {
+			if (!(!useSupport && i === "generatedSupport")) {
+				progress[i] = this.progress[i];
+				if (this.progress[i]) {
+					procent ++;
+				}
+				length ++;
+			}
+		}
+
+		progress.procent = procent / length;
+
+		this.onProgress(progress);
+	}
 };
