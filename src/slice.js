@@ -26,7 +26,12 @@ D3D.Slice.prototype.optimizePaths = function (start) {
 
 		for (var i = 0; i < this.parts.length; i ++) {
 			var part = this.parts[i];
-			var bounds = part.outerLine.bounds();
+			if (part.addFill) {
+				var bounds = part.outerLine.bounds();
+			}
+			else {
+				var bounds = part.intersect.bounds();
+			}
 
 			var top = bounds.top - start.y;
 			var bottom = start.y - bounds.bottom;
@@ -44,22 +49,28 @@ D3D.Slice.prototype.optimizePaths = function (start) {
 		var part = this.parts.splice(closestPart, 1)[0];
 		parts.push(part);
 
-		if (part.outerLine.length > 0) {
-			part.outerLine = part.outerLine.optimizePath(start);
-			start = part.outerLine.lastPoint();
-		}
+		if (part.addFill) {
+			if (part.outerLine.length > 0) {
+				part.outerLine = part.outerLine.optimizePath(start);
+				start = part.outerLine.lastPoint();
+			}
 
-		for (var j = 0; j < part.innerLines.length; j ++) {
-			var innerLine = part.innerLines[j];
-			if (innerLine.length > 0) {
-				part.innerLines[j] = innerLine.optimizePath(start);
-				start = part.innerLines[j].lastPoint();
+			for (var j = 0; j < part.innerLines.length; j ++) {
+				var innerLine = part.innerLines[j];
+				if (innerLine.length > 0) {
+					part.innerLines[j] = innerLine.optimizePath(start);
+					start = part.innerLines[j].lastPoint();
+				}
+			}
+
+			if (part.fill.length > 0) {
+				part.fill = part.fill.optimizePath(start);
+				start = part.fill.lastPoint();
 			}
 		}
-
-		if (part.fill.length > 0) {
-			part.fill = part.fill.optimizePath(start);
-			start = part.fill.lastPoint();
+		else {
+			part.intersect.optimizePath(start);
+			start = part.intersect.lastPoint();
 		}
 
 	}
@@ -79,18 +90,31 @@ D3D.Slice.prototype.getOutline = function () {
 	var outLines = new D3D.Paths([], true);
 
 	for (var i = 0; i < this.parts.length; i ++) {
-		outLines.join(this.parts[i].outerLine);
+		var part = this.parts[i];
+
+		if (part.addFill) {
+			outLines.join(this.parts[i].outerLine);
+		}
 	}
 
 	return outLines;
 };
-D3D.Slice.prototype.addIntersect = function (intersect) {
+D3D.Slice.prototype.add = function (intersect) {
 	'use strict';
 
-	this.parts.push({
-		intersect: intersect, 
-		innerLines: [],
-		outerLine: new D3D.Paths([], true), 
-		fill: new D3D.Paths([], false)
-	});
+	if (intersect.closed) {
+		this.parts.push({
+			intersect: intersect, 
+			innerLines: [],
+			outerLine: new D3D.Paths([], true), 
+			fill: new D3D.Paths([], false), 
+			addFill: true
+		});
+	}
+	else {
+		this.parts.push({
+			intersect: intersect, 
+			addFill: false
+		});
+	}
 };
