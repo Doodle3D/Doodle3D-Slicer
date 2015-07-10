@@ -30,7 +30,7 @@ self.addEventListener('message', function (event) {
 			var geometry = new THREE.Geometry().fromBufferGeometry(event.data['geometry']);
 			var matrix = new THREE.Matrix4().fromArray(event.data['matrix']);
 
-			slicer.setMesh(geometry, matrix);
+			slicer.setGeometry(geometry, matrix);
 		break;
 
 		case 'SET_SETTINGS':

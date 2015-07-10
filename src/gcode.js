@@ -24,7 +24,7 @@ D3D.GCode = function () {
 D3D.GCode.prototype._addGCode = function (command) {
 	"use strict";
 
-	var str = [];
+	var str = "";
 	var first = true;
 
 	for (var i in command) {
@@ -114,7 +114,7 @@ D3D.GCode.prototype.lineTo = function (x, y, layer, type) {
 
 	var lineLength = this._nozzlePosition.distanceTo(newNozzlePosition);
 
-	var filamentSurfaceArea = Math.pow((filamentThickness/2), 2) * Math.PI;
+	var filamentSurfaceArea = Math.pow((filamentThickness / 2), 2) * Math.PI;
 	this.extruder += lineLength * nozzleDiameter * layerHeight / filamentSurfaceArea * flowRate;
 
 	this._addGCode({

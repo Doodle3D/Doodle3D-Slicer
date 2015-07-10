@@ -3,14 +3,9 @@
 * WiFi-Box
 * Representation of de Doodle3D-WiFi Box
 * Handles all communication with the doodle box
-* JavaScript shell for api communication
 * Check http://www.doodle3d.com/help/api-documentation
 *
 ******************************************************/
-
-//TODO
-//Als meerdere clients met box zouden verbinden zal de api te veel requests krijgen waardoor hij crasht
-//implimentatie van het veranderen van onder andere naam, netwerkverbinding etc
 
 D3D.Box = function (localIp) {
 	"use strict";
@@ -82,12 +77,7 @@ D3D.Box.prototype.init = function () {
 };
 D3D.Box.prototype._updateLoop = function () {
 	"use strict";
-	console.log("loop", this.status["buffered_lines"]);
 	var scope = this;
-	//TODO
-	//Code is zo op gezet dat maar api call te gelijk is
-	//Bij error wordt gelijk zelfde data opnieuw gestuurd
-	//Als DoodleBox ontkoppeld wordt komt er een error in de loop waardoor pagina breekt en ververst moet worden
 
 	if (this._printBatches.length > 0 && (this.status["buffered_lines"] + this._printBatches[0].length) <= this.maxBufferedLines) {
 	//if (this._printBatches.length > 0 ) {

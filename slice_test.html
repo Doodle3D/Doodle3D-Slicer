@@ -78,7 +78,7 @@ function init () {
 
 		scene.add(mesh);
 
-		var slicer = new D3D.Slicer().setMesh(mesh.geometry, mesh.matrix);
+		var slicer = new D3D.Slicer().setMesh(mesh);
 
 		//var canvas = document.getElementById("canvas");
 		//var context = canvas.getContext("2d");
@@ -96,7 +96,7 @@ function createScene () {
 	var renderer = new THREE.WebGLRenderer({canvas: document.getElementById("3d-preview"), antialias: true});
 	renderer.setClearColor(0xffffff, 1);
 
-	var camera = new THREE.PerspectiveCamera(75, renderer.domElement.width/renderer.domElement.height, 1, 10000);
+	var camera = new THREE.PerspectiveCamera(75, renderer.domElement.width / renderer.domElement.height, 1, 10000);
 	scene.add(camera);
 
 	var light = new THREE.AmbientLight(0x404040);

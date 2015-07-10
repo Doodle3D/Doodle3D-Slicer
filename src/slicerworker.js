@@ -46,11 +46,20 @@ D3D.SlicerWorker.prototype.setSettings = function (USER_SETTINGS, PRINTER_SETTIN
 D3D.SlicerWorker.prototype.setMesh = function (mesh) {
 	'use strict';
 
-	if (mesh.geometry instanceof THREE.Geometry) {
-		var geometry = new THREE.BufferGeometry().fromGeometry(mesh.geometry);
+	mesh.updateMatrix();
+
+	this.setGeometry(mesh.geometry, mesh.matrix);
+
+	return this;
+};
+D3D.SlicerWorker.prototype.setGeometry = function (geometry, matrix) {
+	'use strict';
+
+	if (geometry instanceof THREE.Geometry) {
+		geometry = new THREE.BufferGeometry().fromGeometry(geometry);
 	}
 	else {
-		var geometry = mesh.geometry.clone();
+		geometry = geometry.clone();
 	}
 
 	var buffers = [];
@@ -60,15 +69,13 @@ D3D.SlicerWorker.prototype.setMesh = function (mesh) {
 		buffers.push(geometry.attributes[key].array.buffer);
 	}
 
-	mesh.updateMatrix();
-
 	this.worker.postMessage({
 		'cmd': 'SET_MESH', 
 		'geometry': {
 			'attributes': geometry.attributes, 
 			'attributesKeys': geometry.attributesKeys
 		}, 
-		'matrix': mesh.matrix.toArray()
+		'matrix': matrix.toArray()
 	}, buffers);
 
 	return this;
