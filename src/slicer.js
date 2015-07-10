@@ -61,13 +61,13 @@ D3D.Slicer.prototype.getGCode = function (printer) {
 	var slices = this._slice(lines, printer);
 
 	this._generateInnerLines(slices, printer);
-	
+
 	this._generateInfills(slices, printer);
 
 	if (useSupport) {
 		this._generateSupport(slices, printer);
 	}
-	
+
 	this._optimizePaths(slices, printer);
 
 	var gcode = this._slicesToGCode(slices, printer);
@@ -132,15 +132,13 @@ D3D.Slicer.prototype._slice = function (lines, printer) {
 	var layerHeight = printer.config["layerHeight"];
 	var height = printer.config["dimensionsZ"];
 
-	//var testData = [];
-
 	var numLayers = height / layerHeight;
 
 	var layersIntersections = [];
 	for (var layer = 0; layer < numLayers; layer ++) {
 		layersIntersections[layer] = [];
 	}
-	
+
 	for (var lineIndex = 0; lineIndex < lines.length; lineIndex ++) {
 		var line = lines[lineIndex].line;
 
@@ -155,7 +153,6 @@ D3D.Slicer.prototype._slice = function (lines, printer) {
 	}
 
 	var slices = [];
-	//var testPoints = [];
 
 	for (var layer = 1; layer < layersIntersections.length; layer ++) {
 		var layerIntersections = layersIntersections[layer];
@@ -179,14 +176,6 @@ D3D.Slicer.prototype._slice = function (lines, printer) {
 					var z = line.end.z * alpha + line.start.z * (1 - alpha);
 				}
 				intersections[index] = new THREE.Vector2(z, x);
-
-				/*testPoints.push({
-					x: z, 
-					y: x, 
-					connects: lines[index].connects, 
-					index: index, 
-					normals: lines[index].normals
-				});*/
 			}
 
 			var done = [];
@@ -216,7 +205,7 @@ D3D.Slicer.prototype._slice = function (lines, printer) {
 
 								var faceNormal = faceNormals[Math.floor(j/2)];
 
-								if (a.distanceTo(b) === 0 || faceNormal.length() === 0) {
+								if (a.distanceTo(b) < 0.0001 || faceNormal.length() === 0) {
 									done.push(index);
 
 									connects = connects.concat(lines[index].connects);
@@ -268,17 +257,8 @@ D3D.Slicer.prototype._slice = function (lines, printer) {
 			}
 
 			slices.push(slice);
-
-			/*if (layer === 218) {
-				testData.push({
-					testPoints: testPoints, 
-					pathData: slice.parts
-				});
-			}*/
 		}
 	}
-
-	//console.log(JSON.stringify(testData));
 
 	this.progress.sliced = true;
 	this._updateProgress(printer);
