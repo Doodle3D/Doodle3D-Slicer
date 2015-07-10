@@ -25,16 +25,16 @@ canvas {border: 1px solid black;}
 <canvas id="canvas" width="400" height="400"></canvas>
 
 <script>
-var USER_SETTINGS, PRINTER_SETTINGS, doodleBox, gcode;
+var USER_SETTINGS, PRINTER_SETTINGS, doodleBox, gcode, scene;
 
 function init () {
 	"use strict";
-	var scene = createScene();
+	scene = createScene();
 
 	var localIp = location.hash.substring(1);
-	//doodleBox = new D3D.Box(localIp);
+	doodleBox = new D3D.Box(localIp).init();
 
-	var printer = new D3D.Printer().updateConfig(USER_SETTINGS).updateConfig(PRINTER_SETTINGS["ultimaker"]);
+	var printer = new D3D.Printer().updateConfig(USER_SETTINGS).updateConfig(PRINTER_SETTINGS["ultimaker2go"]);
 
 	var loader = new THREE.STLLoader();
 	loader.load('models/pokemon/pikachu.stl', function (geometry) {
@@ -66,11 +66,29 @@ function init () {
 			return geometry;
 		})();
 		*/
-		var material = new THREE.MeshPhongMaterial({color: 0x00ff00, wireframe: false});
+
+		/*var path = [{x: 60, y: 40}, {x: 60, y: 50}, {x: 60, y: 60}, {x: 80, y: 60}, {x: 40, y: 40}, {x: 50, y: 40}, {x: 10, y: 60}];
+		var geometry = new THREE.Geometry();
+
+		for (var i = 0; i < path.length; i ++) {
+			var point = path[i];
+
+			geometry.vertices.push(new THREE.Vector3(point.x, 0, point.y));
+			geometry.vertices.push(new THREE.Vector3(point.x, 50, point.y));
+		}
+
+		for (var i = 0; i < path.length - 1; i ++) {
+			var base = i * 2;
+
+			geometry.faces.push(new THREE.Face3(base, base + 1, base + 2));
+			geometry.faces.push(new THREE.Face3(base + 3, base + 2, base + 1));
+		}*/
+
+		var material = new THREE.MeshPhongMaterial({color: 0x00ff00, wireframe: false, side: THREE.DoubleSide});
 		var mesh = new THREE.Mesh(geometry, material);
 		
 		mesh.rotation.x = -Math.PI/2;
-		mesh.scale.x = mesh.scale.y = mesh.scale.z = 1;
+		//mesh.scale.x = mesh.scale.y = mesh.scale.z = 1;
 		mesh.position.x = 60;
 		mesh.position.z = 60;
 

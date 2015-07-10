@@ -182,6 +182,8 @@ D3D.Slicer.prototype._slice = function (lines, printer) {
 			var sliceParts = [];
 			for (var i = 0; i < layerIntersections.length; i ++) {
 				var index = layerIntersections[i];
+				var firstPoint = index;
+				var closed = false;
 
 				if (done.indexOf(index) === -1) {
 					var shape = [];
@@ -195,32 +197,44 @@ D3D.Slicer.prototype._slice = function (lines, printer) {
 
 						var connects = lines[index].connects.clone();
 						var faceNormals = lines[index].normals.clone();
+
+						if (shape.length > 2 && connects.indexOf(firstPoint) !== -1) {
+							closed = true;
+							break;
+						}
+
 						for (var j = 0; j < connects.length; j ++) {
 							index = connects[j];
 
-							if (intersections[index] !== undefined && done.indexOf(index) === -1) {
+							if (done.indexOf(index) === -1) {
+								if (intersections[index] !== undefined) {
 
-								var a = new THREE.Vector2(intersection.x, intersection.y);
-								var b = new THREE.Vector2(intersections[index].x, intersections[index].y);
+									var a = new THREE.Vector2(intersection.x, intersection.y);
+									var b = new THREE.Vector2(intersections[index].x, intersections[index].y);
 
-								var faceNormal = faceNormals[Math.floor(j/2)];
+									var faceNormal = faceNormals[Math.floor(j/2)];
 
-								if (a.distanceTo(b) < 0.0001 || faceNormal.length() === 0) {
-									done.push(index);
+									if (a.distanceTo(b) < 0.0001 || faceNormal.length() === 0) {
+										done.push(index);
 
-									connects = connects.concat(lines[index].connects);
-									faceNormals = faceNormals.concat(lines[index].normals);
-									index = -1;
-								}
-								else {
-									var normal = a.sub(b).normal().normalize();
-
-									if (normal.dot(faceNormal) > 0) {
-										break;
-									}
-									else {
+										connects = connects.concat(lines[index].connects);
+										faceNormals = faceNormals.concat(lines[index].normals);
 										index = -1;
 									}
+									else {
+										var normal = a.sub(b).normal().normalize();
+
+										if (normal.dot(faceNormal) > 0) {
+											break;
+										}
+										else {
+											index = -1;
+										}
+									}
+								}
+								else {
+									done.push(index);
+									index = -1;
 								}
 							}
 							else {
@@ -229,7 +243,49 @@ D3D.Slicer.prototype._slice = function (lines, printer) {
 						}
 					}
 
-					var part = new D3D.Paths([shape]).clean(0.01);
+					if (!closed) {
+						var index = firstPoint;
+
+						while (index !== -1) {
+							if (index !== firstPoint) {
+								done.push(index);
+
+								var intersection = intersections[index];
+								console.log(intersection);
+								//uppercase X and Y because clipper vector
+								shape.unshift({X: intersection.x, Y: intersection.y});
+							}
+
+							var connects = lines[index].connects.clone();
+
+							for (var j = 0; j < connects.length; j ++) {
+								index = connects[j];
+
+								if (done.indexOf(index) === -1) {
+									if (intersections[index] !== undefined) {
+										if (a.distanceTo(b) < 0.0001) {
+											done.push(index);
+
+											connects = connects.concat(lines[index].connects);
+											index = -1;
+										}
+										else {
+											break;
+										}
+									}
+									else {
+										done.push(index);
+										index = -1;
+									}
+								}
+								else {
+									index = -1;
+								}
+							}
+						}
+					}
+
+					var part = new D3D.Paths([shape], closed).clean(0.01);
 					if (part.length > 0) {
 						sliceParts.push(part);
 					}
@@ -240,19 +296,24 @@ D3D.Slicer.prototype._slice = function (lines, printer) {
 
 			for (var i = 0; i < sliceParts.length; i ++) {
 				var slicePart1 = sliceParts[i];
-				var merge = false;
+				if (slicePart1.closed) {
+					var merge = false;
 
-				for (var j = 0; j < slice.parts.length; j ++) {
-					var slicePart2 = slice.parts[j].intersect;
+					for (var j = 0; j < slice.parts.length; j ++) {
+						var slicePart2 = slice.parts[j].intersect;
 
-					if (slicePart2.intersect(slicePart1).length > 0) {
-						slicePart2.join(slicePart1);
-						merge = true;
-						break;
+						if (slicePart2.closed && slicePart2.intersect(slicePart1).length > 0) {
+							slicePart2.join(slicePart1);
+							merge = true;
+							break;
+						}
+					}
+					if (!merge) {
+						slice.add(slicePart1);
 					}
 				}
-				if (!merge) {
-					slice.addIntersect(slicePart1);
+				else {
+					slice.add(slicePart1);
 				}
 			}
 
@@ -284,19 +345,21 @@ D3D.Slicer.prototype._generateInnerLines = function (slices, printer) {
 		for (var i = 0; i < slice.parts.length; i ++) {
 			var part = slice.parts[i];
 
-			var outerLine = part.intersect.clone().scaleUp(scale).offset(-nozzleRadius);
+			if (part.addFill) {
+				var outerLine = part.intersect.clone().scaleUp(scale).offset(-nozzleRadius);
 
-			if (outerLine.length > 0) {
-				part.outerLine = outerLine;
+				if (outerLine.length > 0) {
+					part.outerLine = outerLine;
 
-				for (var offset = nozzleDiameter; offset <= shellThickness; offset += nozzleDiameter) {
-					var innerLine = outerLine.offset(-offset);
+					for (var offset = nozzleDiameter; offset <= shellThickness; offset += nozzleDiameter) {
+						var innerLine = outerLine.offset(-offset);
 
-					if (innerLine.length > 0) {
-						part.innerLines.push(innerLine);
-					}
-					else {
-						break;
+						if (innerLine.length > 0) {
+							part.innerLines.push(innerLine);
+						}
+						else {
+							break;
+						}
 					}
 				}
 			}
@@ -340,40 +403,43 @@ D3D.Slicer.prototype._generateInfills = function (slices, printer) {
 
 		for (var i = 0; i < slice.parts.length; i ++) {
 			var part = slice.parts[i];
-			var outerLine = part.outerLine;
 
-			if (outerLine.length > 0) {
-				var inset = ((part.innerLines.length > 0) ? part.innerLines[part.innerLines.length - 1] : outerLine);
+			if (part.addFill) {
+				var outerLine = part.outerLine;
 
-				var fillArea = inset.offset(-nozzleRadius);
-				if (surroundingLayer) {
-					if (infillOverlap === 0) {
-						var highFillArea = fillArea.difference(surroundingLayer).intersect(fillArea);
+				if (outerLine.length > 0) {
+					var inset = ((part.innerLines.length > 0) ? part.innerLines[part.innerLines.length - 1] : outerLine);
+
+					var fillArea = inset.offset(-nozzleRadius);
+					if (surroundingLayer) {
+						if (infillOverlap === 0) {
+							var highFillArea = fillArea.difference(surroundingLayer).intersect(fillArea);
+						}
+						else {
+							var highFillArea = fillArea.difference(surroundingLayer).offset(infillOverlap).intersect(fillArea);
+						}
 					}
 					else {
-						var highFillArea = fillArea.difference(surroundingLayer).offset(infillOverlap).intersect(fillArea);
+						var highFillArea = fillArea;
 					}
-				}
-				else {
-					var highFillArea = fillArea;
-				}
-				var lowFillArea = fillArea.difference(highFillArea);
+					var lowFillArea = fillArea.difference(highFillArea);
 
-				var fill = new D3D.Paths([], false);
+					var fill = new D3D.Paths([], false);
 
-				if (lowFillArea.length > 0) {
-					var bounds = lowFillArea.bounds();
-					var lowFillTemplate = this._getFillTemplate(bounds, fillGridSize, true, true);
+					if (lowFillArea.length > 0) {
+						var bounds = lowFillArea.bounds();
+						var lowFillTemplate = this._getFillTemplate(bounds, fillGridSize, true, true);
 
-					part.fill.join(lowFillTemplate.intersect(lowFillArea));
-				}
+						part.fill.join(lowFillTemplate.intersect(lowFillArea));
+					}
 
-				if (highFillArea.length > 0) {
-					var bounds = highFillArea.bounds();
-					var even = (layer % 2 === 0);
-					var highFillTemplate = this._getFillTemplate(bounds, hightemplateSize, even, !even);
+					if (highFillArea.length > 0) {
+						var bounds = highFillArea.bounds();
+						var even = (layer % 2 === 0);
+						var highFillTemplate = this._getFillTemplate(bounds, hightemplateSize, even, !even);
 
-					part.fill.join(highFillTemplate.intersect(highFillArea));
+						part.fill.join(highFillTemplate.intersect(highFillArea));
+					}
 				}
 			}
 		}
@@ -471,12 +537,14 @@ D3D.Slicer.prototype._optimizePaths = function (slices, printer) {
 		for (var i = 0; i < slice.parts.length; i ++) {
 			var part = slice.parts[i];
 
-			part.outerLine.scaleDown(scale);
-			for (var j = 0; j < part.innerLines.length; j ++) {
-				var innerLine = part.innerLines[j];
-				innerLine.scaleDown(scale);
+			if (part.addFill) {
+				part.outerLine.scaleDown(scale);
+				for (var j = 0; j < part.innerLines.length; j ++) {
+					var innerLine = part.innerLines[j];
+					innerLine.scaleDown(scale);
+				}
+				part.fill.scaleDown(scale);
 			}
-			part.fill.scaleDown(scale);
 		}
 
 		if (slice.support !== undefined) {
@@ -572,14 +640,20 @@ D3D.Slicer.prototype._slicesToGCode = function (slices, printer) {
 		for (var i = 0; i < slice.parts.length; i ++) {
 			var part = slice.parts[i];
 
-			pathToGCode(part.outerLine, false, true, "outerLine");
+			if (part.addFill) {
+				pathToGCode(part.outerLine, false, true, "outerLine");
 
-			for (var j = 0; j < part.innerLines.length; j ++) {
-				var innerLine = part.innerLines[j];
-				pathToGCode(innerLine, false, false, "innerLine");
+				for (var j = 0; j < part.innerLines.length; j ++) {
+					var innerLine = part.innerLines[j];
+					pathToGCode(innerLine, false, false, "innerLine");
+				}
+
+				pathToGCode(part.fill, true, false, "fill");
 			}
-
-			pathToGCode(part.fill, true, false, "fill");
+			else {
+				var retract = !(slice.parts.length === 1 && slice.support === undefined);
+				pathToGCode(part.intersect, retract, retract, "outerLine");
+			}
 		}
 
 		if (slice.support !== undefined) {
