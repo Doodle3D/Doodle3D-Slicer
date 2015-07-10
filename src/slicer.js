@@ -251,7 +251,6 @@ D3D.Slicer.prototype._slice = function (lines, printer) {
 								done.push(index);
 
 								var intersection = intersections[index];
-								console.log(intersection);
 								//uppercase X and Y because clipper vector
 								shape.unshift({X: intersection.x, Y: intersection.y});
 							}
@@ -345,7 +344,7 @@ D3D.Slicer.prototype._generateInnerLines = function (slices, printer) {
 		for (var i = 0; i < slice.parts.length; i ++) {
 			var part = slice.parts[i];
 
-			if (part.addFill) {
+			if (part.closed) {
 				var outerLine = part.intersect.clone().scaleUp(scale).offset(-nozzleRadius);
 
 				if (outerLine.length > 0) {
@@ -404,7 +403,7 @@ D3D.Slicer.prototype._generateInfills = function (slices, printer) {
 		for (var i = 0; i < slice.parts.length; i ++) {
 			var part = slice.parts[i];
 
-			if (part.addFill) {
+			if (part.closed) {
 				var outerLine = part.outerLine;
 
 				if (outerLine.length > 0) {
@@ -537,7 +536,7 @@ D3D.Slicer.prototype._optimizePaths = function (slices, printer) {
 		for (var i = 0; i < slice.parts.length; i ++) {
 			var part = slice.parts[i];
 
-			if (part.addFill) {
+			if (part.closed) {
 				part.outerLine.scaleDown(scale);
 				for (var j = 0; j < part.innerLines.length; j ++) {
 					var innerLine = part.innerLines[j];
@@ -640,7 +639,7 @@ D3D.Slicer.prototype._slicesToGCode = function (slices, printer) {
 		for (var i = 0; i < slice.parts.length; i ++) {
 			var part = slice.parts[i];
 
-			if (part.addFill) {
+			if (part.closed) {
 				pathToGCode(part.outerLine, false, true, "outerLine");
 
 				for (var j = 0; j < part.innerLines.length; j ++) {
