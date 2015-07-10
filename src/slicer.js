@@ -42,9 +42,6 @@ D3D.Slicer.prototype.setMesh = function (geometry, matrix) {
 
 	this.geometry = geometry;
 
-	//get unique lines from geometry;
-	this._createLines();
-
 	return this;
 };
 D3D.Slicer.prototype.getGCode = function (printer) {
@@ -54,12 +51,10 @@ D3D.Slicer.prototype.getGCode = function (printer) {
 	var dimensionsZ = printer.config["dimensionsZ"];
 	var useSupport = printer.config["supportUse"];
 
-	this.progress.totalLayers = Math.floor(Math.min(this.geometry.boundingBox.max.y, dimensionsZ) / layerHeight);
-	this.progress.sliceLayer = 0;
-	this.progress.dataLayer = 0;
-	this.progress.gcodeLayer = 0;
+	//get unique lines from geometry;
+	this._createLines(printer);
 
-	var slices = this._slice(layerHeight, dimensionsZ);
+	var slices = this._slice(printer);
 
 	this._generateInnerLines(slices, printer);
 	
@@ -78,17 +73,22 @@ D3D.Slicer.prototype.getGCode = function (printer) {
 D3D.Slicer.prototype._updateProgress = function () {
 	'use strict';
 
+	var useSupport = printer.config["supportUse"];
+
 	var progress = {};
 
 	var procent = 0;
 	var length = 0;
 	for (var i in this.progress) {
-		progress[i] = this.progress[i];
-		procent += this.progress[i] ? 1 : 0;
-		length ++;
+		if (!(!useSupport && i === "generatedSupport")) {
+			progress[i] = this.progress[i];
+			if (this.progress[i]) {
+				procent ++;
+			}
+			length ++;
+		}
 	}
 
-	console.log(procent, length);
 	progress.procent = procent / length;
 
 	if (this.onProgress !== undefined) {
@@ -96,7 +96,7 @@ D3D.Slicer.prototype._updateProgress = function () {
 		this.onProgress(progress);
 	}
 };
-D3D.Slicer.prototype._createLines = function () {
+D3D.Slicer.prototype._createLines = function (printer) {
 	"use strict";
 
 	this._lines = [];
@@ -144,12 +144,15 @@ D3D.Slicer.prototype._createLines = function () {
 	}
 
 	this.progress.createdLines = true;
-	this._updateProgress();
+	this._updateProgress(printer);
 };
-D3D.Slicer.prototype._slice = function (layerHeight, height) {
+D3D.Slicer.prototype._slice = function (printer) {
 	"use strict";
 
-	var testData = [];
+	var layerHeight = printer.config["layerHeight"];
+	var height = printer.config["dimensionsZ"];
+
+	//var testData = [];
 
 	var numLayers = height / layerHeight;
 
@@ -172,7 +175,7 @@ D3D.Slicer.prototype._slice = function (layerHeight, height) {
 	}
 
 	var slices = [];
-	var testPoints = [];
+	//var testPoints = [];
 
 	for (var layer = 1; layer < layersIntersections.length; layer ++) {
 		var layerIntersections = layersIntersections[layer];
@@ -197,13 +200,13 @@ D3D.Slicer.prototype._slice = function (layerHeight, height) {
 				}
 				intersections[index] = new THREE.Vector2(z, x);
 
-				testPoints.push({
+				/*testPoints.push({
 					x: z, 
 					y: x, 
 					connects: this._lines[index].connects, 
 					index: index, 
 					normals: this._lines[index].normals
-				});
+				});*/
 			}
 
 			var done = [];
@@ -286,19 +289,19 @@ D3D.Slicer.prototype._slice = function (layerHeight, height) {
 
 			slices.push(slice);
 
-			if (layer === 218) {
+			/*if (layer === 218) {
 				testData.push({
 					testPoints: testPoints, 
 					pathData: slice.parts
 				});
-			}
+			}*/
 		}
 	}
 
 	//console.log(JSON.stringify(testData));
 
 	this.progress.sliced = true;
-	this._updateProgress();
+	this._updateProgress(printer);
 
 	return slices;
 };
@@ -321,7 +324,7 @@ D3D.Slicer.prototype._generateInnerLines = function (slices, printer) {
 		for (var i = 0; i < slice.parts.length; i ++) {
 			var part = slice.parts[i];
 
-			var outerLine = part.intersect.clone().scaleUp(scale);
+			var outerLine = part.intersect.clone().scaleUp(scale).offset(-nozzleRadius);
 
 			if (outerLine.length > 0) {
 				part.outerLine = outerLine;
@@ -341,7 +344,7 @@ D3D.Slicer.prototype._generateInnerLines = function (slices, printer) {
 	}
 
 	this.progress.generatedInnerLines = true;
-	this._updateProgress();
+	this._updateProgress(printer);
 };
 D3D.Slicer.prototype._generateInfills = function (slices, printer) {
 	"use strict";
@@ -412,7 +415,7 @@ D3D.Slicer.prototype._generateInfills = function (slices, printer) {
 	}
 
 	this.progress.generatedInfills = true;
-	this._updateProgress();
+	this._updateProgress(printer);
 };
 D3D.Slicer.prototype._generateSupport = function (slices, printer) {
 	"use strict";
@@ -476,7 +479,7 @@ D3D.Slicer.prototype._generateSupport = function (slices, printer) {
 	}
 
 	this.progress.generatedSupport = true;
-	this._updateProgress();
+	this._updateProgress(printer);
 
 };
 D3D.Slicer.prototype._optimizePaths = function (slices, printer) {
@@ -520,7 +523,7 @@ D3D.Slicer.prototype._optimizePaths = function (slices, printer) {
 	}
 
 	this.progress.optimizedPaths = true;
-	this._updateProgress();
+	this._updateProgress(printer);
 
 }
 D3D.Slicer.prototype._getFillTemplate = function (bounds, size, even, uneven) {
