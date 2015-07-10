@@ -241,7 +241,7 @@ D3D.Paths.prototype.draw = function (context, color) {
 		for (var j = 0; j < shape.length; j ++) {
 			var point = shape[j % shape.length];
 
-			context.lineTo(point.X*2, point.Y*2);
+			context.lineTo(point.X * 2, point.Y * 2);
 		}
 		if (this.closed) {
 			context.closePath();
