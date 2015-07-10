@@ -26,7 +26,7 @@ D3D.Slice.prototype.optimizePaths = function (start) {
 
 		for (var i = 0; i < this.parts.length; i ++) {
 			var part = this.parts[i];
-			if (part.addFill) {
+			if (part.closed) {
 				var bounds = part.outerLine.bounds();
 			}
 			else {
@@ -49,7 +49,7 @@ D3D.Slice.prototype.optimizePaths = function (start) {
 		var part = this.parts.splice(closestPart, 1)[0];
 		parts.push(part);
 
-		if (part.addFill) {
+		if (part.closed) {
 			if (part.outerLine.length > 0) {
 				part.outerLine = part.outerLine.optimizePath(start);
 				start = part.outerLine.lastPoint();
@@ -92,7 +92,7 @@ D3D.Slice.prototype.getOutline = function () {
 	for (var i = 0; i < this.parts.length; i ++) {
 		var part = this.parts[i];
 
-		if (part.addFill) {
+		if (part.closed) {
 			outLines.join(this.parts[i].outerLine);
 		}
 	}
@@ -108,13 +108,13 @@ D3D.Slice.prototype.add = function (intersect) {
 			innerLines: [],
 			outerLine: new D3D.Paths([], true), 
 			fill: new D3D.Paths([], false), 
-			addFill: true
+			closed: true
 		});
 	}
 	else {
 		this.parts.push({
 			intersect: intersect, 
-			addFill: false
+			closed: false
 		});
 	}
 };
