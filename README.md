@@ -18,7 +18,7 @@ var slicer = new SLICER.Slicer();
 
 slicer.setGeometry(geometry);
 slicer.onfinish = function (gCode) {
-	document.getElementById('gcode').innerHTML = gCode.replace(/(?:\r\n|\r|\n)/g, '<br />');
+	document.write(gCode.replace(/(?:\r\n|\r|\n)/g, '<br />'));
 };
 slicer.slice(settings);
 ```
