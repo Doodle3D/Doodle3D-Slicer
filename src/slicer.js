@@ -198,13 +198,13 @@ D3D.Slicer.prototype._slice = function (lines, printer) {
 						var connects = lines[index].connects.clone();
 						var faceNormals = lines[index].normals.clone();
 
-						if (shape.length > 2 && connects.indexOf(firstPoint) !== -1) {
-							closed = true;
-							break;
-						}
-
 						for (var j = 0; j < connects.length; j ++) {
 							index = connects[j];
+
+							if (shape.length > 2 && index === firstPoint) {
+								closed = true;
+								break;
+							}
 
 							if (done.indexOf(index) === -1) {
 								if (intersections[index] !== undefined) {
@@ -284,7 +284,8 @@ D3D.Slicer.prototype._slice = function (lines, printer) {
 						}
 					}
 
-					var part = new D3D.Paths([shape], closed).clean(0.01);
+					//var part = new D3D.Paths([shape], closed).clean(0.01);
+					var part = new D3D.Paths([shape], true).clean(0.01);
 					if (part.length > 0) {
 						sliceParts.push(part);
 					}

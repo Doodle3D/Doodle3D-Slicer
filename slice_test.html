@@ -40,7 +40,7 @@ function init () {
 	loader.load('models/pokemon/pikachu.stl', function (geometry) {
 		//var geometry = new THREE.BoxGeometry(10, 10, 10, 1, 1, 1);
 		//var geometry = new THREE.SphereGeometry(10, 20, 10);
-		//var geometry = new THREE.TorusGeometry(20, 10, 30, 30);
+		var geometry = new THREE.TorusGeometry(20, 10, 30, 30);
 		/*
 		var geometry = (function () {
 			"use strict";
@@ -67,7 +67,7 @@ function init () {
 		})();
 		*/
 
-		var path = [{x: 60, y: 40}, {x: 60, y: 50}, {x: 60, y: 60}, {x: 80, y: 60}, {x: 40, y: 40}, {x: 50, y: 40}, {x: 10, y: 60}];
+		/*var path = [{x: 60, y: 40}, {x: 60, y: 50}, {x: 60, y: 60}, {x: 80, y: 60}, {x: 40, y: 40}, {x: 50, y: 40}, {x: 10, y: 60}];
 		var geometry = new THREE.Geometry();
 
 		for (var i = 0; i < path.length; i ++) {
@@ -82,12 +82,12 @@ function init () {
 
 			geometry.faces.push(new THREE.Face3(base, base + 1, base + 2));
 			geometry.faces.push(new THREE.Face3(base + 3, base + 2, base + 1));
-		}
+		}*/
 
 		var material = new THREE.MeshPhongMaterial({color: 0x00ff00, wireframe: false, side: THREE.DoubleSide});
 		var mesh = new THREE.Mesh(geometry, material);
 		
-		mesh.rotation.x = -Math.PI/2;
+		//mesh.rotation.x = -Math.PI/2;
 		//mesh.scale.x = mesh.scale.y = mesh.scale.z = 1;
 		mesh.position.x = 60;
 		mesh.position.z = 60;
