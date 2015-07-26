@@ -1,27 +1,4 @@
 
-.DS_Store
+*.DS_Store
 
-.DS_Store
-
-src/.DS_Store
-
-src/.DS_Store
-
-src/library/.DS_Store
-
-.DS_Store
-
-src/script/.DS_Store
-
-src/.DS_Store
-
-bower_components/
-src/oldcode.js
-
-test.html
-
-print_manager.html
-
-testdata.json
-
-test2.html
+jspm_packages/*

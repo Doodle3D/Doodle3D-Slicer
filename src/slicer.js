@@ -1,275 +1,240 @@
-/******************************************************
-*
-* Slicer
-*
-******************************************************/
+import THREE from 'three.js';
+import Paths from './paths.js';
+import Slice from './slice.js';
+import GCode from './gcode.js';
 
-D3D.Slicer = function () {
-	"use strict";
-
-	this.progress = {
-		createdLines: false, 
-		sliced: false, 
-		generatedInnerLines: false, 
-		generatedInfills: false, 
-		generatedSupport: false, 
-		optimizedPaths: false,  
-		generatedGCode: false
-	};
-};
-D3D.Slicer.prototype.setMesh = function (mesh) {
-	"use strict";
-
-	this.setGeometry(mesh.geometry, mesh.matrix);
-
-	return this;
-};
-D3D.Slicer.prototype.setGeometry = function (geometry, matrix) {
-	"use strict";
-
-	//convert buffergeometry to geometry;
-	if (geometry instanceof THREE.BufferGeometry) {
-		geometry = new THREE.Geometry().fromBufferGeometry(geometry);
-	}
-	else if (geometry instanceof THREE.Geometry) {
-		geometry = geometry.clone();
-	}
-	else {
-		console.warn("Geometry is not an instance of BufferGeometry or Geometry");
-		return;
+export default class {
+	constructor () {
+		this.progress = {
+			createdLines: false, 
+			sliced: false, 
+			generatedInnerLines: false, 
+			generatedInfills: false, 
+			generatedSupport: false, 
+			optimizedPaths: false,  
+			generatedGCode: false
+		};
 	}
 
-	if (matrix instanceof THREE.Matrix4) {
-		geometry.applyMatrix(matrix);
+	setMesh (mesh) {
+		mesh.updateMatrix();
+
+		this.setGeometry(mesh.geometry, mesh.matrix);
+
+		return this;
 	}
 
-	geometry.computeBoundingBox();
-	geometry.computeFaceNormals();
-	geometry.mergeVertices();
-
-	this.geometry = geometry;
-
-	return this;
-};
-D3D.Slicer.prototype.getGCode = function (printer) {
-	"use strict";
-	var useSupport = printer.config["supportUse"];
-
-	//get unique lines from geometry;
-	var lines = this._createLines(printer);
-
-	var slices = this._slice(lines, printer);
-
-	this._generateInnerLines(slices, printer);
-
-	this._generateInfills(slices, printer);
-
-	if (useSupport) {
-		this._generateSupport(slices, printer);
-	}
-
-	this._optimizePaths(slices, printer);
-
-	var gcode = this._slicesToGCode(slices, printer);
-
-	return gcode;
-};
-D3D.Slicer.prototype._createLines = function (printer) {
-	"use strict";
-
-	var lines = [];
-	var lineLookup = {};
-
-	var self = this;
-	function addLine (a, b) {
-		var index = lineLookup[b + "_" + a];
-
-		if (index === undefined) {
-			index = lines.length;
-			lineLookup[a + "_" + b] = index;
-
-			lines.push({
-				line: new THREE.Line3(self.geometry.vertices[a], self.geometry.vertices[b]), 
-				connects: [], 
-				normals: []
-			});
+	setGeometry (geometry, matrix) {
+		//convert buffergeometry to geometry;
+		if (geometry.type === 'BufferGeometry') {
+			geometry = new THREE.Geometry().fromBufferGeometry(geometry);
+		}
+		else if (geometry.type === 'Geometry') {
+			geometry = geometry.clone();
+		}
+		else {
+			console.warn('Geometry is not an instance of BufferGeometry or Geometry');
+			return;
 		}
 
-		return index;
-	}
-
-	for (var i = 0; i < this.geometry.faces.length; i ++) {
-		var face = this.geometry.faces[i];
-
-		if (face.normal.y !== 1 && face.normal.y !== -1) {
-			var normal = new THREE.Vector2(face.normal.z, face.normal.x).normalize();
-
-			//check for only adding unique lines
-			//returns index of said line
-			var a = addLine(face.a, face.b);
-			var b = addLine(face.b, face.c);
-			var c = addLine(face.c, face.a);
-
-			//set connecting lines (based on face)
-			lines[a].connects.push(b, c);
-			lines[b].connects.push(c, a);
-			lines[c].connects.push(a, b);
-
-			lines[a].normals.push(normal);
-			lines[b].normals.push(normal);
-			lines[c].normals.push(normal);
+		if (matrix instanceof THREE.Matrix4) {
+			geometry.applyMatrix(matrix);
 		}
+
+		geometry.computeBoundingBox();
+		geometry.computeFaceNormals();
+		geometry.mergeVertices();
+
+		this.geometry = geometry;
+
+		return this;
 	}
 
-	this.progress.createdLines = true;
-	this._updateProgress(printer);
+	slice (settings) {
+		var supportEnabled = settings.config['supportEnabled'];
 
-	return lines;
-};
-D3D.Slicer.prototype._slice = function (lines, printer) {
-	"use strict";
+		//get unique lines from geometry;
+		var lines = this._createLines(settings);
 
-	var layerHeight = printer.config["layerHeight"];
-	var height = printer.config["dimensionsZ"];
+		var slices = this._slice(lines, settings);
 
-	var numLayers = height / layerHeight;
-
-	var layersIntersections = [];
-	for (var layer = 0; layer < numLayers; layer ++) {
-		layersIntersections[layer] = [];
-	}
-
-	for (var lineIndex = 0; lineIndex < lines.length; lineIndex ++) {
-		var line = lines[lineIndex].line;
-
-		var min = Math.ceil(Math.min(line.start.y, line.end.y) / layerHeight);
-		var max = Math.floor(Math.max(line.start.y, line.end.y) / layerHeight);
-
-		for (var layerIndex = min; layerIndex <= max; layerIndex ++) {
-			if (layerIndex >= 0 && layerIndex < numLayers) {
-				layersIntersections[layerIndex].push(lineIndex);
-			}
+		this._generateInnerLines(slices, settings);
+		
+		this._generateInfills(slices, settings);
+		
+		if (supportEnabled) {
+			this._generateSupport(slices, settings);
 		}
+		
+		this._optimizePaths(slices, settings);
+
+		var gcode = this._slicesToGCode(slices, settings);
+
+		if (this.onfinish !== undefined) {
+			this.onfinish(gcode);
+		}
+
+		return gcode;
 	}
 
-	var slices = [];
+	_createLines (settings) {
+		console.log('constructing lines from geometry');
 
-	for (var layer = 1; layer < layersIntersections.length; layer ++) {
-		var layerIntersections = layersIntersections[layer];
+		var lines = [];
+		var lineLookup = {};
 
-		if (layerIntersections.length > 0) {
+		var addLine = (a, b) => {
+			var index = lineLookup[b + '_' + a];
 
-			var y = layer * layerHeight;
+			if (index === undefined) {
+				index = lines.length;
+				lineLookup[a + '_' + b] = index;
 
-			var intersections = [];
-			for (var i = 0; i < layerIntersections.length; i ++) {
-				var index = layerIntersections[i];
-				var line = lines[index].line;
-
-				if (line.start.y === line.end.y) {
-					var x = line.start.x;
-					var z = line.start.z;
-				}
-				else {
-					var alpha = (y - line.start.y) / (line.end.y - line.start.y);
-					var x = line.end.x * alpha + line.start.x * (1 - alpha);
-					var z = line.end.z * alpha + line.start.z * (1 - alpha);
-				}
-				intersections[index] = new THREE.Vector2(z, x);
+				lines.push({
+					line: new THREE.Line3(this.geometry.vertices[a], this.geometry.vertices[b]), 
+					connects: [], 
+					normals: []
+				});
 			}
 
-			var done = [];
-			var sliceParts = [];
-			for (var i = 0; i < layerIntersections.length; i ++) {
-				var index = layerIntersections[i];
-				var firstPoint = index;
-				var closed = false;
+			return index;
+		}
 
-				if (done.indexOf(index) === -1) {
-					var shape = [];
+		for (var face of this.geometry.faces) {
+			if (face.normal.y !== 1 && face.normal.y !== -1) {
+				var normal = new THREE.Vector2(face.normal.z, face.normal.x).normalize();
 
-					while (index !== -1) {
-						done.push(index);
+				//check for only adding unique lines
+				//returns index of said line
+				var a = addLine(face.a, face.b);
+				var b = addLine(face.b, face.c);
+				var c = addLine(face.c, face.a);
 
-						var intersection = intersections[index];
-						//uppercase X and Y because clipper vector
-						shape.push({X: intersection.x, Y: intersection.y});
+				//set connecting lines (based on face)
+				lines[a].connects.push(b, c);
+				lines[b].connects.push(c, a);
+				lines[c].connects.push(a, b);
 
-						var connects = lines[index].connects.clone();
-						var faceNormals = lines[index].normals.clone();
+				lines[a].normals.push(normal);
+				lines[b].normals.push(normal);
+				lines[c].normals.push(normal);
+			}
+		}
 
-						for (var j = 0; j < connects.length; j ++) {
-							index = connects[j];
+		this.progress.createdLines = true;
+		this._updateProgress(settings);
 
-							if (shape.length > 2 && index === firstPoint) {
-								closed = true;
-								break;
-							}
+		return lines;
+	}
 
-							if (done.indexOf(index) === -1) {
-								if (intersections[index] !== undefined) {
+	_slice (lines, settings) {
+		console.log("generating slices");
 
-									var a = new THREE.Vector2(intersection.x, intersection.y);
-									var b = new THREE.Vector2(intersections[index].x, intersections[index].y);
+		var layerHeight = settings.config["layerHeight"];
+		var height = settings.config["dimensionsZ"];
 
-									var faceNormal = faceNormals[Math.floor(j/2)];
+		var numLayers = height / layerHeight;
 
-									if (a.distanceTo(b) < 0.0001 || faceNormal.length() === 0) {
-										done.push(index);
+		var layersIntersections = [];
+		for (var layer = 0; layer < numLayers; layer ++) {
+			layersIntersections[layer] = [];
+		}
 
-										connects = connects.concat(lines[index].connects);
-										faceNormals = faceNormals.concat(lines[index].normals);
-										index = -1;
-									}
-									else {
-										var normal = a.sub(b).normal().normalize();
+		for (var lineIndex = 0; lineIndex < lines.length; lineIndex ++) {
+			var line = lines[lineIndex].line;
 
-										if (normal.dot(faceNormal) > 0) {
-											break;
-										}
-										else {
-											index = -1;
-										}
-									}
-								}
-								else {
-									done.push(index);
-									index = -1;
-								}
-							}
-							else {
-								index = -1;
-							}
-						}
+			var min = Math.ceil(Math.min(line.start.y, line.end.y) / layerHeight);
+			var max = Math.floor(Math.max(line.start.y, line.end.y) / layerHeight);
+
+			for (var layerIndex = min; layerIndex <= max; layerIndex ++) {
+				if (layerIndex >= 0 && layerIndex < numLayers) {
+					layersIntersections[layerIndex].push(lineIndex);
+				}
+			}
+		}
+
+		var slices = [];
+
+		for (var layer = 1; layer < layersIntersections.length; layer ++) {
+			var layerIntersections = layersIntersections[layer];
+
+			if (layerIntersections.length > 0) {
+
+				var y = layer * layerHeight;
+
+				var intersections = [];
+				for (var index of layerIntersections) {
+					var line = lines[index].line;
+
+					if (line.start.y === line.end.y) {
+						var x = line.start.x;
+						var z = line.start.z;
 					}
+					else {
+						var alpha = (y - line.start.y) / (line.end.y - line.start.y);
+						var x = line.end.x * alpha + line.start.x * (1 - alpha);
+						var z = line.end.z * alpha + line.start.z * (1 - alpha);
+					}
+					intersections[index] = new THREE.Vector2(z, x);
+				}
 
-					if (!closed) {
-						var index = firstPoint;
+				var done = [];
+				var sliceParts = [];
+				for (var index of layerIntersections) {
+					var firstPoint = index;
+					var closed = false;
+
+					if (done.indexOf(index) === -1) {
+						var shape = [];
 
 						while (index !== -1) {
-							if (index !== firstPoint) {
-								done.push(index);
+							done.push(index);
 
-								var intersection = intersections[index];
-								//uppercase X and Y because clipper vector
-								shape.unshift({X: intersection.x, Y: intersection.y});
-							}
+							var intersection = intersections[index];
+							//uppercase X and Y because clipper vector
+							shape.push({X: intersection.x, Y: intersection.y});
 
-							var connects = lines[index].connects.clone();
+							var connects = lines[index].connects.map((value) => value);
+							var faceNormals = lines[index].normals.map((value) => value);
 
-							for (var j = 0; j < connects.length; j ++) {
-								index = connects[j];
+							for (var i = 0; i < connects.length; i ++) {
+								var index = connects[i];
 
+								if (shape.length > 2 && index === firstPoint) {
+									closed = true;
+									break;
+								}
+
+								//check if index is already used
 								if (done.indexOf(index) === -1) {
+
+									//check if index has an intersection
 									if (intersections[index] !== undefined) {
-										if (a.distanceTo(b) < 0.0001) {
+
+										var faceNormal = faceNormals[Math.floor(i / 2)];
+
+										var a = new THREE.Vector2(intersection.x, intersection.y);
+										var b = new THREE.Vector2(intersections[index].x, intersections[index].y);
+
+										if (a.distanceTo(b) < 0.0001 || (faceNormal.x === 0 && faceNormal.y === 0)) {
 											done.push(index);
 
 											connects = connects.concat(lines[index].connects);
+											faceNormals = faceNormals.concat(lines[index].normals);
 											index = -1;
 										}
 										else {
-											break;
+											// THREE.Vector2.normal is not yet implimented
+											// var normal = a.sub(b).normal().normalize();
+											var normal = a.sub(b);
+											normal.set(-normal.y, normal.x).normalize();
+
+											if (normal.dot(faceNormal) > 0) {
+												break;
+											}
+											else {
+												index = -1;
+											}
 										}
 									}
 									else {
@@ -282,71 +247,111 @@ D3D.Slicer.prototype._slice = function (lines, printer) {
 								}
 							}
 						}
-					}
 
-					//var part = new D3D.Paths([shape], closed).clean(0.01);
-					var part = new D3D.Paths([shape], true).clean(0.01);
-					if (part.length > 0) {
-						sliceParts.push(part);
-					}
-				}
-			}
+						if (!closed) {
+							var index = firstPoint;
 
-			var slice = new D3D.Slice();
+							while (index !== -1) {
+								if (index !== firstPoint) {
+									done.push(index);
 
-			for (var i = 0; i < sliceParts.length; i ++) {
-				var slicePart1 = sliceParts[i];
-				if (slicePart1.closed) {
-					var merge = false;
+									var intersection = intersections[index];
+									// PERFORMACE
+									// maybe performance can be increased by unshifting to sepperate
+									// array and to later concat the original en the new array
+									shape.unshift({X: intersection.x, Y: intersection.y});
+								}
 
-					for (var j = 0; j < slice.parts.length; j ++) {
-						var slicePart2 = slice.parts[j].intersect;
+								var connects = lines[index].connects;
 
-						if (slicePart2.closed && slicePart2.intersect(slicePart1).length > 0) {
-							slicePart2.join(slicePart1);
-							merge = true;
-							break;
+								for (var index of connects) {
+									index = connects[j];
+
+									if (done.indexOf(index) === -1) {
+										if (intersections[index] !== undefined) {
+											break;
+										}
+										else {
+											done.push(index);
+											index = -1;
+										}
+									}
+									else {
+										index = -1;
+									}
+								}
+							}
+						}
+
+						if (shape.length > 0) {
+							var part = new Paths([shape], closed).clean(0.01);
+							sliceParts.push(part);
 						}
 					}
-					if (!merge) {
+				}
+
+				sliceParts.sort(function (a, b) {
+					return b.area() - a.area();
+				});
+
+				var slice = new Slice();
+
+				for (var i = 0; i < sliceParts.length; i ++) {
+					var slicePart1 = sliceParts[i];
+					if (slicePart1.closed) {
+						var merge = false;
+
+						for (var j = 0; j < slice.parts.length; j ++) {
+							var slicePart2 = slice.parts[j].intersect;
+
+							if (slicePart2.closed && slicePart2.intersect(slicePart1).length > 0) {
+								slicePart2.join(slicePart1);
+								merge = true;
+								break;
+							}
+						}
+						if (!merge) {
+							slice.add(slicePart1);
+						}
+					}
+					else {
 						slice.add(slicePart1);
 					}
 				}
-				else {
-					slice.add(slicePart1);
-				}
-			}
 
-			slices.push(slice);
+				slices.push(slice);
+			}
 		}
+
+		this.progress.sliced = true;
+		this._updateProgress(settings);
+
+		return slices;
 	}
 
-	this.progress.sliced = true;
-	this._updateProgress(printer);
+	_generateInnerLines (slices, settings) {
+		console.log("generating outer lines and inner lines");
 
-	return slices;
-};
-D3D.Slicer.prototype._generateInnerLines = function (slices, printer) {
-	"use strict";
+		//need to scale up everything because of clipper rounding errors
+		var scale = 100;
 
-	console.log("generating outer lines and inner lines");
+		var layerHeight = settings.config["layerHeight"];
+		var nozzleDiameter = settings.config["nozzleDiameter"] * scale;
+		var shellThickness = settings.config["shellThickness"] * scale;
+		var nozzleRadius = nozzleDiameter / 2;
 
-	//need to scale up everything because of clipper rounding errors
-	var scale = 100;
+		for (var layer = 0; layer < slices.length; layer ++) {
+			var slice = slices[layer];
 
-	var layerHeight = printer.config["layerHeight"];
-	var nozzleDiameter = printer.config["nozzleDiameter"] * scale;
-	var shellThickness = printer.config["shellThickness"] * scale;
-	var nozzleRadius = nozzleDiameter / 2;
+			for (var i = 0; i < slice.parts.length; i ++) {
+				var part = slice.parts[i];
 
-	for (var layer = 0; layer < slices.length; layer ++) {
-		var slice = slices[layer];
+				if (!part.intersect.closed) {
+					continue;
+				}
 
-		for (var i = 0; i < slice.parts.length; i ++) {
-			var part = slice.parts[i];
-
-			if (part.closed) {
-				var outerLine = part.intersect.clone().scaleUp(scale).offset(-nozzleRadius);
+				//var outerLine = part.intersect.clone().scaleUp(scale).offset(-nozzleRadius);
+				var outerLine = part.intersect.scaleUp(scale).offset(-nozzleRadius);
 
 				if (outerLine.length > 0) {
 					part.outerLine = outerLine;
@@ -364,69 +369,73 @@ D3D.Slicer.prototype._generateInnerLines = function (slices, printer) {
 				}
 			}
 		}
+
+		this.progress.generatedInnerLines = true;
+		this._updateProgress(settings);
 	}
 
-	this.progress.generatedInnerLines = true;
-	this._updateProgress(printer);
-};
-D3D.Slicer.prototype._generateInfills = function (slices, printer) {
-	"use strict";
+	_generateInfills (slices, settings) {
+		console.log("generating infills");
 
-	console.log("generating infills");
+		//need to scale up everything because of clipper rounding errors
+		var scale = 100;
 
-	//need to scale up everything because of clipper rounding errors
-	var scale = 100;
+		var layerHeight = settings.config["layerHeight"];
+		var fillGridSize = settings.config["fillGridSize"] * scale;
+		var bottomThickness = settings.config["bottomThickness"];
+		var topThickness = settings.config["topThickness"];
+		var nozzleDiameter = settings.config["nozzleDiameter"] * scale;
+		var infillOverlap = settings.config["infillOverlap"] * scale;
+		
+		var bottomSkinCount = Math.ceil(bottomThickness/layerHeight);
+		var topSkinCount = Math.ceil(topThickness/layerHeight);
+		var nozzleRadius = nozzleDiameter / 2;
+		var hightemplateSize = Math.sqrt(2 * Math.pow(nozzleDiameter, 2));
 
-	var layerHeight = printer.config["layerHeight"];
-	var fillGridSize = printer.config["fillGridSize"] * scale;
-	var bottomThickness = printer.config["bottomThickness"];
-	var topThickness = printer.config["topThickness"];
-	var nozzleDiameter = printer.config["nozzleDiameter"] * scale;
-	var infillOverlap = printer.config["infillOverlap"] * scale;
-	
-	var bottomSkinCount = Math.ceil(bottomThickness/layerHeight);
-	var topSkinCount = Math.ceil(topThickness/layerHeight);
-	var nozzleRadius = nozzleDiameter / 2;
-	var hightemplateSize = Math.sqrt(2 * Math.pow(nozzleDiameter, 2));
+		for (var layer = 0; layer < slices.length; layer ++) {
+			var slice = slices[layer];
 
-	for (var layer = 0; layer < slices.length; layer ++) {
-		var slice = slices[layer];
+			if (layer - bottomSkinCount >= 0 && layer + topSkinCount < slices.length) {
+				var downSkin =  slices[layer - bottomSkinCount].getOutline();
+				var upSkin = slices[layer + topSkinCount].getOutline();
+				var surroundingLayer = upSkin.intersect(downSkin);
+			}
+			else {
+				var surroundingLayer = false;
+			}		
 
-		if (layer - bottomSkinCount >= 0 && layer + topSkinCount < slices.length) {
-			var downSkin =  slices[layer - bottomSkinCount].getOutline();
-			var upSkin = slices[layer + topSkinCount].getOutline();
-			var surroundingLayer = upSkin.intersect(downSkin);
-		}
-		else {
-			var surroundingLayer = false;
-		}		
+			for (var i = 0; i < slice.parts.length; i ++) {
+				var part = slice.parts[i];
 
-		for (var i = 0; i < slice.parts.length; i ++) {
-			var part = slice.parts[i];
+				if (!part.intersect.closed) {
+					continue;
+				}
 
-			if (part.closed) {
 				var outerLine = part.outerLine;
 
 				if (outerLine.length > 0) {
-					var inset = ((part.innerLines.length > 0) ? part.innerLines[part.innerLines.length - 1] : outerLine);
+					var inset = (part.innerLines.length > 0) ? part.innerLines[part.innerLines.length - 1] : outerLine;
 
 					var fillArea = inset.offset(-nozzleRadius);
 					if (surroundingLayer) {
-						if (infillOverlap === 0) {
-							var highFillArea = fillArea.difference(surroundingLayer).intersect(fillArea);
+
+						var highFillArea = fillArea.difference(surroundingLayer);
+
+						if (infillOverlap > 0) {
+							highFillArea = highFillArea.offset(infillOverlap);
 						}
-						else {
-							var highFillArea = fillArea.difference(surroundingLayer).offset(infillOverlap).intersect(fillArea);
-						}
+
+						highFillArea = highFillArea.intersect(fillArea);
+
+						var lowFillArea = fillArea.difference(highFillArea);
 					}
 					else {
 						var highFillArea = fillArea;
 					}
-					var lowFillArea = fillArea.difference(highFillArea);
 
-					var fill = new D3D.Paths([], false);
+					var fill = new Paths([], false);
 
-					if (lowFillArea.length > 0) {
+					if (lowFillArea !== undefined && lowFillArea.length > 0) {
 						var bounds = lowFillArea.bounds();
 						var lowFillTemplate = this._getFillTemplate(bounds, fillGridSize, true, true);
 
@@ -443,252 +452,246 @@ D3D.Slicer.prototype._generateInfills = function (slices, printer) {
 				}
 			}
 		}
+
+		this.progress.generatedInfills = true;
+		this._updateProgress(settings);
 	}
 
-	this.progress.generatedInfills = true;
-	this._updateProgress(printer);
-};
-D3D.Slicer.prototype._generateSupport = function (slices, printer) {
-	"use strict";
+	_generateSupport (slices, settings) {
+		console.log("generating support");
 
-	console.log("generating support");
+		//need to scale up everything because of clipper rounding errors
+		var scale = 100;
 
-	//need to scale up everything because of clipper rounding errors
-	var scale = 100;
+		var layerHeight = settings.config["layerHeight"];
+		var supportGridSize = settings.config["supportGridSize"] * scale;
+		var supportAcceptanceMargin = settings.config["supportAcceptanceMargin"] * scale;
+		var supportMargin = settings.config["supportMargin"] * scale;
+		var plateSize = settings.config["supportPlateSize"] * scale;
+		var supportDistanceY = settings.config["supportDistanceY"];
+		var supportDistanceLayers = Math.ceil(supportDistanceY / layerHeight);
+		var nozzleDiameter = settings.config["nozzleDiameter"] * scale;
 
-	var layerHeight = printer.config["layerHeight"];
-	var supportGridSize = printer.config["supportGridSize"] * scale;
-	var supportAcceptanceMargin = printer.config["supportAcceptanceMargin"] * scale;
-	var supportMargin = printer.config["supportMargin"] * scale;
-	var plateSize = printer.config["supportPlateSize"] * scale;
-	var supportDistanceY = printer.config["supportDistanceY"];
-	var supportDistanceLayers = Math.ceil(supportDistanceY / layerHeight);
-	var nozzleDiameter = printer.config["nozzleDiameter"] * scale;
+		var supportAreas = new Paths([], true);
 
-	var supportAreas = new D3D.Paths([], true);
+		for (var layer = slices.length - 1 - supportDistanceLayers; layer >= 0; layer --) {
+			if (supportAreas.length > 0) {
 
-	for (var layer = slices.length - 1 - supportDistanceLayers; layer >= 0; layer --) {
-		if (supportAreas.length > 0) {
+				if (layer >= supportDistanceLayers) {
+					//var sliceSkin = slices[layer - supportDistanceLayers].getOutline();
+					var sliceSkin = slices[layer].getOutline();
+					sliceSkin = sliceSkin.offset(supportMargin);
 
-			if (layer >= supportDistanceLayers) {
-				var sliceSkin = slices[layer - supportDistanceLayers].getOutline();
-				sliceSkin = sliceSkin.offset(supportMargin);
-
-				supportAreas = supportAreas.difference(sliceSkin);
-			}
-
-			var currentSlice = slices[layer];
-
-			if (layer === 0) {
-				supportAreas = supportAreas.offset(plateSize).difference(sliceSkin);
-
-				var template = this._getFillTemplate(supportAreas.bounds(), nozzleDiameter, true, false);
-
-				currentSlice.support = template.intersect(supportAreas);
-			}
-			else {
-				var supportTemplate = this._getFillTemplate(supportAreas.bounds(), supportGridSize, true, true);
-
-				currentSlice.support = supportTemplate.intersect(supportAreas).join(supportAreas.clone());
-			}
-		}
-
-		var supportSkin = slices[layer + supportDistanceLayers - 1].getOutline();
-
-		var slice = slices[layer + supportDistanceLayers];
-		for (var i = 0; i < slice.parts.length; i ++) {
-			var slicePart = slice.parts[i];
-			var outerLine = slicePart.outerLine;
-
-			var overlap = supportSkin.offset(supportAcceptanceMargin).intersect(outerLine);
-			var overhang = outerLine.difference(overlap);
-
-			if (overlap.length === 0 || overhang.length > 0) {
-				supportAreas = supportAreas.union(overhang.offset(supportAcceptanceMargin).intersect(outerLine));
-			}
-		}
-	}
-
-	this.progress.generatedSupport = true;
-	this._updateProgress(printer);
-
-};
-D3D.Slicer.prototype._optimizePaths = function (slices, printer) {
-	"use strict";
-
-	console.log("opimize paths");
-
-	//need to scale up everything because of clipper rounding errors
-	var scale = 100;
-
-	var brimOffset = printer.config["brimOffset"] * scale;
-
-	var start = new THREE.Vector2(0, 0);
-
-	for (var layer = 0; layer < slices.length; layer ++) {
-		var slice = slices[layer];
-
-		if (layer === 0) {
-			slice.brim = slice.getOutline().offset(brimOffset);
-		}
-
-		start = slice.optimizePaths(start);
-
-		for (var i = 0; i < slice.parts.length; i ++) {
-			var part = slice.parts[i];
-
-			if (part.closed) {
-				part.outerLine.scaleDown(scale);
-				for (var j = 0; j < part.innerLines.length; j ++) {
-					var innerLine = part.innerLines[j];
-					innerLine.scaleDown(scale);
+					supportAreas = supportAreas.difference(sliceSkin);
 				}
-				part.fill.scaleDown(scale);
-			}
-		}
 
-		if (slice.support !== undefined) {
-			slice.support.scaleDown(scale);
-		}
-		if (slice.brim !== undefined) {
-			slice.brim.scaleDown(scale);
-		}
-	}
+				var currentSlice = slices[layer];
 
-	this.progress.optimizedPaths = true;
-	this._updateProgress(printer);
+				if (layer === 0) {
+					supportAreas = supportAreas.offset(plateSize).difference(sliceSkin);
 
-}
-D3D.Slicer.prototype._getFillTemplate = function (bounds, size, even, uneven) {
-	"use strict";
+					var template = this._getFillTemplate(supportAreas.bounds(), nozzleDiameter, true, false);
 
-	var paths = new D3D.Paths([], false);
-
-	var left = Math.floor(bounds.left / size) * size;
-	var right = Math.ceil(bounds.right / size) * size;
-	var top = Math.floor(bounds.top / size) * size;
-	var bottom = Math.floor(bounds.bottom / size) * size;
-
-	var width = right - left;
-
-	if (even) {
-		for (var y = top; y <= bottom + width; y += size) {
-			paths.push([
-				{X: left, Y: y}, 
-				{X: right, Y: y - width}
-			]);
-		}
-	}
-	if (uneven) {
-		for (var y = top - width; y <= bottom; y += size) {
-			paths.push([
-				{X: left, Y: y}, 
-				{X: right, Y: y + width}
-			]);
-		}
-	}
-	
-	return paths;
-};
-D3D.Slicer.prototype._slicesToGCode = function (slices, printer) {
-	"use strict";
-
-	var gcode = new D3D.GCode().setSettings(printer);
-
-	function pathToGCode (path, retract, unRetract, type) {
-
-		for (var i = 0; i < path.length; i ++) {
-			var shape = path[i];
-
-			var length = path.closed ? (shape.length + 1) : shape.length;
-
-			for (var j = 0; j < length; j ++) {
-				var point = shape[j % shape.length];
-
-				if (j === 0) {
-					//TODO
-					//moveTo should impliment combing
-					gcode.moveTo(point.X, point.Y, layer);
-
-					if (unRetract) {
-						gcode.unRetract();
-					}
+					currentSlice.support = template.intersect(supportAreas);
 				}
 				else {
-					gcode.lineTo(point.X, point.Y, layer, type);
+					var supportTemplate = this._getFillTemplate(supportAreas.bounds(), supportGridSize, true, true);
+
+					currentSlice.support = supportTemplate.intersect(supportAreas).join(supportAreas.clone());
 				}
+			}
+
+			var supportSkin = slices[layer + supportDistanceLayers - 1].getOutline();
+
+			var slice = slices[layer + supportDistanceLayers];
+			for (var i = 0; i < slice.parts.length; i ++) {
+				var slicePart = slice.parts[i];
+				var outerLine = slicePart.outerLine;
+
+				var overlap = supportSkin.offset(supportAcceptanceMargin).intersect(outerLine);
+				var overhang = outerLine.difference(overlap);
+
+				if (overlap.length === 0 || overhang.length > 0) {
+					supportAreas = supportAreas.union(overhang.offset(supportAcceptanceMargin).intersect(outerLine));
+				}
+			}
+		}
+
+		this.progress.generatedSupport = true;
+		this._updateProgress(settings);
+	}
+
+	_optimizePaths (slices, settings) {
+		console.log("opimize paths");
+
+		//need to scale up everything because of clipper rounding errors
+		var scale = 100;
+
+		var brimOffset = settings.config["brimOffset"] * scale;
+
+		var start = new THREE.Vector2(0, 0);
+
+		for (var layer = 0; layer < slices.length; layer ++) {
+			var slice = slices[layer];
+
+			if (layer === 0) {
+				slice.brim = slice.getOutline().offset(brimOffset);
+			}
+
+			start = slice.optimizePaths(start);
+
+			for (var i = 0; i < slice.parts.length; i ++) {
+				var part = slice.parts[i];
+
+				if (part.intersect.closed) {
+					part.outerLine.scaleDown(scale);
+					for (var j = 0; j < part.innerLines.length; j ++) {
+						var innerLine = part.innerLines[j];
+						innerLine.scaleDown(scale);
+					}
+					part.fill.scaleDown(scale);
+				}
+			}
+
+			if (slice.support !== undefined) {
+				slice.support.scaleDown(scale);
+			}
+			if (slice.brim !== undefined) {
+				slice.brim.scaleDown(scale);
+			}
+		}
+
+		this.progress.optimizedPaths = true;
+		this._updateProgress(settings);
+	}
+
+	_getFillTemplate (bounds, size, even, uneven) {
+		var paths = new Paths([], false);
+
+		var left = Math.floor(bounds.left / size) * size;
+		var right = Math.ceil(bounds.right / size) * size;
+		var top = Math.floor(bounds.top / size) * size;
+		var bottom = Math.floor(bounds.bottom / size) * size;
+
+		var width = right - left;
+
+		if (even) {
+			for (var y = top; y <= bottom + width; y += size) {
+				paths.push([
+					{X: left, Y: y}, 
+					{X: right, Y: y - width}
+				]);
+			}
+		}
+		if (uneven) {
+			for (var y = top - width; y <= bottom; y += size) {
+				paths.push([
+					{X: left, Y: y}, 
+					{X: right, Y: y + width}
+				]);
 			}
 		}
 		
-		if (retract) {
-			gcode.retract();
-		}
+		return paths;
 	}
 
-	for (var layer = 0; layer < slices.length; layer ++) {
-		var slice = slices[layer];
+	_slicesToGCode (slices, settings) {
+		var gcode = new GCode().setSettings(settings);
 
-		if (layer === 1) {
-			gcode.turnFanOn();
-			gcode.bottom = false;
-		}
+		function pathToGCode (path, retract, unRetract, type) {
 
-		if (slice.brim !== undefined) {
-			pathToGCode(slice.brim, true, true, "brim");
-		}
+			for (var i = 0; i < path.length; i ++) {
+				var shape = path[i];
 
-		for (var i = 0; i < slice.parts.length; i ++) {
-			var part = slice.parts[i];
+				var length = path.closed ? (shape.length + 1) : shape.length;
 
-			if (part.closed) {
-				pathToGCode(part.outerLine, false, true, "outerLine");
+				for (var j = 0; j < length; j ++) {
+					var point = shape[j % shape.length];
 
-				for (var j = 0; j < part.innerLines.length; j ++) {
-					var innerLine = part.innerLines[j];
-					pathToGCode(innerLine, false, false, "innerLine");
+					if (j === 0) {
+						//TODO
+						//moveTo should impliment combing
+						gcode.moveTo(point.X, point.Y, layer);
+
+						if (unRetract) {
+							gcode.unRetract();
+						}
+					}
+					else {
+						gcode.lineTo(point.X, point.Y, layer, type);
+					}
 				}
-
-				pathToGCode(part.fill, true, false, "fill");
 			}
-			else {
-				var retract = !(slice.parts.length === 1 && slice.support === undefined);
-				pathToGCode(part.intersect, retract, retract, "outerLine");
+			
+			if (retract) {
+				gcode.retract();
 			}
 		}
 
-		if (slice.support !== undefined) {
-			pathToGCode(slice.support, true, true, "support");
-		}
-	}
+		for (var layer = 0; layer < slices.length; layer ++) {
+			var slice = slices[layer];
 
-	this.progress.generatedGCode = true;
-	this._updateProgress();
+			if (layer === 1) {
+				gcode.turnFanOn();
+				gcode.bottom = false;
+			}
 
+			if (slice.brim !== undefined) {
+				pathToGCode(slice.brim, true, true, "brim");
+			}
 
-	return gcode.getGCode();
-};
-D3D.Slicer.prototype._updateProgress = function () {
-	'use strict';
+			for (var i = 0; i < slice.parts.length; i ++) {
+				var part = slice.parts[i];
 
-	if (this.onProgress !== undefined) {
-		var useSupport = printer.config["supportUse"];
+				if (part.intersect.closed) {
+					pathToGCode(part.outerLine, false, true, "outerLine");
 
-		var progress = {};
+					for (var j = 0; j < part.innerLines.length; j ++) {
+						var innerLine = part.innerLines[j];
+						pathToGCode(innerLine, false, false, "innerLine");
+					}
 
-		var procent = 0;
-		var length = 0;
-		for (var i in this.progress) {
-			if (!(!useSupport && i === "generatedSupport")) {
-				progress[i] = this.progress[i];
-				if (this.progress[i]) {
-					procent ++;
+					pathToGCode(part.fill, true, false, "fill");
 				}
-				length ++;
+				else {
+					var retract = !(slice.parts.length === 1 && slice.support === undefined);
+					pathToGCode(part.intersect, retract, retract, "outerLine");
+				}
+			}
+
+			if (slice.support !== undefined) {
+				pathToGCode(slice.support, true, true, "support");
 			}
 		}
 
-		progress.procent = procent / length;
+		this.progress.generatedGCode = true;
+		this._updateProgress(settings);
 
-		this.onProgress(progress);
+
+		return gcode.getGCode();
 	}
-};
+
+	_updateProgress (settings) {
+		if (this.onprogress !== undefined) {
+			var supportEnabled = settings.config["supportEnabled"];
+
+			var progress = {};
+
+			var procent = 0;
+			var length = 0;
+			for (var i in this.progress) {
+				if (!(!supportEnabled && i === "generatedSupport")) {
+					progress[i] = this.progress[i];
+					if (progress[i]) {
+						procent += 1;
+					}
+					length += 1;
+				}
+			}
+
+			progress.procent = procent / length;
+
+			this.onprogress(progress);
+		}
+	}
+}

@@ -13,7 +13,7 @@
 	"retractionMinDistance": 0.0, 
 	"supportAcceptanceMargin": 1.5, 
 	"supportDistanceY": 0.4, 
-	"supportUse": false, 
+	"supportEnabled": false, 
 	"supportGridSize": 6.0, 
 	"supportMargin": 2.0,  
 	"supportPlateSize": 4.0, 
@@ -23,11 +23,11 @@
 	},
 	"innerLine": {
 		"flowRate": 1.0, 
-		"speed": 60.0
+		"speed": 50.0
 	}, 
 	"fill": {
 		"flowRate": 1.0, 
-		"speed": 100.0
+		"speed": 50.0
 	},
 	"brim": {
 		"flowRate": 1.0, 
