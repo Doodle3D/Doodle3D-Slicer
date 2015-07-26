@@ -1,5 +1,5 @@
 {
-	"layerHeight": 0.2, 
+	"layerHeight": 0.15, 
 	"bottomThickness": 0.4, 
 	"topThickness": 0.8, 
 	"shellThickness": 0.4, 
@@ -23,11 +23,11 @@
 	},
 	"innerLine": {
 		"flowRate": 1.0, 
-		"speed": 50.0
+		"speed": 60.0
 	}, 
 	"fill": {
 		"flowRate": 1.0, 
-		"speed": 50.0
+		"speed": 100.0
 	},
 	"brim": {
 		"flowRate": 1.0, 
