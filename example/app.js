@@ -13,7 +13,7 @@ setTimeout(() => {
 	var slicer = new SLICER.Slicer();
 	//var slicer = new SLICER.SlicerWorker();
 
-	slicer.setGeometry(geometry);
+	slicer.setGeometry(geometry.clone());
 	slicer.onfinish = function (gCode) {
 		document.getElementById('gcode').innerHTML = gCode.replace(/(?:\r\n|\r|\n)/g, '<br />');
 	};
