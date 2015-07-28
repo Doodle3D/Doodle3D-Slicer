@@ -41,9 +41,8 @@ export default class {
 			geometry.applyMatrix(matrix);
 		}
 
-		geometry.computeBoundingBox();
-		geometry.computeFaceNormals();
 		geometry.mergeVertices();
+		geometry.computeFaceNormals();
 
 		this.geometry = geometry;
 
@@ -290,20 +289,17 @@ export default class {
 					}
 				}
 
-				sliceParts.sort(function (a, b) {
-					return b.area() - a.area();
+				sliceParts.sort((a, b) => {
+					return b.boundSize() - a.boundSize();
 				});
 
 				var slice = new Slice();
 
-				for (var i = 0; i < sliceParts.length; i ++) {
-					var slicePart1 = sliceParts[i];
+				for (var slicePart1 of sliceParts) {
 					if (slicePart1.closed) {
 						var merge = false;
 
-						for (var j = 0; j < slice.parts.length; j ++) {
-							var slicePart2 = slice.parts[j].intersect;
-
+						for (var slicePart2 of slice.parts) {
 							if (slicePart2.closed && slicePart2.intersect(slicePart1).length > 0) {
 								slicePart2.join(slicePart1);
 								merge = true;
@@ -469,35 +465,37 @@ export default class {
 		var supportMargin = settings.config["supportMargin"] * scale;
 		var plateSize = settings.config["supportPlateSize"] * scale;
 		var supportDistanceY = settings.config["supportDistanceY"];
-		var supportDistanceLayers = Math.ceil(supportDistanceY / layerHeight);
+		var supportDistanceLayers = Math.max(Math.ceil(supportDistanceY / layerHeight), 1);
 		var nozzleDiameter = settings.config["nozzleDiameter"] * scale;
 
 		var supportAreas = new Paths([], true);
 
 		for (var layer = slices.length - 1 - supportDistanceLayers; layer >= 0; layer --) {
+			var currentSlice = slices[layer];
+
 			if (supportAreas.length > 0) {
 
 				if (layer >= supportDistanceLayers) {
-					//var sliceSkin = slices[layer - supportDistanceLayers].getOutline();
-					var sliceSkin = slices[layer].getOutline();
-					sliceSkin = sliceSkin.offset(supportMargin);
+					var sliceSkin = slices[layer - supportDistanceLayers].getOutline();
+					sliceSkin = sliceSkin;
 
-					supportAreas = supportAreas.difference(sliceSkin);
+					var supportAreasSlimmed = supportAreas.difference(sliceSkin.offset(supportMargin));
+					if (supportAreasSlimmed.length === 0) {
+						supportAreas = supportAreas.difference(sliceSkin);
+					}
+					else {
+						supportAreas = supportAreasSlimmed;
+					}
 				}
 
-				var currentSlice = slices[layer];
-
-				if (layer === 0) {
-					supportAreas = supportAreas.offset(plateSize).difference(sliceSkin);
-
-					var template = this._getFillTemplate(supportAreas.bounds(), nozzleDiameter, true, false);
-
-					currentSlice.support = template.intersect(supportAreas);
+				
+				var supportTemplate = this._getFillTemplate(supportAreas.bounds(), supportGridSize, true, true);
+				var supportFill = supportTemplate.intersect(supportAreas);
+				if (supportFill.length === 0 || true) {
+					currentSlice.support = supportAreas.clone();
 				}
 				else {
-					var supportTemplate = this._getFillTemplate(supportAreas.bounds(), supportGridSize, true, true);
-
-					currentSlice.support = supportTemplate.intersect(supportAreas).join(supportAreas.clone());
+					currentSlice.support = supportFill;
 				}
 			}
 
@@ -506,19 +504,26 @@ export default class {
 			var slice = slices[layer + supportDistanceLayers];
 			for (var i = 0; i < slice.parts.length; i ++) {
 				var slicePart = slice.parts[i];
-				var outerLine = slicePart.outerLine;
+
+				if (slicePart.intersect.closed) {
+					var outerLine = slicePart.outerLine;
+				}
+				else {
+					var outerLine = slicePart.intersect.offset(supportAcceptanceMargin);
+				}
 
 				var overlap = supportSkin.offset(supportAcceptanceMargin).intersect(outerLine);
 				var overhang = outerLine.difference(overlap);
 
 				if (overlap.length === 0 || overhang.length > 0) {
-					supportAreas = supportAreas.union(overhang.offset(supportAcceptanceMargin).intersect(outerLine));
+					supportAreas = supportAreas.join(overhang);
 				}
 			}
 		}
 
 		this.progress.generatedSupport = true;
 		this._updateProgress(settings);
+
 	}
 
 	_optimizePaths (slices, settings) {
