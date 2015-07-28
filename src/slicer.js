@@ -264,8 +264,6 @@ export default class {
 								var connects = lines[index].connects;
 
 								for (var index of connects) {
-									index = connects[j];
-
 									if (done.indexOf(index) === -1) {
 										if (intersections[index] !== undefined) {
 											break;
