@@ -10,7 +10,9 @@ export default class Paths extends Array {
 	}
 
 	setPaths (paths) {
-		for (var path of paths) {
+		for (var i = 0; i < paths.length; i ++) {
+			var path = paths[i];
+
 			if (path.length > 0) {
 				this.push(path);
 			}
@@ -75,6 +77,10 @@ export default class Paths extends Array {
 	}
 
 	lastPoint () {
+		if (this.length === 0) {
+			return new THREE.Vector2();
+		}
+
 		var lastPath = this[this.length - 1];
 		var lastPoint = this.closed ? lastPath[0] : lastPath[lastPath.length - 1];
 		return new THREE.Vector2(lastPoint.X, lastPoint.Y);
@@ -151,7 +157,8 @@ export default class Paths extends Array {
 	areas () {
 		var areas = [];
 
-		for (var shape of this) {
+		for (var i = 0; i < this.length; i ++) {
+			var shape = this[i];
 			if (shape.closed) {
 				var area = Math.abs(ClipperLib.Clipper.Area(shape));
 				areas.push(area);
@@ -165,7 +172,8 @@ export default class Paths extends Array {
 		var areas = this.areas();
 		var totalArea = 0;
 
-		for (area of areas) {
+		for (var i = 0; i < areas.length; i ++) {
+			var area = areas[i];
 			totalArea += area;
 		}
 
@@ -174,7 +182,8 @@ export default class Paths extends Array {
 
 	tresholdArea (minArea) {
 		// code not tested yet
-		for (var shape of this) {
+		for (var i = 0; i < this.length; i ++) {
+			var shape = this[i];
 			var area = ClipperLib.Clipper.Area(shape);
 
 			if (area < minArea) {

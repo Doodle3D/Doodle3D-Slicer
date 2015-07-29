@@ -7,7 +7,9 @@ export default class {
 	constructor () {
 		this.progress = {
 			createdLines: false, 
+			calculatedLayerIntersections: false, 
 			sliced: false, 
+			generatedSlices: false, 
 			generatedInnerLines: false, 
 			generatedInfills: false, 
 			generatedSupport: false, 
@@ -52,10 +54,14 @@ export default class {
 	slice (settings) {
 		var supportEnabled = settings.config['supportEnabled'];
 
-		//get unique lines from geometry;
+		// get unique lines from geometry;
 		var lines = this._createLines(settings);
 
-		var slices = this._slice(lines, settings);
+		var {layersIntersectionIndexes, layersIntersectionPoints} = this._calculateLayersIntersections(lines, settings);
+
+		var shapes = this._intersectionsToShapes(layersIntersectionIndexes, layersIntersectionPoints, lines, settings);
+
+		var slices = this._shapesToSlices(shapes, settings);
 
 		this._generateInnerLines(slices, settings);
 		
@@ -99,7 +105,8 @@ export default class {
 			return index;
 		}
 
-		for (var face of this.geometry.faces) {
+		for (var i = 0; i < this.geometry.faces.length; i ++) {
+			var face = this.geometry.faces[i];
 			if (face.normal.y !== 1 && face.normal.y !== -1) {
 				var normal = new THREE.Vector2(face.normal.z, face.normal.x).normalize();
 
@@ -126,17 +133,19 @@ export default class {
 		return lines;
 	}
 
-	_slice (lines, settings) {
-		console.log("generating slices");
+	_calculateLayersIntersections (lines, settings) {
+		console.log('calculating layer intersections');
 
 		var layerHeight = settings.config["layerHeight"];
 		var height = settings.config["dimensionsZ"];
 
 		var numLayers = height / layerHeight;
 
-		var layersIntersections = [];
+		var layersIntersectionIndexes = [];
+		var layersIntersectionPoints = [];
 		for (var layer = 0; layer < numLayers; layer ++) {
-			layersIntersections[layer] = [];
+			layersIntersectionIndexes[layer] = [];
+			layersIntersectionPoints[layer] = [];
 		}
 
 		for (var lineIndex = 0; lineIndex < lines.length; lineIndex ++) {
@@ -147,23 +156,10 @@ export default class {
 
 			for (var layerIndex = min; layerIndex <= max; layerIndex ++) {
 				if (layerIndex >= 0 && layerIndex < numLayers) {
-					layersIntersections[layerIndex].push(lineIndex);
-				}
-			}
-		}
 
-		var slices = [];
+					layersIntersectionIndexes[layerIndex].push(lineIndex);
 
-		for (var layer = 1; layer < layersIntersections.length; layer ++) {
-			var layerIntersections = layersIntersections[layer];
-
-			if (layerIntersections.length > 0) {
-
-				var y = layer * layerHeight;
-
-				var intersections = [];
-				for (var index of layerIntersections) {
-					var line = lines[index].line;
+					var y = layerIndex * layerHeight;
 
 					if (line.start.y === line.end.y) {
 						var x = line.start.x;
@@ -174,150 +170,189 @@ export default class {
 						var x = line.end.x * alpha + line.start.x * (1 - alpha);
 						var z = line.end.z * alpha + line.start.z * (1 - alpha);
 					}
-					intersections[index] = new THREE.Vector2(z, x);
+
+					layersIntersectionPoints[layerIndex][lineIndex] = new THREE.Vector2(z, x);
+				}
+			}
+		}
+
+		this.progress.calculatedLayerIntersections = true;
+		this._updateProgress(settings);
+
+		return {
+			layersIntersectionIndexes, 
+			layersIntersectionPoints
+		};
+	}
+
+	_intersectionsToShapes (layersIntersectionIndexes, layersIntersectionPoints, lines, settings) {
+		console.log("generating slices");
+
+		var layerHeight = settings.config["layerHeight"];
+
+		var shapes = [];
+
+		for (var layer = 1; layer < layersIntersectionIndexes.length; layer ++) {
+			var layerIntersectionIndexes = layersIntersectionIndexes[layer];
+			var layerIntersectionPoints = layersIntersectionPoints[layer];
+
+			if (layerIntersectionIndexes.length === 0) {
+				continue;
+			}
+
+			var shapeParts = [];
+			for (var i = 0; i < layerIntersectionIndexes.length; i ++) {
+				var index = layerIntersectionIndexes[i];
+
+				if (layerIntersectionPoints[index] === undefined) {
+					continue;
 				}
 
-				var done = [];
-				var sliceParts = [];
-				for (var index of layerIntersections) {
-					var firstPoint = index;
-					var closed = false;
+				var firstPoint = index;
+				var closed = false;
 
-					if (done.indexOf(index) === -1) {
-						var shape = [];
+				var shape = [];
 
-						while (index !== -1) {
-							done.push(index);
+				while (index !== -1) {
+					var intersection = layerIntersectionPoints[index];
+					//uppercase X and Y because clipper vector
+					shape.push({X: intersection.x, Y: intersection.y});
 
-							var intersection = intersections[index];
-							//uppercase X and Y because clipper vector
-							shape.push({X: intersection.x, Y: intersection.y});
+					delete layerIntersectionPoints[index];
 
-							var connects = lines[index].connects.map((value) => value);
-							var faceNormals = lines[index].normals.map((value) => value);
+					var connects = lines[index].connects;
+					var faceNormals = lines[index].normals;
 
-							for (var i = 0; i < connects.length; i ++) {
-								var index = connects[i];
+					for (var j = 0; j < connects.length; j ++) {
+						var index = connects[j];
 
-								if (shape.length > 2 && index === firstPoint) {
-									closed = true;
+						if (index === firstPoint && shape.length > 2) {
+							closed = true;
+							index = -1;
+							break;
+						}
+
+						// Check if index has an intersection or is already used
+						if (layerIntersectionPoints[index] !== undefined) {
+
+							var faceNormal = faceNormals[Math.floor(j / 2)];
+
+							var a = new THREE.Vector2(intersection.x, intersection.y);
+							var b = new THREE.Vector2(layerIntersectionPoints[index].x, layerIntersectionPoints[index].y);
+
+							//threejs can't calculate normal if distance is smaller as 0.0001
+							if ((faceNormal.x === 0 && faceNormal.y === 0) || a.distanceTo(b) < 0.0001) {
+								delete layerIntersectionPoints[index];
+
+								connects = connects.concat(lines[index].connects);
+								faceNormals = faceNormals.concat(lines[index].normals);
+								index = -1;
+							}
+							else {
+								// THREE.Vector2.normal is not yet implimented
+								// var normal = a.sub(b).normal().normalize();
+								var normal = a.sub(b);
+								normal.set(-normal.y, normal.x).normalize();
+
+								if (normal.dot(faceNormal) > 0) {
 									break;
-								}
-
-								//check if index is already used
-								if (done.indexOf(index) === -1) {
-
-									//check if index has an intersection
-									if (intersections[index] !== undefined) {
-
-										var faceNormal = faceNormals[Math.floor(i / 2)];
-
-										var a = new THREE.Vector2(intersection.x, intersection.y);
-										var b = new THREE.Vector2(intersections[index].x, intersections[index].y);
-
-										if (a.distanceTo(b) < 0.0001 || (faceNormal.x === 0 && faceNormal.y === 0)) {
-											done.push(index);
-
-											connects = connects.concat(lines[index].connects);
-											faceNormals = faceNormals.concat(lines[index].normals);
-											index = -1;
-										}
-										else {
-											// THREE.Vector2.normal is not yet implimented
-											// var normal = a.sub(b).normal().normalize();
-											var normal = a.sub(b);
-											normal.set(-normal.y, normal.x).normalize();
-
-											if (normal.dot(faceNormal) > 0) {
-												break;
-											}
-											else {
-												index = -1;
-											}
-										}
-									}
-									else {
-										done.push(index);
-										index = -1;
-									}
 								}
 								else {
 									index = -1;
 								}
 							}
 						}
-
-						if (!closed) {
-							var index = firstPoint;
-
-							while (index !== -1) {
-								if (index !== firstPoint) {
-									done.push(index);
-
-									var intersection = intersections[index];
-									// PERFORMACE
-									// maybe performance can be increased by unshifting to sepperate
-									// array and to later concat the original en the new array
-									shape.unshift({X: intersection.x, Y: intersection.y});
-								}
-
-								var connects = lines[index].connects;
-
-								for (var index of connects) {
-									if (done.indexOf(index) === -1) {
-										if (intersections[index] !== undefined) {
-											break;
-										}
-										else {
-											done.push(index);
-											index = -1;
-										}
-									}
-									else {
-										index = -1;
-									}
-								}
-							}
-						}
-
-						if (shape.length > 0) {
-							var part = new Paths([shape], closed).clean(0.01);
-							sliceParts.push(part);
+						else {
+							index = -1;
 						}
 					}
 				}
 
-				sliceParts.sort((a, b) => {
-					return b.boundSize() - a.boundSize();
-				});
+				if (!closed) {
+					var index = firstPoint;
 
-				var slice = new Slice();
+					while (index !== -1) {
+						if (index !== firstPoint) {
+							var intersection = layerIntersectionPoints[index];
+							// PERFORMACE
+							// maybe performance can be increased by unshifting to sepperate
+							// array and to later concat the original en the new array
+							shape.unshift({X: intersection.x, Y: intersection.y});
 
-				for (var slicePart1 of sliceParts) {
-					if (slicePart1.closed) {
-						var merge = false;
+							delete layerIntersectionPoints[index];
+						}
 
-						for (var slicePart2 of slice.parts) {
-							if (slicePart2.closed && slicePart2.intersect(slicePart1).length > 0) {
-								slicePart2.join(slicePart1);
-								merge = true;
+						var connects = lines[index].connects;
+
+						for (var i = 0; i < connects.length; i ++) {
+							var index = connects[i];
+
+							if (layerIntersectionPoints[index] !== undefined) {
 								break;
 							}
+							else {
+								delete layerIntersectionPoints[index];
+								index = -1;
+							}
 						}
-						if (!merge) {
-							slice.add(slicePart1);
-						}
-					}
-					else {
-						slice.add(slicePart1);
 					}
 				}
 
-				slices.push(slice);
+				// don't think this check is nessecary
+				if (shape.length > 0) {
+					var part = new Paths([shape], closed).clean(0.01);
+					shapeParts.push(part);
+				}
 			}
+
+			shapes.push(shapeParts);
 		}
 
 		this.progress.sliced = true;
+		this._updateProgress(settings);
+
+		return shapes;
+	}
+
+	_shapesToSlices (shapes, settings) {
+		var slices = [];
+
+		for (var layer = 0; layer < shapes.length; layer ++) {
+			var shapeParts = shapes[layer];
+
+			shapeParts.sort((a, b) => {
+				return a.boundSize() - b.boundSize();
+			});
+
+			var slice = new Slice();
+
+			for (var i = 0; i < shapeParts.length; i ++) {
+				var shapePart1 = shapeParts[i];
+
+				if (shapePart1.closed) {
+					var merge = false;
+
+					for (var j = 0; j < slice.parts.length; j ++) {
+						var shapePart2 = slice.parts[j].intersect;
+						if (shapePart2.closed && shapePart2.intersect(shapePart1).length > 0) {
+							shapePart2.join(shapePart1);
+							merge = true;
+							break;
+						}
+					}
+					if (!merge) {
+						slice.add(shapePart1);
+					}
+				}
+				else {
+					slice.add(shapePart1);
+				}
+			}
+
+			slices.push(slice);
+		}
+
+		this.progress.generatedSlices = true;
 		this._updateProgress(settings);
 
 		return slices;
