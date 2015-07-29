@@ -208,7 +208,8 @@ export default class {
 					continue;
 				}
 
-				var firstPoint = index;
+				var firstPoints = [index];
+				var isFirstPoint = true;
 				var closed = false;
 
 				var shape = [];
@@ -226,7 +227,7 @@ export default class {
 					for (var j = 0; j < connects.length; j ++) {
 						var index = connects[j];
 
-						if (index === firstPoint && shape.length > 2) {
+						if (firstPoints.indexOf(index) !== -1 && shape.length > 2) {
 							closed = true;
 							index = -1;
 							break;
@@ -241,6 +242,10 @@ export default class {
 
 							// can't calculate normal if distance is smaller as 0.0001
 							if ((faceNormal.x === 0 && faceNormal.y === 0) || a.distanceTo(b) < 0.0001) {
+								if (isFirstPoint) {
+									firstPoints.push(index);
+								}
+
 								delete intersectionPoints[index];
 
 								connects = connects.concat(lines[index].connects);
@@ -266,6 +271,7 @@ export default class {
 							index = -1;
 						}
 					}
+					isFirstPoint = false;
 				}
 
 				if (!closed) {
@@ -703,7 +709,6 @@ export default class {
 
 		this.progress.generatedGCode = true;
 		this._updateProgress(settings);
-
 
 		return gcode.getGCode();
 	}
