@@ -27,7 +27,6 @@ export default class {
 	}
 
 	setGeometry (geometry, matrix) {
-		//convert buffergeometry to geometry;
 		if (geometry.type === 'BufferGeometry') {
 			geometry = new THREE.Geometry().fromBufferGeometry(geometry);
 		}
@@ -57,9 +56,9 @@ export default class {
 		// get unique lines from geometry;
 		var lines = this._createLines(settings);
 
-		var {layersIntersectionIndexes, layersIntersectionPoints} = this._calculateLayersIntersections(lines, settings);
+		var {layerIntersectionIndexes, layerIntersectionPoints} = this._calculateLayersIntersections(lines, settings);
 
-		var shapes = this._intersectionsToShapes(layersIntersectionIndexes, layersIntersectionPoints, lines, settings);
+		var shapes = this._intersectionsToShapes(layerIntersectionIndexes, layerIntersectionPoints, lines, settings);
 
 		var slices = this._shapesToSlices(shapes, settings);
 
@@ -141,23 +140,24 @@ export default class {
 
 		var numLayers = height / layerHeight;
 
-		var layersIntersectionIndexes = [];
-		var layersIntersectionPoints = [];
+		var layerIntersectionIndexes = [];
+		var layerIntersectionPoints = [];
 		for (var layer = 0; layer < numLayers; layer ++) {
-			layersIntersectionIndexes[layer] = [];
-			layersIntersectionPoints[layer] = [];
+			layerIntersectionIndexes[layer] = [];
+			layerIntersectionPoints[layer] = [];
 		}
 
 		for (var lineIndex = 0; lineIndex < lines.length; lineIndex ++) {
 			var line = lines[lineIndex].line;
 
+			// not happy about this, toFixes returns a string which has to be parsed again
 			var min = Math.ceil(Math.min(line.start.y, line.end.y) / layerHeight);
 			var max = Math.floor(Math.max(line.start.y, line.end.y) / layerHeight);
 
 			for (var layerIndex = min; layerIndex <= max; layerIndex ++) {
 				if (layerIndex >= 0 && layerIndex < numLayers) {
 
-					layersIntersectionIndexes[layerIndex].push(lineIndex);
+					layerIntersectionIndexes[layerIndex].push(lineIndex);
 
 					var y = layerIndex * layerHeight;
 
@@ -171,7 +171,7 @@ export default class {
 						var z = line.end.z * alpha + line.start.z * (1 - alpha);
 					}
 
-					layersIntersectionPoints[layerIndex][lineIndex] = new THREE.Vector2(z, x);
+					layerIntersectionPoints[layerIndex][lineIndex] = new THREE.Vector2(z, x);
 				}
 			}
 		}
@@ -180,31 +180,31 @@ export default class {
 		this._updateProgress(settings);
 
 		return {
-			layersIntersectionIndexes, 
-			layersIntersectionPoints
+			layerIntersectionIndexes, 
+			layerIntersectionPoints
 		};
 	}
 
-	_intersectionsToShapes (layersIntersectionIndexes, layersIntersectionPoints, lines, settings) {
+	_intersectionsToShapes (layerIntersectionIndexes, layerIntersectionPoints, lines, settings) {
 		console.log("generating slices");
 
 		var layerHeight = settings.config["layerHeight"];
 
 		var shapes = [];
 
-		for (var layer = 1; layer < layersIntersectionIndexes.length; layer ++) {
-			var layerIntersectionIndexes = layersIntersectionIndexes[layer];
-			var layerIntersectionPoints = layersIntersectionPoints[layer];
+		for (var layer = 1; layer < layerIntersectionIndexes.length; layer ++) {
+			var intersectionIndexes = layerIntersectionIndexes[layer];
+			var intersectionPoints = layerIntersectionPoints[layer];
 
-			if (layerIntersectionIndexes.length === 0) {
+			if (intersectionIndexes.length === 0) {
 				continue;
 			}
 
 			var shapeParts = [];
-			for (var i = 0; i < layerIntersectionIndexes.length; i ++) {
-				var index = layerIntersectionIndexes[i];
+			for (var i = 0; i < intersectionIndexes.length; i ++) {
+				var index = intersectionIndexes[i];
 
-				if (layerIntersectionPoints[index] === undefined) {
+				if (intersectionPoints[index] === undefined) {
 					continue;
 				}
 
@@ -214,11 +214,11 @@ export default class {
 				var shape = [];
 
 				while (index !== -1) {
-					var intersection = layerIntersectionPoints[index];
+					var intersection = intersectionPoints[index];
 					//uppercase X and Y because clipper vector
 					shape.push({X: intersection.x, Y: intersection.y});
 
-					delete layerIntersectionPoints[index];
+					delete intersectionPoints[index];
 
 					var connects = lines[index].connects;
 					var faceNormals = lines[index].normals;
@@ -233,22 +233,22 @@ export default class {
 						}
 
 						// Check if index has an intersection or is already used
-						if (layerIntersectionPoints[index] !== undefined) {
-
+						if (intersectionPoints[index] !== undefined) {
 							var faceNormal = faceNormals[Math.floor(j / 2)];
 
 							var a = new THREE.Vector2(intersection.x, intersection.y);
-							var b = new THREE.Vector2(layerIntersectionPoints[index].x, layerIntersectionPoints[index].y);
+							var b = new THREE.Vector2(intersectionPoints[index].x, intersectionPoints[index].y);
 
-							//threejs can't calculate normal if distance is smaller as 0.0001
+							// can't calculate normal if distance is smaller as 0.0001
 							if ((faceNormal.x === 0 && faceNormal.y === 0) || a.distanceTo(b) < 0.0001) {
-								delete layerIntersectionPoints[index];
+								delete intersectionPoints[index];
 
 								connects = connects.concat(lines[index].connects);
 								faceNormals = faceNormals.concat(lines[index].normals);
 								index = -1;
 							}
 							else {
+								// make sure the path goes the right direction
 								// THREE.Vector2.normal is not yet implimented
 								// var normal = a.sub(b).normal().normalize();
 								var normal = a.sub(b);
@@ -273,13 +273,10 @@ export default class {
 
 					while (index !== -1) {
 						if (index !== firstPoint) {
-							var intersection = layerIntersectionPoints[index];
-							// PERFORMACE
-							// maybe performance can be increased by unshifting to sepperate
-							// array and to later concat the original en the new array
+							var intersection = intersectionPoints[index];
 							shape.unshift({X: intersection.x, Y: intersection.y});
 
-							delete layerIntersectionPoints[index];
+							delete intersectionPoints[index];
 						}
 
 						var connects = lines[index].connects;
@@ -287,11 +284,11 @@ export default class {
 						for (var i = 0; i < connects.length; i ++) {
 							var index = connects[i];
 
-							if (layerIntersectionPoints[index] !== undefined) {
+							if (intersectionPoints[index] !== undefined) {
 								break;
 							}
 							else {
-								delete layerIntersectionPoints[index];
+								delete intersectionPoints[index];
 								index = -1;
 							}
 						}
@@ -320,6 +317,8 @@ export default class {
 		for (var layer = 0; layer < shapes.length; layer ++) {
 			var shapeParts = shapes[layer];
 
+			// sort object for better hole detections
+			// holes always have a smaller bound as its parent
 			shapeParts.sort((a, b) => {
 				return a.boundSize() - b.boundSize();
 			});
@@ -361,7 +360,7 @@ export default class {
 	_generateInnerLines (slices, settings) {
 		console.log("generating outer lines and inner lines");
 
-		//need to scale up everything because of clipper rounding errors
+		// need to scale up everything because of clipper rounding errors
 		var scale = 100;
 
 		var layerHeight = settings.config["layerHeight"];
@@ -379,7 +378,7 @@ export default class {
 					continue;
 				}
 
-				//var outerLine = part.intersect.clone().scaleUp(scale).offset(-nozzleRadius);
+				// var outerLine = part.intersect.clone().scaleUp(scale).offset(-nozzleRadius);
 				var outerLine = part.intersect.scaleUp(scale).offset(-nozzleRadius);
 
 				if (outerLine.length > 0) {
@@ -406,7 +405,7 @@ export default class {
 	_generateInfills (slices, settings) {
 		console.log("generating infills");
 
-		//need to scale up everything because of clipper rounding errors
+		// need to scale up everything because of clipper rounding errors
 		var scale = 100;
 
 		var layerHeight = settings.config["layerHeight"];
@@ -489,7 +488,7 @@ export default class {
 	_generateSupport (slices, settings) {
 		console.log("generating support");
 
-		//need to scale up everything because of clipper rounding errors
+		// need to scale up everything because of clipper rounding errors
 		var scale = 100;
 
 		var layerHeight = settings.config["layerHeight"];
@@ -562,7 +561,7 @@ export default class {
 	_optimizePaths (slices, settings) {
 		console.log("opimize paths");
 
-		//need to scale up everything because of clipper rounding errors
+		// need to scale up everything because of clipper rounding errors
 		var scale = 100;
 
 		var brimOffset = settings.config["brimOffset"] * scale;
@@ -647,8 +646,8 @@ export default class {
 					var point = shape[j % shape.length];
 
 					if (j === 0) {
-						//TODO
-						//moveTo should impliment combing
+						// TODO
+						// moveTo should impliment combing
 						gcode.moveTo(point.X, point.Y, layer);
 
 						if (unRetract) {
