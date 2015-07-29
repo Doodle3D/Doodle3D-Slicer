@@ -5,24 +5,23 @@ export default class {
 	constructor () {
 		this.worker = new Worker('./worker.js');
 
-		var scope = this;
-		this.worker.addEventListener('message', function (event) {
+		this.worker.addEventListener('message', (event) => {
 			switch (event.data['cmd']) {
 				case 'PROGRESS':
 
-					if (scope.onprogress !== undefined) {
+					if (this.onprogress !== undefined) {
 						var progress = event.data['progress'];
 
-						scope.onprogress(progress);
+						this.onprogress(progress);
 					}
 				break;
 
 				case 'GCODE':
-					if (scope.onfinish !== undefined) {
+					if (this.onfinish !== undefined) {
 						var reader = new FileReader();
-						reader.addEventListener("loadend", function() {
+						reader.addEventListener("loadend", () => {
 							var gcode = reader.result;
-							scope.onfinish(gcode);
+							this.onfinish(gcode);
 						});
 						reader.readAsBinaryString(event.data['gcode']);
 					}
@@ -64,6 +63,9 @@ export default class {
 			var key = geometry.attributesKeys[i];
 			buffers.push(geometry.attributes[key].array.buffer);
 		}
+
+		delete geometry.boundingBox;
+		delete geometry.boundingSphere;
 
 		this.worker.postMessage({
 			'cmd': 'SET_MESH', 
