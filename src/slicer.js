@@ -82,7 +82,7 @@ export default class {
 	}
 
 	_createLines (settings) {
-		console.log('constructing lines from geometry');
+		console.log('constructing unique lines from geometry');
 
 		var lines = [];
 		var lineLookup = {};
@@ -188,8 +188,6 @@ export default class {
 	_intersectionsToShapes (layerIntersectionIndexes, layerIntersectionPoints, lines, settings) {
 		console.log("generating slices");
 
-		var layerHeight = settings.config["layerHeight"];
-
 		var shapes = [];
 
 		for (var layer = 1; layer < layerIntersectionIndexes.length; layer ++) {
@@ -275,10 +273,10 @@ export default class {
 				}
 
 				if (!closed) {
-					var index = firstPoint;
+					var index = firstPoints[0];
 
 					while (index !== -1) {
-						if (index !== firstPoint) {
+						if (firstPoints.indexOf(index) === -1) {
 							var intersection = intersectionPoints[index];
 							shape.unshift({X: intersection.x, Y: intersection.y});
 
@@ -334,22 +332,23 @@ export default class {
 			for (var i = 0; i < shapeParts.length; i ++) {
 				var shapePart1 = shapeParts[i];
 
-				if (shapePart1.closed) {
-					var merge = false;
+				if (!shapePart1.closed) {
+					slice.add(shapePart1);
+					continue;
+				}
 
-					for (var j = 0; j < slice.parts.length; j ++) {
-						var shapePart2 = slice.parts[j].intersect;
-						if (shapePart2.closed && shapePart2.intersect(shapePart1).length > 0) {
-							shapePart2.join(shapePart1);
-							merge = true;
-							break;
-						}
-					}
-					if (!merge) {
-						slice.add(shapePart1);
+				var merge = false;
+
+				for (var j = 0; j < slice.parts.length; j ++) {
+					var shapePart2 = slice.parts[j].intersect;
+					if (shapePart2.closed && shapePart2.intersect(shapePart1).length > 0) {
+						shapePart2.join(shapePart1);
+						merge = true;
+						break;
 					}
 				}
-				else {
+
+				if (!merge) {
 					slice.add(shapePart1);
 				}
 			}
@@ -464,12 +463,13 @@ export default class {
 						var lowFillArea = fillArea.difference(highFillArea);
 					}
 					else {
+						var lowFillArea = new Paths([], true);
 						var highFillArea = fillArea;
 					}
 
 					var fill = new Paths([], false);
 
-					if (lowFillArea !== undefined && lowFillArea.length > 0) {
+					if (lowFillArea.length > 0 && lowFillArea.length > 0) {
 						var bounds = lowFillArea.bounds();
 						var lowFillTemplate = this._getFillTemplate(bounds, fillGridSize, true, true);
 
