@@ -150,7 +150,6 @@ export default class {
 		for (var lineIndex = 0; lineIndex < lines.length; lineIndex ++) {
 			var line = lines[lineIndex].line;
 
-			// not happy about this, toFixes returns a string which has to be parsed again
 			var min = Math.ceil(Math.min(line.start.y, line.end.y) / layerHeight);
 			var max = Math.floor(Math.max(line.start.y, line.end.y) / layerHeight);
 
@@ -238,7 +237,7 @@ export default class {
 							var a = new THREE.Vector2(intersection.x, intersection.y);
 							var b = new THREE.Vector2(intersectionPoints[index].x, intersectionPoints[index].y);
 
-							// can't calculate normal if distance is smaller as 0.0001
+							// can't calculate normal between points if distance is smaller as 0.0001
 							if ((faceNormal.x === 0 && faceNormal.y === 0) || a.distanceTo(b) < 0.0001) {
 								if (isFirstPoint) {
 									firstPoints.push(index);
@@ -292,7 +291,6 @@ export default class {
 								break;
 							}
 							else {
-								delete intersectionPoints[index];
 								index = -1;
 							}
 						}
@@ -372,6 +370,7 @@ export default class {
 		var nozzleDiameter = settings.config["nozzleDiameter"] * scale;
 		var shellThickness = settings.config["shellThickness"] * scale;
 		var nozzleRadius = nozzleDiameter / 2;
+		var shells = Math.round(shellThickness / nozzleDiameter);
 
 		for (var layer = 0; layer < slices.length; layer ++) {
 			var slice = slices[layer];
@@ -389,7 +388,9 @@ export default class {
 				if (outerLine.length > 0) {
 					part.outerLine = outerLine;
 
-					for (var offset = nozzleDiameter; offset <= shellThickness; offset += nozzleDiameter) {
+					for (var shell = 1; shell < shells; shell += 1) {
+						var offset = shell * nozzleDiameter;
+
 						var innerLine = outerLine.offset(-offset);
 
 						if (innerLine.length > 0) {
@@ -614,7 +615,7 @@ export default class {
 		var left = Math.floor(bounds.left / size) * size;
 		var right = Math.ceil(bounds.right / size) * size;
 		var top = Math.floor(bounds.top / size) * size;
-		var bottom = Math.floor(bounds.bottom / size) * size;
+		var bottom = Math.ceil(bounds.bottom / size) * size;
 
 		var width = right - left;
 
