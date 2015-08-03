@@ -62,6 +62,8 @@ export default class {
 
 		var slices = this._shapesToSlices(shapes, settings);
 
+		//return;
+
 		this._generateInnerLines(slices, settings);
 		
 		this._generateInfills(slices, settings);
@@ -109,13 +111,13 @@ export default class {
 			if (face.normal.y !== 1 && face.normal.y !== -1) {
 				var normal = new THREE.Vector2(face.normal.z, face.normal.x).normalize();
 
-				//check for only adding unique lines
-				//returns index of said line
+				// check for only adding unique lines
+				// returns index of said line
 				var a = addLine(face.a, face.b);
 				var b = addLine(face.b, face.c);
 				var c = addLine(face.c, face.a);
 
-				//set connecting lines (based on face)
+				// set connecting lines (based on face)
 				lines[a].connects.push(b, c);
 				lines[b].connects.push(c, a);
 				lines[c].connects.push(a, b);
@@ -213,7 +215,7 @@ export default class {
 
 				while (index !== -1) {
 					var intersection = intersectionPoints[index];
-					//uppercase X and Y because clipper vector
+					// uppercase X and Y because clipper vector
 					shape.push({X: intersection.x, Y: intersection.y});
 
 					delete intersectionPoints[index];
@@ -297,9 +299,8 @@ export default class {
 					}
 				}
 
-				// don't think this check is nessecary
-				if (shape.length > 0) {
-					var part = new Paths([shape], closed).clean(0.01);
+				var part = new Paths([shape], closed).clean(0.01);
+				if (part.length > 0) {
 					shapeParts.push(part);
 				}
 			}
@@ -319,35 +320,36 @@ export default class {
 		for (var layer = 0; layer < shapes.length; layer ++) {
 			var shapeParts = shapes[layer];
 
-			// sort object for better hole detections
-			// holes always have a smaller bound as its parent
-			shapeParts.sort((a, b) => {
-				return a.boundSize() - b.boundSize();
-			});
-
 			var slice = new Slice();
 
+			var holes = [];
+			var outlines = [];
+
 			for (var i = 0; i < shapeParts.length; i ++) {
-				var shapePart1 = shapeParts[i];
+				var shape = shapeParts[i];
 
-				if (!shapePart1.closed) {
-					slice.add(shapePart1);
-					continue;
+				if (!shape.closed) {
+					slice.add(shape);
 				}
+				else if (shape.isHole()) {
+					holes.push(shape);
+				}
+				else {
+					slice.add(shape);
+					outlines.push(shape);
+				}
+			}
 
-				var merge = false;
+			for (var i = 0; i < holes.length; i ++) {
+				var hole = holes[i];
 
-				for (var j = 0; j < slice.parts.length; j ++) {
-					var shapePart2 = slice.parts[j].intersect;
-					if (shapePart2.closed && shapePart2.intersect(shapePart1).length > 0) {
-						shapePart2.join(shapePart1);
-						merge = true;
+				for (var j = 0; j < outlines.length; j ++) {
+					var outline = outlines[j];
+
+					if (outline.pointCollision(hole[0][0])) {
+						outline.join(hole);
 						break;
 					}
-				}
-
-				if (!merge) {
-					slice.add(shapePart1);
 				}
 			}
 
@@ -451,8 +453,8 @@ export default class {
 					var inset = (part.innerLines.length > 0) ? part.innerLines[part.innerLines.length - 1] : outerLine;
 
 					var fillArea = inset.offset(-nozzleRadius);
+					var lowFillArea = false;
 					if (surroundingLayer) {
-
 						var highFillArea = fillArea.difference(surroundingLayer);
 
 						if (infillOverlap > 0) {
@@ -464,13 +466,12 @@ export default class {
 						var lowFillArea = fillArea.difference(highFillArea);
 					}
 					else {
-						var lowFillArea = new Paths([], true);
 						var highFillArea = fillArea;
 					}
 
 					var fill = new Paths([], false);
 
-					if (lowFillArea.length > 0 && lowFillArea.length > 0) {
+					if (lowFillArea && lowFillArea.length > 0) {
 						var bounds = lowFillArea.bounds();
 						var lowFillTemplate = this._getFillTemplate(bounds, fillGridSize, true, true);
 
@@ -519,7 +520,7 @@ export default class {
 					sliceSkin = sliceSkin;
 
 					var supportAreasSlimmed = supportAreas.difference(sliceSkin.offset(supportMargin));
-					if (supportAreasSlimmed.length === 0) {
+					if (supportAreasSlimmed.area() < 100.0) {
 						supportAreas = supportAreas.difference(sliceSkin);
 					}
 					else {
@@ -530,7 +531,7 @@ export default class {
 				
 				var supportTemplate = this._getFillTemplate(supportAreas.bounds(), supportGridSize, true, true);
 				var supportFill = supportTemplate.intersect(supportAreas);
-				if (supportFill.length === 0 || true) {
+				if (supportFill.length === 0) {
 					currentSlice.support = supportAreas.clone();
 				}
 				else {
@@ -562,7 +563,6 @@ export default class {
 
 		this.progress.generatedSupport = true;
 		this._updateProgress(settings);
-
 	}
 
 	_optimizePaths (slices, settings) {

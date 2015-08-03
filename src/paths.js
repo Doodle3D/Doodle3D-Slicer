@@ -159,10 +159,8 @@ export default class Paths extends Array {
 
 		for (var i = 0; i < this.length; i ++) {
 			var shape = this[i];
-			if (shape.closed) {
-				var area = Math.abs(ClipperLib.Clipper.Area(shape));
-				areas.push(area);
-			}
+			var area = Math.abs(ClipperLib.Clipper.Area(shape));
+			areas.push(area);
 		}
 
 		return areas;
@@ -213,11 +211,23 @@ export default class Paths extends Array {
 		return new Paths(ClipperLib.Clipper.CleanPolygons(this, cleanDelta), this.closed);
 	}
 
+	isHole () {
+		if (this.length !== 1) {
+			console.log('wtf?');
+		}
+		return !ClipperLib.Clipper.Orientation(this[0]);
+	}
+
+	pointCollision (point) {
+		var collision = ClipperLib.Clipper.PointInPolygon(point, this[0]);
+		return ClipperLib.Clipper.PointInPolygon(point, this[0]);
+	}
+
 	boundSize () {
 		var bounds = this.bounds();
 
 		var width = bounds.right - bounds.left;
-		var height = bounds.top - bounds.bottom;
+		var height = bounds.bottom - bounds.top;
 
 		return width * height;
 	}
