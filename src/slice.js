@@ -5,6 +5,30 @@ export default class {
 		this.parts = [];
 	}
 
+	removeSelfIntersect () {
+		for (var i = 0; i < this.parts.length; i ++) {
+			var part1 = this.parts[i].intersect;
+
+			if (!part1.closed) {
+				continue;
+			}
+
+			for (var j = i + 1; j < this.parts.length; j ++) {
+				var part2 = this.parts[j].intersect;
+
+				if (!part2.closed) {
+					continue;
+				}
+
+				if (part2.intersect(part1).length > 0) {
+					this.parts[i].intersect = part1.union(part2);
+
+					this.parts.splice(j, 1);
+				}
+			}
+		}
+	}
+
 	optimizePaths (start) {
 		if (this.brim !== undefined && this.brim.length > 0) {
 			this.brim = this.brim.optimizePath(start);

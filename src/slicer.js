@@ -353,6 +353,8 @@ export default class {
 				}
 			}
 
+			slice.removeSelfIntersect();
+
 			slices.push(slice);
 		}
 
