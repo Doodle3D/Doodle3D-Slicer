@@ -62,8 +62,6 @@ export default class {
 
 		var slices = this._shapesToSlices(shapes, settings);
 
-		//return;
-
 		this._generateInnerLines(slices, settings);
 		
 		this._generateInfills(slices, settings);
@@ -386,8 +384,8 @@ export default class {
 					continue;
 				}
 
-				// var outerLine = part.intersect.clone().scaleUp(scale).offset(-nozzleRadius);
-				var outerLine = part.intersect.scaleUp(scale).offset(-nozzleRadius);
+				var outerLine = part.intersect.clone().scaleUp(scale).offset(-nozzleRadius);
+				//var outerLine = part.intersect.scaleUp(scale).offset(-nozzleRadius);
 
 				if (outerLine.length > 0) {
 					part.outerLine = outerLine;
