@@ -212,9 +212,6 @@ export default class Paths extends Array {
 	}
 
 	isHole () {
-		if (this.length !== 1) {
-			console.log('wtf?');
-		}
 		return !ClipperLib.Clipper.Orientation(this[0]);
 	}
 

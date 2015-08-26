@@ -338,6 +338,10 @@ export default class {
 				}
 			}
 
+			outlines.sort((a, b) => {
+				return a.boundSize() - b.boundSize();
+			});
+
 			for (var i = 0; i < holes.length; i ++) {
 				var hole = holes[i];
 
@@ -384,8 +388,8 @@ export default class {
 					continue;
 				}
 
-				var outerLine = part.intersect.clone().scaleUp(scale).offset(-nozzleRadius);
-				//var outerLine = part.intersect.scaleUp(scale).offset(-nozzleRadius);
+				// var outerLine = part.intersect.clone().scaleUp(scale).offset(-nozzleRadius);
+				var outerLine = part.intersect.scaleUp(scale).offset(-nozzleRadius);
 
 				if (outerLine.length > 0) {
 					part.outerLine = outerLine;

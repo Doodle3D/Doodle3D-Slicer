@@ -21,9 +21,10 @@ export default class {
 				}
 
 				if (part2.intersect(part1).length > 0) {
-					this.parts[i].intersect = part1.union(part2);
+					part1 = this.parts[i].intersect = part1.union(part2);
 
 					this.parts.splice(j, 1);
+					j --;
 				}
 			}
 		}
