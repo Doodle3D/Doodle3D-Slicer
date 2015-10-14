@@ -30,7 +30,7 @@ export default class {
 		if (geometry.type === 'BufferGeometry') {
 			geometry = new THREE.Geometry().fromBufferGeometry(geometry);
 		}
-		else if (geometry.type === 'Geometry') {
+		else if (geometry.type.endsWith('Geometry')) {
 			geometry = geometry.clone();
 		}
 		else {
@@ -138,7 +138,7 @@ export default class {
 		var layerHeight = settings.config["layerHeight"];
 		var height = settings.config["dimensionsZ"];
 
-		var numLayers = height / layerHeight;
+		var numLayers = Math.floor(height / layerHeight);
 
 		var layerIntersectionIndexes = [];
 		var layerIntersectionPoints = [];

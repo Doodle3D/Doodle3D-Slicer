@@ -2,3 +2,5 @@
 *.DS_Store
 
 jspm_packages/*
+
+bundle.js

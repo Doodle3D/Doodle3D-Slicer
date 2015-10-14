@@ -1,20 +1,21 @@
 System.config({
-  "baseURL": "/",
-  "defaultJSExtensions": true,
-  "transpiler": "babel",
-  "babelOptions": {
+  baseURL: "/",
+  defaultJSExtensions: true,
+  transpiler: "babel",
+  babelOptions: {
     "optional": [
       "runtime"
     ]
   },
-  "paths": {
+  paths: {
     "github:*": "jspm_packages/github/*",
     "npm:*": "jspm_packages/npm/*"
-  }
-});
+  },
+  bundles: {
+    "bundle.js": []
+  },
 
-System.config({
-  "map": {
+  map: {
     "babel": "npm:babel-core@5.8.21",
     "babel-runtime": "npm:babel-runtime@5.8.20",
     "clipper-lib": "npm:clipper-lib@1.0.0",
@@ -23,7 +24,7 @@ System.config({
     "nodeca/js-yaml": "github:nodeca/js-yaml@3.3.1",
     "read-yaml": "npm:read-yaml@1.0.0",
     "systemjs/plugin-json": "github:systemjs/plugin-json@0.1.0",
-    "three.js": "github:mrdoob/three.js@master",
+    "three.js": "github:mrdoob/three.js@r72",
     "github:jspm/nodelibs-assert@0.1.0": {
       "assert": "npm:assert@1.3.0"
     },
@@ -92,4 +93,3 @@ System.config({
     }
   }
 });
-
