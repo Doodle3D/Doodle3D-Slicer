@@ -342,6 +342,21 @@ export default class {
 				return a.boundSize() - b.boundSize();
 			});
 
+			console.log('test');
+
+			if (holes.length > outlines.length) {
+				[holes, outlines] = [outlines, holes];
+			}
+			else if (holes.length === outlines.length) {
+				holes.sort((a, b) => {
+					return a.boundSize() - b.boundSize();
+				});
+
+				if (holes[0].boundSize > outlines[0].boundSize()) {
+					[holes, outlines] = [outlines, holes];
+				}
+			}
+
 			for (var i = 0; i < holes.length; i ++) {
 				var hole = holes[i];
 
