@@ -1,4 +1,5 @@
 import THREE from 'three.js';
+import EventDispatcher from 'casperlamboo/EventDispatcher';
 import calculateLayersIntersections from './sliceActions/calculateLayersIntersections.js';
 import createLines from './sliceActions/createLines.js';
 import generateInfills from './sliceActions/generateInfills.js';
@@ -9,8 +10,10 @@ import optimizePaths from './sliceActions/optimizePaths.js';
 import shapesToSlices from './sliceActions/shapesToSlices.js';
 import slicesToGCode from './sliceActions/slicesToGCode.js';
 
-export default class {
+export default class extends EventDispatcher {
 	constructor () {
+		super();
+
 		this.progress = {
 			createdLines: false,
 			calculatedLayerIntersections: false,
@@ -98,34 +101,36 @@ export default class {
 		this.progress.generatedGCode = true;
 	  this._updateProgress(settings);
 
-		if (this.onfinish !== undefined) {
-			this.onfinish(gcode);
-		}
+		this.dispatchEvent({
+			type: 'finish',
+			gcode
+		});
 
 		return gcode;
 	}
 
 	_updateProgress (settings) {
-		if (this.onprogress !== undefined) {
-			var supportEnabled = settings.config["supportEnabled"];
+		var supportEnabled = settings.config["supportEnabled"];
 
-			var progress = {};
+		var progress = {};
 
-			var procent = 0;
-			var length = 0;
-			for (var i in this.progress) {
-				if (!(!supportEnabled && i === "generatedSupport")) {
-					progress[i] = this.progress[i];
-					if (progress[i]) {
-						procent += 1;
-					}
-					length += 1;
+		var procent = 0;
+		var length = 0;
+		for (var i in this.progress) {
+			if (!(!supportEnabled && i === "generatedSupport")) {
+				progress[i] = this.progress[i];
+				if (progress[i]) {
+					procent += 1;
 				}
+				length += 1;
 			}
-
-			progress.procent = procent / length;
-
-			this.onprogress(progress);
 		}
+
+		progress.procent = procent / length;
+
+		this.dispatchEvent({
+			type: 'progress',
+			progress
+		});
 	}
 }

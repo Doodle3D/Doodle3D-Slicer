@@ -18,6 +18,7 @@ System.config({
   map: {
     "babel": "npm:babel-core@5.8.21",
     "babel-runtime": "npm:babel-runtime@5.8.20",
+    "casperlamboo/EventDispatcher": "github:casperlamboo/EventDispatcher@master",
     "clipper-lib": "npm:clipper-lib@1.0.0",
     "core-js": "npm:core-js@0.9.18",
     "json": "github:systemjs/plugin-json@0.1.0",
