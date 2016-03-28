@@ -12,14 +12,14 @@ import slicesToGCode from './sliceActions/slicesToGCode.js';
 export default class {
 	constructor () {
 		this.progress = {
-			createdLines: false, 
-			calculatedLayerIntersections: false, 
-			sliced: false, 
-			generatedSlices: false, 
-			generatedInnerLines: false, 
-			generatedInfills: false, 
-			generatedSupport: false, 
-			optimizedPaths: false,  
+			createdLines: false,
+			calculatedLayerIntersections: false,
+			sliced: false,
+			generatedSlices: false,
+			generatedInnerLines: false,
+			generatedInfills: false,
+			generatedSupport: false,
+			optimizedPaths: false,
 			generatedGCode: false
 		};
 	}
