@@ -5,6 +5,7 @@
       "lib": "src"
     },
     "dependencies": {
+      "casperlamboo/EventDispatcher": "github:casperlamboo/EventDispatcher@master",
       "clipper-lib": "npm:clipper-lib@^1.0.0",
       "nodeca/js-yaml": "github:nodeca/js-yaml@^3.3.1",
       "read-yaml": "npm:read-yaml@^1.0.0",

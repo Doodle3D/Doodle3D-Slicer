@@ -1,30 +1,35 @@
 import THREE from 'three.js';
 import Settings from './settings.js';
+import EventDispatcher from 'casperlamboo/EventDispatcher';
 
-export default class {
+export default class extends EventDispatcher {
 	constructor () {
+		super();
+
 		this.worker = new Worker('./worker.js');
 
 		this.worker.addEventListener('message', (event) => {
 			switch (event.data['cmd']) {
 				case 'PROGRESS':
 
-					if (this.onprogress !== undefined) {
-						var progress = event.data['progress'];
+					var progress = event.data['progress'];
 
-						this.onprogress(progress);
-					}
+					this.dispatchEvent({
+						type: 'progress',
+						progress
+					});
 				break;
 
 				case 'GCODE':
-					if (this.onfinish !== undefined) {
-						var reader = new FileReader();
-						reader.addEventListener("loadend", () => {
-							var gcode = reader.result;
-							this.onfinish(gcode);
+					var reader = new FileReader();
+					reader.addEventListener("loadend", () => {
+						var gcode = reader.result;
+						this.dispatchEvent({
+							type: 'finish',
+							gcode
 						});
-						reader.readAsBinaryString(event.data['gcode']);
-					}
+					});
+					reader.readAsBinaryString(event.data['gcode']);
 				break;
 			}
 		}, false);
@@ -68,11 +73,11 @@ export default class {
 		delete geometry.boundingSphere;
 
 		this.worker.postMessage({
-			'cmd': 'SET_MESH', 
+			'cmd': 'SET_MESH',
 			'geometry': {
-				'attributes': geometry.attributes, 
+				'attributes': geometry.attributes,
 				'attributesKeys': geometry.attributesKeys
-			}, 
+			},
 			'matrix': matrix.toArray()
 		}, buffers);
 
@@ -81,7 +86,7 @@ export default class {
 
 	slice (settings) {
 		this.worker.postMessage({
-			'cmd': 'SLICE', 
+			'cmd': 'SLICE',
 			'settings': settings.config
 		});
 
