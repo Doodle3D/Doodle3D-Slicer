@@ -7,11 +7,11 @@ export default function createLines(geometry, settings) {
   var lineLookup = {};
 
   var addLine = (a, b) => {
-    var index = lineLookup[b + '_' + a];
+    var index = lineLookup[`${b}_${a}`];
 
     if (index === undefined) {
       index = lines.length;
-      lineLookup[a + '_' + b] = index;
+      lineLookup[`${a}_${b}`] = index;
 
       lines.push({
         line: new THREE.Line3(geometry.vertices[a], geometry.vertices[b]),
