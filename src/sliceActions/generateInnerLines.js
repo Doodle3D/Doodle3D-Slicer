@@ -1,12 +1,12 @@
+const scale = 100;
+
 export default function generateInnerLines(slices, settings) {
   console.log("generating outer lines and inner lines");
 
   // need to scale up everything because of clipper rounding errors
-  var scale = 100;
-
-  var layerHeight = settings.config["layerHeight"];
-  var nozzleDiameter = settings.config["nozzleDiameter"] * scale;
-  var shellThickness = settings.config["shellThickness"] * scale;
+  let {layerHeight, nozzleDiameter, shellThickness} = settings.config;
+  nozzleDiameter *= scale;
+  shellThickness *= scale;
   var nozzleRadius = nozzleDiameter / 2;
   var shells = Math.round(shellThickness / nozzleDiameter);
 
