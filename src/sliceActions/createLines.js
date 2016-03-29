@@ -1,7 +1,7 @@
 import THREE from 'three.js';
 
 function addLine(geometry, lineLookup, lines, a, b) {
-  var index = lineLookup[`${b}_${a}`];
+  let index = lineLookup[`${b}_${a}`];
 
   if (index === undefined) {
     index = lines.length;
@@ -20,19 +20,19 @@ function addLine(geometry, lineLookup, lines, a, b) {
 export default function createLines(geometry, settings) {
   console.log('constructing unique lines from geometry');
 
-  var lines = [];
-  var lineLookup = {};
+  const lines = [];
+  const lineLookup = {};
 
-  for (var i = 0; i < geometry.faces.length; i ++) {
-    var face = geometry.faces[i];
+  for (let i = 0; i < geometry.faces.length; i ++) {
+    const face = geometry.faces[i];
     if (face.normal.y !== 1 && face.normal.y !== -1) {
-      var normal = new THREE.Vector2(face.normal.z, face.normal.x).normalize();
+      const normal = new THREE.Vector2(face.normal.z, face.normal.x).normalize();
 
       // check for only adding unique lines
       // returns index of said line
-      var a = addLine(geometry, lineLookup, lines, face.a, face.b);
-      var b = addLine(geometry, lineLookup, lines, face.b, face.c);
-      var c = addLine(geometry, lineLookup, lines, face.c, face.a);
+      const a = addLine(geometry, lineLookup, lines, face.a, face.b);
+      const b = addLine(geometry, lineLookup, lines, face.b, face.c);
+      const c = addLine(geometry, lineLookup, lines, face.c, face.a);
 
       // set connecting lines (based on face)
       lines[a].connects.push(b, c);
