@@ -5,36 +5,37 @@ export default function calculateLayersIntersections(lines, settings) {
 
   const { layerHeight, dimensionsZ: height } = settings.config;
 
-  var numLayers = Math.floor(height / layerHeight);
+  const numLayers = Math.floor(height / layerHeight);
 
-  var layerIntersectionIndexes = [];
-  var layerIntersectionPoints = [];
-  for (var layer = 0; layer < numLayers; layer ++) {
+  const layerIntersectionIndexes = [];
+  const layerIntersectionPoints = [];
+  for (let layer = 0; layer < numLayers; layer ++) {
     layerIntersectionIndexes[layer] = [];
     layerIntersectionPoints[layer] = [];
   }
 
-  for (var lineIndex = 0; lineIndex < lines.length; lineIndex ++) {
-    var line = lines[lineIndex].line;
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex ++) {
+    const line = lines[lineIndex].line;
 
-    var min = Math.ceil(Math.min(line.start.y, line.end.y) / layerHeight);
-    var max = Math.floor(Math.max(line.start.y, line.end.y) / layerHeight);
+    const min = Math.ceil(Math.min(line.start.y, line.end.y) / layerHeight);
+    const max = Math.floor(Math.max(line.start.y, line.end.y) / layerHeight);
 
-    for (var layerIndex = min; layerIndex <= max; layerIndex ++) {
+    for (let layerIndex = min; layerIndex <= max; layerIndex ++) {
       if (layerIndex >= 0 && layerIndex < numLayers) {
 
         layerIntersectionIndexes[layerIndex].push(lineIndex);
 
-        var y = layerIndex * layerHeight;
+        const y = layerIndex * layerHeight;
+        let x, z;
 
         if (line.start.y === line.end.y) {
-          var x = line.start.x;
-          var z = line.start.z;
+          x = line.start.x;
+          z = line.start.z;
         }
         else {
-          var alpha = (y - line.start.y) / (line.end.y - line.start.y);
-          var x = line.end.x * alpha + line.start.x * (1 - alpha);
-          var z = line.end.z * alpha + line.start.z * (1 - alpha);
+          const alpha = (y - line.start.y) / (line.end.y - line.start.y);
+          x = line.end.x * alpha + line.start.x * (1 - alpha);
+          z = line.end.z * alpha + line.start.z * (1 - alpha);
         }
 
         layerIntersectionPoints[layerIndex][lineIndex] = new THREE.Vector2(z, x);
