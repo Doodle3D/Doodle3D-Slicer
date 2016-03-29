@@ -1,20 +1,26 @@
 import getFillTemplate from './getFillTemplate.js';
 import Paths from '../paths.js';
 
+const scale = 100;
+
 export default function generateSupport(slices, settings) {
   console.log("generating support");
 
   // need to scale up everything because of clipper rounding errors
-  var scale = 100;
+  let {
+    layerHeight,
+    supportGridSize,
+    supportAcceptanceMargin,
+    supportPlateSize: plateSize,
+    supportDistanceY,
+    nozzleDiameter
+  } = settings.config;
 
-  var layerHeight = settings.config["layerHeight"];
-  var supportGridSize = settings.config["supportGridSize"] * scale;
-  var supportAcceptanceMargin = settings.config["supportAcceptanceMargin"] * scale;
-  var supportMargin = settings.config["supportMargin"] * scale;
-  var plateSize = settings.config["supportPlateSize"] * scale;
-  var supportDistanceY = settings.config["supportDistanceY"];
+  supportGridSize *= scale;
+  supportMargin *= scale;
+  plateSize *= scale;
+  nozzleDiameter *= scale;
   var supportDistanceLayers = Math.max(Math.ceil(supportDistanceY / layerHeight), 1);
-  var nozzleDiameter = settings.config["nozzleDiameter"] * scale;
 
   var supportAreas = new Paths([], true);
 

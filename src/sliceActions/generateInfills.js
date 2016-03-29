@@ -1,18 +1,25 @@
 import getFillTemplate from './getFillTemplate.js';
 import Paths from '../paths.js';
 
+const scale = 100;
+
 export default function generateInfills(slices, settings) {
   console.log("generating infills");
 
   // need to scale up everything because of clipper rounding errors
-  var scale = 100;
 
-  var layerHeight = settings.config["layerHeight"];
-  var fillGridSize = settings.config["fillGridSize"] * scale;
-  var bottomThickness = settings.config["bottomThickness"];
-  var topThickness = settings.config["topThickness"];
-  var nozzleDiameter = settings.config["nozzleDiameter"] * scale;
-  var infillOverlap = settings.config["infillOverlap"] * scale;
+  let {
+    layerHeight,
+    fillGridSize,
+    bottomThickness,
+    topThickness,
+    nozzleDiameter,
+    infillOverlap
+  } = settings.config;
+
+  fillGridSize *= scale;
+  nozzleDiameter *= scale;
+  infillOverlap *= scale;
 
   var bottomSkinCount = Math.ceil(bottomThickness/layerHeight);
   var topSkinCount = Math.ceil(topThickness/layerHeight);
