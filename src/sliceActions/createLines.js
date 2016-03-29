@@ -1,27 +1,27 @@
 import THREE from 'three.js';
 
+function addLine(geometry, lineLookup, lines, a, b) {
+  var index = lineLookup[`${b}_${a}`];
+
+  if (index === undefined) {
+    index = lines.length;
+    lineLookup[`${a}_${b}`] = index;
+
+    lines.push({
+      line: new THREE.Line3(geometry.vertices[a], geometry.vertices[b]),
+      connects: [],
+      normals: []
+    });
+  }
+
+  return index;
+}
+
 export default function createLines(geometry, settings) {
   console.log('constructing unique lines from geometry');
 
   var lines = [];
   var lineLookup = {};
-
-  var addLine = (a, b) => {
-    var index = lineLookup[`${b}_${a}`];
-
-    if (index === undefined) {
-      index = lines.length;
-      lineLookup[`${a}_${b}`] = index;
-
-      lines.push({
-        line: new THREE.Line3(geometry.vertices[a], geometry.vertices[b]),
-        connects: [],
-        normals: []
-      });
-    }
-
-    return index;
-  }
 
   for (var i = 0; i < geometry.faces.length; i ++) {
     var face = geometry.faces[i];
@@ -30,9 +30,9 @@ export default function createLines(geometry, settings) {
 
       // check for only adding unique lines
       // returns index of said line
-      var a = addLine(face.a, face.b);
-      var b = addLine(face.b, face.c);
-      var c = addLine(face.c, face.a);
+      var a = addLine(geometry, lineLookup, lines, face.a, face.b);
+      var b = addLine(geometry, lineLookup, lines, face.b, face.c);
+      var c = addLine(geometry, lineLookup, lines, face.c, face.a);
 
       // set connecting lines (based on face)
       lines[a].connects.push(b, c);
