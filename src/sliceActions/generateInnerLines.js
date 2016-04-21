@@ -27,7 +27,8 @@ export default function generateInnerLines(slices, settings) {
       // var outerLine = part.shape.clone().scaleUp(scale).offset(-nozzleRadius);
       var outerLine = part.shape.scaleUp(scale).offset(-nozzleRadius, offsetOptions);
 
-      if (outerLine.length > 0) {
+
+      if (outerLine.paths.length > 0) {
         part.outerLine.join(outerLine);
 
         for (var shell = 1; shell < shells; shell += 1) {
@@ -35,8 +36,8 @@ export default function generateInnerLines(slices, settings) {
 
           var innerLine = outerLine.offset(-offset, offsetOptions);
 
-          if (innerLine.length > 0) {
-            part.innerLines.paths.push(innerLine);
+          if (innerLine.paths.length > 0) {
+            part.innerLines.push(innerLine);
           }
           else {
             break;

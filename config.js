@@ -16,14 +16,14 @@ System.config({
   },
 
   map: {
-    "Doodle3D/clipper-js": "github:Doodle3D/clipper-js@0.0.2",
+    "Doodle3D/clipper-js": "github:Doodle3D/clipper-js@master",
     "babel": "npm:babel-core@5.8.38",
     "babel-runtime": "npm:babel-runtime@5.8.38",
     "casperlamboo/EventDispatcher": "github:casperlamboo/EventDispatcher@master",
     "core-js": "npm:core-js@0.9.18",
     "json": "github:systemjs/plugin-json@0.1.0",
     "three.js": "github:mrdoob/three.js@r72",
-    "github:Doodle3D/clipper-js@0.0.2": {
+    "github:Doodle3D/clipper-js@master": {
       "clipper-lib": "npm:clipper-lib@1.0.0"
     },
     "github:jspm/nodelibs-assert@0.1.0": {

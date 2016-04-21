@@ -104,23 +104,22 @@ export default class extends EventDispatcher {
 		this.progress.generatedGCode = true;
 	  this._updateProgress(settings);
 
-		this.dispatchEvent({
-			type: 'finish',
-			gcode
-		});
+		this.dispatchEvent({ type: 'finish', gcode });
+
+		console.log(slices);
 
 		return gcode;
 	}
 
 	_updateProgress (settings) {
-		var supportEnabled = settings.config["supportEnabled"];
+		var supportEnabled = settings.config['supportEnabled'];
 
 		var progress = {};
 
 		var procent = 0;
 		var length = 0;
 		for (var i in this.progress) {
-			if (!(!supportEnabled && i === "generatedSupport")) {
+			if (!(!supportEnabled && i === 'generatedSupport')) {
 				progress[i] = this.progress[i];
 				if (progress[i]) {
 					procent += 1;
@@ -131,9 +130,6 @@ export default class extends EventDispatcher {
 
 		progress.procent = procent / length;
 
-		this.dispatchEvent({
-			type: 'progress',
-			progress
-		});
+		this.dispatchEvent({ type: 'progress', progress 	});
 	}
 }

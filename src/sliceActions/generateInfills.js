@@ -6,8 +6,6 @@ const scale = 100;
 export default function generateInfills(slices, settings) {
   console.log("generating infills");
 
-  // need to scale up everything because of clipper rounding errors
-
   let {
     layerHeight,
     fillGridSize,
