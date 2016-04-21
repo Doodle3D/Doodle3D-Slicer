@@ -1,5 +1,5 @@
 import getFillTemplate from './getFillTemplate.js';
-import Paths from '../paths.js';
+import Shape from 'Doodle3D/clipper-js';
 
 const scale = 100;
 
@@ -22,7 +22,7 @@ export default function generateSupport(slices, settings) {
   nozzleDiameter *= scale;
   var supportDistanceLayers = Math.max(Math.ceil(supportDistanceY / layerHeight), 1);
 
-  var supportAreas = new Paths([], true);
+  var supportAreas = new Shape([], true);
 
   for (var layer = slices.length - 1 - supportDistanceLayers; layer >= 0; layer --) {
     var currentSlice = slices[layer];

@@ -1,5 +1,5 @@
 import getFillTemplate from './getFillTemplate.js';
-import Paths from '../paths.js';
+import Shape from 'Doodle3D/clipper-js';
 
 const scale = 100;
 
@@ -67,7 +67,7 @@ export default function generateInfills(slices, settings) {
           var highFillArea = fillArea;
         }
 
-        var fill = new Paths([], false);
+        var fill = new Shape([], false);
 
         if (lowFillArea && lowFillArea.length > 0) {
           var bounds = lowFillArea.bounds();
