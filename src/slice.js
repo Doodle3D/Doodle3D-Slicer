@@ -1,33 +1,8 @@
-import Paths from './paths.js';
+import Shape from 'Doodle3D/clipper-js';
 
 export default class {
 	constructor () {
 		this.parts = [];
-	}
-
-	removeSelfIntersect () {
-		for (var i = 0; i < this.parts.length; i ++) {
-			var part1 = this.parts[i].intersect;
-
-			if (!part1.closed) {
-				continue;
-			}
-
-			for (var j = i + 1; j < this.parts.length; j ++) {
-				var part2 = this.parts[j].intersect;
-
-				if (!part2.closed) {
-					continue;
-				}
-
-				if (part2.intersect(part1).length > 0) {
-					part1 = this.parts[i].intersect = part1.union(part2);
-
-					this.parts.splice(j, 1);
-					j --;
-				}
-			}
-		}
 	}
 
 	optimizePaths (start) {
@@ -45,11 +20,11 @@ export default class {
 
 			for (var i = 0; i < this.parts.length; i ++) {
 				var part = this.parts[i];
-				if (part.intersect.closed) {
+				if (part.shape.closed) {
 					var bounds = part.outerLine.bounds();
 				}
 				else {
-					var bounds = part.intersect.bounds();
+					var bounds = part.shape.bounds();
 				}
 
 				var top = bounds.top - start.y;
@@ -68,7 +43,7 @@ export default class {
 			var part = this.parts.splice(closestPart, 1)[0];
 			parts.push(part);
 
-			if (part.intersect.closed) {
+			if (part.shape.closed) {
 				if (part.outerLine.length > 0) {
 					part.outerLine = part.outerLine.optimizePath(start);
 					start = part.outerLine.lastPoint();
@@ -88,8 +63,8 @@ export default class {
 				}
 			}
 			else {
-				part.intersect.optimizePath(start);
-				start = part.intersect.lastPoint();
+				part.shape.optimizePath(start);
+				start = part.shape.lastPoint();
 			}
 
 		}
@@ -105,12 +80,12 @@ export default class {
 	}
 
 	getOutline () {
-		var outLines = new Paths([], true);
+		var outLines = new Shape([], true);
 
 		for (var i = 0; i < this.parts.length; i ++) {
 			var part = this.parts[i];
 
-			if (part.intersect.closed) {
+			if (part.shape.closed) {
 				outLines.join(this.parts[i].outerLine);
 			}
 		}
@@ -118,17 +93,15 @@ export default class {
 		return outLines;
 	}
 
-	add (intersect) {
-		var parts = {
-			intersect
-		};
+	add (shape) {
+		const part = { shape };
 
-		if (intersect.closed) {
-			parts.innerLines = [];
-			parts.outerLine = new Paths([], true);
-			parts.fill = new Paths([], false);
+		if (shape.closed) {
+			part.innerLines = [];
+			part.outerLine = new Shape([], true);
+			part.fill = new Shape([], false);
 		}
 
-		this.parts.push(parts);
+		this.parts.push(part);
 	}
 }

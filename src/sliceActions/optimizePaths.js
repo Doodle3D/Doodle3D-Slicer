@@ -1,4 +1,10 @@
 import THREE from 'three.js';
+const offsetOptions = {
+  jointType: 'jtSquare',
+  endType: 'etClosedPolygon',
+  miterLimit: 2.0,
+  roundPrecision: 0.25
+};
 
 export default function optimizePaths(slices, settings) {
   console.log("opimize paths");
@@ -14,15 +20,15 @@ export default function optimizePaths(slices, settings) {
     var slice = slices[layer];
 
     if (layer === 0) {
-      slice.brim = slice.getOutline().offset(brimOffset);
+      slice.brim = slice.getOutline().offset(brimOffset, offsetOptions);
     }
 
-    start = slice.optimizePaths(start);
+    // start = slice.optimizePaths(start);
 
     for (var i = 0; i < slice.parts.length; i ++) {
       var part = slice.parts[i];
 
-      if (part.intersect.closed) {
+      if (part.shape.closed) {
         part.outerLine.scaleDown(scale);
         for (var j = 0; j < part.innerLines.length; j ++) {
           var innerLine = part.innerLines[j];

@@ -41,7 +41,7 @@ export default function generateInfills(slices, settings) {
     for (var i = 0; i < slice.parts.length; i ++) {
       var part = slice.parts[i];
 
-      if (!part.intersect.closed) {
+      if (!part.shape.closed) {
         continue;
       }
 
