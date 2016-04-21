@@ -5,6 +5,7 @@
       "lib": "src"
     },
     "dependencies": {
+      "Doodle3D/clipper-js": "github:Doodle3D/clipper-js@^0.0.2",
       "casperlamboo/EventDispatcher": "github:casperlamboo/EventDispatcher@master",
       "clipper-lib": "npm:clipper-lib@^1.0.0",
       "nodeca/js-yaml": "github:nodeca/js-yaml@^3.3.1",

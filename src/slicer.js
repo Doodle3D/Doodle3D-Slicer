@@ -67,15 +67,18 @@ export default class extends EventDispatcher {
 		this.progress.createdLines = true;
 	  this._updateProgress(settings);
 
-		var {layerIntersectionIndexes, layerIntersectionPoints} = calculateLayersIntersections(lines, settings);
+		const {
+			layerIntersectionIndexes,
+			layerIntersectionPoints
+		} = calculateLayersIntersections(lines, settings);
 		this.progress.calculatedLayerIntersections = true;
 	  this._updateProgress(settings);
 
-		var shapes = intersectionsToShapes(layerIntersectionIndexes, layerIntersectionPoints, lines, settings);
+		const shapes = intersectionsToShapes(layerIntersectionIndexes, layerIntersectionPoints, lines, settings);
 		this.progress.sliced = true;
 	  this._updateProgress(settings);
 
-		var slices = shapesToSlices(shapes, settings);
+		const slices = shapesToSlices(shapes, settings);
 		this.progress.generatedSlices = true;
 		this._updateProgress(settings);
 

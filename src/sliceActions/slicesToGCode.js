@@ -3,15 +3,14 @@ import GCode from '../gcode.js';
 export default function slicesToGCode(slices, settings) {
   var gcode = new GCode().setSettings(settings);
 
-  function pathToGCode (path, retract, unRetract, type) {
+  function pathToGCode (shape, retract, unRetract, type) {
+    for (var i = 0; i < shape.paths.length; i ++) {
+      var line = shape.paths[i];
 
-    for (var i = 0; i < path.length; i ++) {
-      var shape = path[i];
-
-      var length = path.closed ? (shape.length + 1) : shape.length;
+      var length = shape.closed ? (line.length + 1) : line.length;
 
       for (var j = 0; j < length; j ++) {
-        var point = shape[j % shape.length];
+        var point = line[j % line.length];
 
         if (j === 0) {
           // TODO
@@ -48,7 +47,7 @@ export default function slicesToGCode(slices, settings) {
     for (var i = 0; i < slice.parts.length; i ++) {
       var part = slice.parts[i];
 
-      if (part.intersect.closed) {
+      if (part.shape.closed) {
         pathToGCode(part.outerLine, false, true, "outerLine");
 
         for (var j = 0; j < part.innerLines.length; j ++) {
@@ -60,7 +59,7 @@ export default function slicesToGCode(slices, settings) {
       }
       else {
         var retract = !(slice.parts.length === 1 && slice.support === undefined);
-        pathToGCode(part.intersect, retract, retract, "outerLine");
+        pathToGCode(part.shape, retract, retract, "outerLine");
       }
     }
 

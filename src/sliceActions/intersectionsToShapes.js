@@ -1,10 +1,10 @@
 import THREE from 'three.js';
-import Paths from '../paths.js';
+import Shape from 'Doodle3D/clipper-js';
 
 export default function intersectionsToShapes(layerIntersectionIndexes, layerIntersectionPoints, lines, settings) {
   console.log("generating slices");
 
-  var shapes = [];
+  var layers = [];
 
   for (var layer = 1; layer < layerIntersectionIndexes.length; layer ++) {
     var intersectionIndexes = layerIntersectionIndexes[layer];
@@ -14,7 +14,8 @@ export default function intersectionsToShapes(layerIntersectionIndexes, layerInt
       continue;
     }
 
-    var shapeParts = [];
+    var closedShapes = [];
+    var openShapes = [];
     for (var i = 0; i < intersectionIndexes.length; i ++) {
       var index = intersectionIndexes[i];
 
@@ -31,7 +32,7 @@ export default function intersectionsToShapes(layerIntersectionIndexes, layerInt
       while (index !== -1) {
         var intersection = intersectionPoints[index];
         // uppercase X and Y because clipper vector
-        shape.push({X: intersection.x, Y: intersection.y});
+        shape.push(intersection);
 
         delete intersectionPoints[index];
 
@@ -94,7 +95,7 @@ export default function intersectionsToShapes(layerIntersectionIndexes, layerInt
         while (index !== -1) {
           if (firstPoints.indexOf(index) === -1) {
             var intersection = intersectionPoints[index];
-            shape.unshift({X: intersection.x, Y: intersection.y});
+            shape.unshift(intersection);
 
             delete intersectionPoints[index];
           }
@@ -114,14 +115,16 @@ export default function intersectionsToShapes(layerIntersectionIndexes, layerInt
         }
       }
 
-      var part = new Paths([shape], closed).clean(0.01);
-      if (part.length > 0) {
-        shapeParts.push(part);
+      if (closed) {
+        closedShapes.push(shape);
+      }
+      else {
+        openShapes.push(shape);
       }
     }
 
-    shapes.push(shapeParts);
+    layers.push({ closedShapes, openShapes });
   }
 
-  return shapes;
+  return layers;
 }

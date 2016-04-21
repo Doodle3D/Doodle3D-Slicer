@@ -1,10 +1,16 @@
 const scale = 100;
+const offsetOptions = {
+  jointType: 'jtSquare',
+  endType: 'etClosedPolygon',
+  miterLimit: 2.0,
+  roundPrecision: 0.25
+};
 
 export default function generateInnerLines(slices, settings) {
   console.log("generating outer lines and inner lines");
 
   // need to scale up everything because of clipper rounding errors
-  let {layerHeight, nozzleDiameter, shellThickness} = settings.config;
+  let { layerHeight, nozzleDiameter, shellThickness } = settings.config;
   nozzleDiameter *= scale;
   shellThickness *= scale;
   var nozzleRadius = nozzleDiameter / 2;
@@ -16,23 +22,21 @@ export default function generateInnerLines(slices, settings) {
     for (var i = 0; i < slice.parts.length; i ++) {
       var part = slice.parts[i];
 
-      if (!part.intersect.closed) {
-        continue;
-      }
+      if (!part.shape.closed) continue;
 
-      // var outerLine = part.intersect.clone().scaleUp(scale).offset(-nozzleRadius);
-      var outerLine = part.intersect.scaleUp(scale).offset(-nozzleRadius);
+      // var outerLine = part.shape.clone().scaleUp(scale).offset(-nozzleRadius);
+      var outerLine = part.shape.scaleUp(scale).offset(-nozzleRadius, offsetOptions);
 
       if (outerLine.length > 0) {
-        part.outerLine = outerLine;
+        part.outerLine.join(outerLine);
 
         for (var shell = 1; shell < shells; shell += 1) {
           var offset = shell * nozzleDiameter;
 
-          var innerLine = outerLine.offset(-offset);
+          var innerLine = outerLine.offset(-offset, offsetOptions);
 
           if (innerLine.length > 0) {
-            part.innerLines.push(innerLine);
+            part.innerLines.paths.push(innerLine);
           }
           else {
             break;

@@ -1,7 +1,7 @@
-import Paths from '../paths.js';
+import Shape from 'Doodle3D/clipper-js';
 
 export default function getFillTemplate(bounds, size, even, uneven) {
-  var paths = new Paths([], false);
+  var shape = new Shape([], false);
 
   var left = Math.floor(bounds.left / size) * size;
   var right = Math.ceil(bounds.right / size) * size;
@@ -12,7 +12,7 @@ export default function getFillTemplate(bounds, size, even, uneven) {
 
   if (even) {
     for (var y = top; y <= bottom + width; y += size) {
-      paths.push([
+      shape.paths.push([
         {X: left, Y: y},
         {X: right, Y: y - width}
       ]);
@@ -20,12 +20,12 @@ export default function getFillTemplate(bounds, size, even, uneven) {
   }
   if (uneven) {
     for (var y = top - width; y <= bottom; y += size) {
-      paths.push([
+      shape.paths.push([
         {X: left, Y: y},
         {X: right, Y: y + width}
       ]);
     }
   }
 
-  return paths;
+  return shape;
 }
