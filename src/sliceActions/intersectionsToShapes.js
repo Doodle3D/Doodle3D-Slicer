@@ -4,43 +4,39 @@ import Shape from 'Doodle3D/clipper-js';
 export default function intersectionsToShapes(layerIntersectionIndexes, layerIntersectionPoints, lines, settings) {
   console.log("generating slices");
 
-  var layers = [];
+  const layers = [];
 
-  for (var layer = 1; layer < layerIntersectionIndexes.length; layer ++) {
-    var intersectionIndexes = layerIntersectionIndexes[layer];
-    var intersectionPoints = layerIntersectionPoints[layer];
+  for (let layer = 1; layer < layerIntersectionIndexes.length; layer ++) {
+    const intersectionIndexes = layerIntersectionIndexes[layer];
+    const intersectionPoints = layerIntersectionPoints[layer];
 
-    if (intersectionIndexes.length === 0) {
-      continue;
-    }
+    if (intersectionIndexes.length === 0) continue;
 
-    var closedShapes = [];
-    var openShapes = [];
-    for (var i = 0; i < intersectionIndexes.length; i ++) {
-      var index = intersectionIndexes[i];
+    const closedShapes = [];
+    const openShapes = [];
+    for (let i = 0; i < intersectionIndexes.length; i ++) {
+      let index = intersectionIndexes[i];
 
-      if (intersectionPoints[index] === undefined) {
-        continue;
-      }
+      if (intersectionPoints[index] === undefined) continue;
 
-      var firstPoints = [index];
-      var isFirstPoint = true;
-      var closed = false;
+      const shape = [];
 
-      var shape = [];
+      const firstPoints = [index];
+      let isFirstPoint = true;
+      let closed = false;
 
       while (index !== -1) {
-        var intersection = intersectionPoints[index];
+        const intersection = intersectionPoints[index];
         // uppercase X and Y because clipper vector
         shape.push(intersection);
 
         delete intersectionPoints[index];
 
-        var connects = lines[index].connects;
-        var faceNormals = lines[index].normals;
+        const connects = lines[index].connects;
+        const faceNormals = lines[index].normals;
 
-        for (var j = 0; j < connects.length; j ++) {
-          var index = connects[j];
+        for (let i = 0; i < connects.length; i ++) {
+          index = connects[i];
 
           if (firstPoints.indexOf(index) !== -1 && shape.length > 2) {
             closed = true;
@@ -50,10 +46,10 @@ export default function intersectionsToShapes(layerIntersectionIndexes, layerInt
 
           // Check if index has an intersection or is already used
           if (intersectionPoints[index] !== undefined) {
-            var faceNormal = faceNormals[Math.floor(j / 2)];
+            const faceNormal = faceNormals[Math.floor(i / 2)];
 
-            var a = new THREE.Vector2(intersection.x, intersection.y);
-            var b = new THREE.Vector2(intersectionPoints[index].x, intersectionPoints[index].y);
+            const a = new THREE.Vector2(intersection.x, intersection.y);
+            const b = new THREE.Vector2(intersectionPoints[index].x, intersectionPoints[index].y);
 
             // can't calculate normal between points if distance is smaller as 0.0001
             if ((faceNormal.x === 0 && faceNormal.y === 0) || a.distanceTo(b) < 0.0001) {
@@ -63,26 +59,23 @@ export default function intersectionsToShapes(layerIntersectionIndexes, layerInt
 
               delete intersectionPoints[index];
 
-              connects = connects.concat(lines[index].connects);
-              faceNormals = faceNormals.concat(lines[index].normals);
+              connects.push(...lines[index].connects);
+              faceNormals.push(...lines[index].normals);
               index = -1;
-            }
-            else {
+            } else {
               // make sure the path goes the right direction
               // THREE.Vector2.normal is not yet implimented
-              // var normal = a.sub(b).normal().normalize();
-              var normal = a.sub(b);
+              // const normal = a.sub(b).normal().normalize();
+              const normal = a.sub(b);
               normal.set(-normal.y, normal.x).normalize();
 
               if (normal.dot(faceNormal) > 0) {
                 break;
-              }
-              else {
+              } else {
                 index = -1;
               }
             }
-          }
-          else {
+          } else {
             index = -1;
           }
         }
@@ -90,25 +83,24 @@ export default function intersectionsToShapes(layerIntersectionIndexes, layerInt
       }
 
       if (!closed) {
-        var index = firstPoints[0];
+        index = firstPoints[0];
 
         while (index !== -1) {
           if (firstPoints.indexOf(index) === -1) {
-            var intersection = intersectionPoints[index];
+            const intersection = intersectionPoints[index];
             shape.unshift(intersection);
 
             delete intersectionPoints[index];
           }
 
-          var connects = lines[index].connects;
+          const connects = lines[index].connects;
 
-          for (var i = 0; i < connects.length; i ++) {
-            var index = connects[i];
+          for (let i = 0; i < connects.length; i ++) {
+            index = connects[i];
 
             if (intersectionPoints[index] !== undefined) {
               break;
-            }
-            else {
+            } else {
               index = -1;
             }
           }
@@ -117,8 +109,7 @@ export default function intersectionsToShapes(layerIntersectionIndexes, layerInt
 
       if (closed) {
         closedShapes.push(shape);
-      }
-      else {
+      } else {
         openShapes.push(shape);
       }
     }

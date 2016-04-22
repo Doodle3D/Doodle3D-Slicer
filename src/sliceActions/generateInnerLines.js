@@ -1,4 +1,5 @@
-const scale = 100;
+import { PRECISION } from '../constants.js'
+
 const offsetOptions = {
   jointType: 'jtSquare',
   endType: 'etClosedPolygon',
@@ -7,33 +8,32 @@ const offsetOptions = {
 };
 
 export default function generateInnerLines(slices, settings) {
-  console.log("generating outer lines and inner lines");
+  console.log('generating outer lines and inner lines');
 
   // need to scale up everything because of clipper rounding errors
   let { layerHeight, nozzleDiameter, shellThickness } = settings.config;
-  nozzleDiameter *= scale;
-  shellThickness *= scale;
-  var nozzleRadius = nozzleDiameter / 2;
-  var shells = Math.round(shellThickness / nozzleDiameter);
+  nozzleDiameter /= PRECISION;
+  shellThickness /= PRECISION;
+  const nozzleRadius = nozzleDiameter / 2;
+  const shells = Math.round(shellThickness / nozzleDiameter);
 
-  for (var layer = 0; layer < slices.length; layer ++) {
-    var slice = slices[layer];
+  for (let layer = 0; layer < slices.length; layer ++) {
+    const slice = slices[layer];
 
-    for (var i = 0; i < slice.parts.length; i ++) {
-      var part = slice.parts[i];
+    for (let i = 0; i < slice.parts.length; i ++) {
+      const part = slice.parts[i];
 
       if (!part.shape.closed) continue;
 
-      // var outerLine = part.shape.clone().scaleUp(scale).offset(-nozzleRadius);
-      const outerLine = part.shape.scaleUp(scale).offset(-nozzleRadius, offsetOptions);
+      const outerLine = part.shape.scaleDown(PRECISION).offset(-nozzleRadius, offsetOptions);
 
       if (outerLine.paths.length > 0) {
         part.outerLine.join(outerLine);
 
-        for (var shell = 1; shell < shells; shell += 1) {
-          var offset = shell * nozzleDiameter;
+        for (let shell = 1; shell < shells; shell += 1) {
+          const offset = shell * nozzleDiameter;
 
-          var innerLine = outerLine.offset(-offset, offsetOptions);
+          const innerLine = outerLine.offset(-offset, offsetOptions);
 
           if (innerLine.paths.length > 0) {
             part.innerLines.push(innerLine);

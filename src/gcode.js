@@ -1,5 +1,14 @@
 import THREE from 'three.js';
 
+const G_COMMAND = 'G';
+const M_COMMAND = 'M';
+const FAN_SPEED = 'S';
+const SPEED = 'F';
+const EXTRUDER = 'E';
+const POSITION_X = 'X';
+const POSITION_Y = 'Y';
+const POSITION_Z = 'Z';
+
 export default class {
 	constructor () {
 		this.gcode = '';
@@ -23,15 +32,14 @@ export default class {
 				str = action + value;
 
 				first = false;
-			}
-			else if (currentValue !== value) {
+			} else if (currentValue !== value) {
 				str += ` ${action}${value}`;
 
 				this.current[action] = value;
 			}
 		}
 
-		this.gcode += str + '\n';
+		this.gcode += `${str}\n`;
 	}
 
 	setSettings (settings) {
@@ -43,13 +51,8 @@ export default class {
 	turnFanOn (fanSpeed) {
 		this.isFanOn = true;
 
-		var gcode = {
-			'M': 106
-		}
-
-		if (fanSpeed !== undefined) {
-			gcode['S'] = fanSpeed;
-		}
+		const gcode = { [M_COMMAND]: 106 }
+		if (fanSpeed !== undefined) gcode[FAN_SPEED] = fanSpeed;
 
 		this._addGCode(gcode);
 
@@ -59,24 +62,24 @@ export default class {
 	turnFanOff () {
 		this.isFanOn = false;
 
-		this._addGCode({
-			'M': 107
-		});
+		this._addGCode({ [M_COMMAND]: 107 });
 
 		return this;
 	}
 
 	moveTo (x, y, layer) {
-		var layerHeight = this.settings.config['layerHeight'];
-		var travelSpeed = this.settings.config['travelSpeed'];
+		const layerHeight = this.settings.config['layerHeight'];
+		const travelSpeed = this.settings.config['travelSpeed'];
 
-		var z = (layer + 1) * layerHeight;
-		var speed = travelSpeed * 60;
+		const z = (layer + 1) * layerHeight;
+		const speed = travelSpeed * 60;
 
 		this._addGCode({
-			'G': 0,
-			'X': x.toFixed(3), 'Y': y.toFixed(3), 'Z': z.toFixed(3),
-			'F': speed.toFixed(3)
+			[G_COMMAND]: 0,
+			[POSITION_X]: x.toFixed(3),
+			[POSITION_Y]: y.toFixed(3),
+			[POSITION_Z]: z.toFixed(3),
+			[SPEED]: speed.toFixed(3)
 		});
 
 		this._nozzlePosition.set(x, y);
@@ -85,29 +88,31 @@ export default class {
 	}
 
 	lineTo (x, y, layer, type) {
-		var newNozzlePosition = new THREE.Vector2(x, y);
+		const newNozzlePosition = new THREE.Vector2(x, y);
 
-		var layerHeight = this.settings.config['layerHeight'];
-		var nozzleDiameter = this.settings.config['nozzleDiameter'];
-		var filamentThickness = this.settings.config['filamentThickness'];
-		var travelSpeed = this.settings.config['travelSpeed'];
+		const layerHeight = this.settings.config['layerHeight'];
+		const nozzleDiameter = this.settings.config['nozzleDiameter'];
+		const filamentThickness = this.settings.config['filamentThickness'];
+		const travelSpeed = this.settings.config['travelSpeed'];
 
-		var profile = this.settings.config[(this.bottom ? 'bottom' : type)];
+		const profile = this.settings.config[(this.bottom ? 'bottom' : type)];
 
-		var speed = profile['speed'] * 60;
-		var flowRate = profile['flowRate'];
-		var z = (layer + 1) * layerHeight;
+		const speed = profile['speed'] * 60;
+		const flowRate = profile['flowRate'];
+		const z = (layer + 1) * layerHeight;
 
-		var lineLength = this._nozzlePosition.distanceTo(newNozzlePosition);
+		const lineLength = this._nozzlePosition.distanceTo(newNozzlePosition);
 
-		var filamentSurfaceArea = Math.pow((filamentThickness / 2), 2) * Math.PI;
+		const filamentSurfaceArea = Math.pow((filamentThickness / 2), 2) * Math.PI;
 		this.extruder += lineLength * nozzleDiameter * layerHeight / filamentSurfaceArea * flowRate;
 
 		this._addGCode({
-			'G': 1,
-			'X': x.toFixed(3), 'Y': y.toFixed(3), 'Z': z.toFixed(3),
-			'F': speed.toFixed(3),
-			'E': this.extruder.toFixed(3)
+			[G_COMMAND]: 1,
+			[POSITION_X]: x.toFixed(3),
+			[POSITION_Y]: y.toFixed(3),
+			[POSITION_Z]: z.toFixed(3),
+			[SPEED]: speed.toFixed(3),
+			[EXTRUDER]: this.extruder.toFixed(3)
 		});
 
 		this._nozzlePosition.copy(newNozzlePosition);
@@ -116,20 +121,20 @@ export default class {
 	}
 
 	unRetract () {
-		var retractionEnabled = this.settings.config['retractionEnabled'];
-		var retractionMinDistance = this.settings.config['retractionMinDistance'];
-		var retractionSpeed = this.settings.config['retractionSpeed'];
+		const retractionEnabled = this.settings.config['retractionEnabled'];
+		const retractionMinDistance = this.settings.config['retractionMinDistance'];
+		const retractionSpeed = this.settings.config['retractionSpeed'];
 
 		if (this.isRetracted && retractionEnabled) {
 			this.isRetracted = false;
 
-			var speed = retractionSpeed * 60;
+			const speed = retractionSpeed * 60;
 
 			if (this.extruder > retractionMinDistance) {
 				this._addGCode({
-					'G': 0,
-					'E': this.extruder.toFixed(3),
-					'F': speed.toFixed(3)
+					[G_COMMAND]: 0,
+					[EXTRUDER]: this.extruder.toFixed(3),
+					[SPEED]: speed.toFixed(3)
 				});
 			}
 		}
@@ -138,21 +143,21 @@ export default class {
 	}
 
 	retract () {
-		var retractionAmount = this.settings.config['retractionAmount'];
-		var retractionEnabled = this.settings.config['retractionEnabled'];
-		var retractionMinDistance = this.settings.config['retractionMinDistance'];
-		var retractionSpeed = this.settings.config['retractionSpeed'];
+		const retractionAmount = this.settings.config['retractionAmount'];
+		const retractionEnabled = this.settings.config['retractionEnabled'];
+		const retractionMinDistance = this.settings.config['retractionMinDistance'];
+		const retractionSpeed = this.settings.config['retractionSpeed'];
 
 		if (!this.isRetracted && retractionEnabled) {
 			this.isRetracted = true;
 
-			var speed = retractionSpeed * 60;
+			const speed = retractionSpeed * 60;
 
 			if (this.extruder > retractionMinDistance && retractionEnabled) {
 				this._addGCode({
-					'G': 0,
-					'E': (this.extruder - retractionAmount).toFixed(3),
-					'F': speed.toFixed(3)
+					[G_COMMAND]: 0,
+					[EXTRUDER]: (this.extruder - retractionAmount).toFixed(3),
+					[SPEED]: speed.toFixed(3)
 				});
 			}
 		}
