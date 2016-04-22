@@ -1,7 +1,6 @@
+import { PRECISION } from '../constants.js'
 import getFillTemplate from './getFillTemplate.js';
 import Shape from 'Doodle3D/clipper-js';
-
-const scale = 100;
 
 export default function generateInfills(slices, settings) {
   console.log('generating infills');
@@ -15,9 +14,9 @@ export default function generateInfills(slices, settings) {
     infillOverlap
   } = settings.config;
 
-  fillGridSize *= scale;
-  nozzleDiameter *= scale;
-  infillOverlap *= scale;
+  fillGridSize /= PRECISION;
+  nozzleDiameter /= PRECISION;
+  infillOverlap /= PRECISION;
 
   const bottomSkinCount = Math.ceil(bottomThickness/layerHeight);
   const topSkinCount = Math.ceil(topThickness/layerHeight);

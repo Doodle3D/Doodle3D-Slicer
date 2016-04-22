@@ -1,4 +1,6 @@
 import THREE from 'three.js';
+import { PRECISION } from '../constants.js';
+
 const offsetOptions = {
   jointType: 'jtSquare',
   endType: 'etClosedPolygon',
@@ -9,15 +11,12 @@ const offsetOptions = {
 export default function optimizePaths(slices, settings) {
   console.log("opimize paths");
 
-  // need to scale up everything because of clipper rounding errors
-  var scale = 100;
+  const brimOffset = settings.config["brimOffset"] / PRECISION;
 
-  var brimOffset = settings.config["brimOffset"] * scale;
+  const start = new THREE.Vector2(0, 0);
 
-  var start = new THREE.Vector2(0, 0);
-
-  for (var layer = 0; layer < slices.length; layer ++) {
-    var slice = slices[layer];
+  for (let layer = 0; layer < slices.length; layer ++) {
+    const slice = slices[layer];
 
     if (layer === 0) {
       slice.brim = slice.getOutline().offset(brimOffset, offsetOptions);
@@ -25,24 +24,24 @@ export default function optimizePaths(slices, settings) {
 
     // start = slice.optimizePaths(start);
 
-    for (var i = 0; i < slice.parts.length; i ++) {
-      var part = slice.parts[i];
+    for (let i = 0; i < slice.parts.length; i ++) {
+      const part = slice.parts[i];
 
       if (part.shape.closed) {
-        part.outerLine.scaleDown(scale);
-        for (var j = 0; j < part.innerLines.length; j ++) {
-          var innerLine = part.innerLines[j];
-          innerLine.scaleDown(scale);
+        part.outerLine.scaleDown(1 / PRECISION);
+        for (let i = 0; i < part.innerLines.length; i ++) {
+          const innerLine = part.innerLines[i];
+          innerLine.scaleDown(1 / PRECISION);
         }
-        part.fill.scaleDown(scale);
+        part.fill.scaleDown(1 / PRECISION);
       }
     }
 
     if (slice.support !== undefined) {
-      slice.support.scaleDown(scale);
+      slice.support.scaleDown(1 / PRECISION);
     }
     if (slice.brim !== undefined) {
-      slice.brim.scaleDown(scale);
+      slice.brim.scaleDown(1 / PRECISION);
     }
   }
 }

@@ -1,7 +1,6 @@
 import getFillTemplate from './getFillTemplate.js';
 import Shape from 'Doodle3D/clipper-js';
-
-const scale = 100;
+import { PRECISION } from '../constants.js';
 
 export default function generateSupport(slices, settings) {
   console.log("generating support");
@@ -16,10 +15,10 @@ export default function generateSupport(slices, settings) {
     nozzleDiameter
   } = settings.config;
 
-  supportGridSize *= scale;
-  supportMargin *= scale;
-  plateSize *= scale;
-  nozzleDiameter *= scale;
+  supportGridSize /= PRECISION;
+  supportMargin /= PRECISION;
+  plateSize /= PRECISION;
+  nozzleDiameter /= PRECISION;
   var supportDistanceLayers = Math.max(Math.ceil(supportDistanceY / layerHeight), 1);
 
   var supportAreas = new Shape([], true);
