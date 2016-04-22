@@ -19,34 +19,32 @@ export default function generateInfills(slices, settings) {
   nozzleDiameter *= scale;
   infillOverlap *= scale;
 
-  var bottomSkinCount = Math.ceil(bottomThickness/layerHeight);
-  var topSkinCount = Math.ceil(topThickness/layerHeight);
-  var nozzleRadius = nozzleDiameter / 2;
-  var hightemplateSize = Math.sqrt(2 * Math.pow(nozzleDiameter, 2));
+  const bottomSkinCount = Math.ceil(bottomThickness/layerHeight);
+  const topSkinCount = Math.ceil(topThickness/layerHeight);
+  const nozzleRadius = nozzleDiameter / 2;
+  const hightemplateSize = Math.sqrt(2 * Math.pow(nozzleDiameter, 2));
 
-  for (var layer = 0; layer < slices.length; layer ++) {
-    var slice = slices[layer];
+  for (let layer = 0; layer < slices.length; layer ++) {
+    const slice = slices[layer];
 
+    let surroundingLayer;
     if (layer - bottomSkinCount >= 0 && layer + topSkinCount < slices.length) {
-      var downSkin =  slices[layer - bottomSkinCount].getOutline();
-      var upSkin = slices[layer + topSkinCount].getOutline();
-      var surroundingLayer = upSkin.intersect(downSkin);
-    }
-    else {
-      var surroundingLayer = false;
+      const downSkin = slices[layer - bottomSkinCount].getOutline();
+      const upSkin = slices[layer + topSkinCount].getOutline();
+      surroundingLayer = upSkin.intersect(downSkin);
     }
 
-    for (var i = 0; i < slice.parts.length; i ++) {
-      var part = slice.parts[i];
+    for (let i = 0; i < slice.parts.length; i ++) {
+      const part = slice.parts[i];
 
       if (!part.shape.closed) {
         continue;
       }
 
-      var outerLine = part.outerLine;
+      const outerLine = part.outerLine;
 
       if (outerLine.paths.length > 0) {
-        var inset = (part.innerLines.length > 0) ? part.innerLines[part.innerLines.length - 1] : outerLine;
+        const inset = (part.innerLines.length > 0) ? part.innerLines[part.innerLines.length - 1] : outerLine;
 
         const fillArea = inset.offset(-nozzleRadius);
         let lowFillArea;
@@ -67,16 +65,16 @@ export default function generateInfills(slices, settings) {
         }
 
         if (lowFillArea && lowFillArea.paths.length > 0) {
-          var bounds = lowFillArea.shapeBounds();
-          var lowFillTemplate = getFillTemplate(bounds, fillGridSize, true, true);
+          const bounds = lowFillArea.shapeBounds();
+          const lowFillTemplate = getFillTemplate(bounds, fillGridSize, true, true);
 
           part.fill.join(lowFillTemplate.intersect(lowFillArea));
         }
 
         if (highFillArea.paths.length > 0) {
-          var bounds = highFillArea.shapeBounds();
-          var even = (layer % 2 === 0);
-          var highFillTemplate = getFillTemplate(bounds, hightemplateSize, even, !even);
+          const bounds = highFillArea.shapeBounds();
+          const even = (layer % 2 === 0);
+          const highFillTemplate = getFillTemplate(bounds, hightemplateSize, even, !even);
 
           part.fill.join(highFillTemplate.intersect(highFillArea));
         }
