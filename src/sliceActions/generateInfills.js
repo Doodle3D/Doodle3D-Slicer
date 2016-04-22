@@ -45,13 +45,14 @@ export default function generateInfills(slices, settings) {
 
       var outerLine = part.outerLine;
 
-      if (outerLine.length > 0) {
+      if (outerLine.paths.length > 0) {
         var inset = (part.innerLines.length > 0) ? part.innerLines[part.innerLines.length - 1] : outerLine;
 
-        var fillArea = inset.offset(-nozzleRadius);
-        var lowFillArea = false;
+        const fillArea = inset.offset(-nozzleRadius);
+        let lowFillArea;
+        let highFillArea;
         if (surroundingLayer) {
-          var highFillArea = fillArea.difference(surroundingLayer);
+          highFillArea = fillArea.difference(surroundingLayer);
 
           if (infillOverlap > 0) {
             highFillArea = highFillArea.offset(infillOverlap);
@@ -59,23 +60,21 @@ export default function generateInfills(slices, settings) {
 
           highFillArea = highFillArea.intersect(fillArea);
 
-          var lowFillArea = fillArea.difference(highFillArea);
+          lowFillArea = fillArea.difference(highFillArea);
         }
         else {
-          var highFillArea = fillArea;
+          highFillArea = fillArea;
         }
 
-        var fill = new Shape([], false);
-
-        if (lowFillArea && lowFillArea.length > 0) {
-          var bounds = lowFillArea.bounds();
+        if (lowFillArea && lowFillArea.paths.length > 0) {
+          var bounds = lowFillArea.shapeBounds();
           var lowFillTemplate = getFillTemplate(bounds, fillGridSize, true, true);
 
           part.fill.join(lowFillTemplate.intersect(lowFillArea));
         }
 
-        if (highFillArea.length > 0) {
-          var bounds = highFillArea.bounds();
+        if (highFillArea.paths.length > 0) {
+          var bounds = highFillArea.shapeBounds();
           var even = (layer % 2 === 0);
           var highFillTemplate = getFillTemplate(bounds, hightemplateSize, even, !even);
 
