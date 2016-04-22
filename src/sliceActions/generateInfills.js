@@ -4,7 +4,7 @@ import Shape from 'Doodle3D/clipper-js';
 const scale = 100;
 
 export default function generateInfills(slices, settings) {
-  console.log("generating infills");
+  console.log('generating infills');
 
   let {
     layerHeight,
