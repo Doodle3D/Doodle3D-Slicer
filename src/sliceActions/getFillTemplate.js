@@ -1,31 +1,31 @@
 import Shape from 'Doodle3D/clipper-js';
 
 export default function getFillTemplate(bounds, size, even, uneven) {
-  var shape = new Shape([], false);
+  const paths = [];
 
-  var left = Math.floor(bounds.left / size) * size;
-  var right = Math.ceil(bounds.right / size) * size;
-  var top = Math.floor(bounds.top / size) * size;
-  var bottom = Math.ceil(bounds.bottom / size) * size;
+  const left = Math.floor(bounds.left / size) * size;
+  const right = Math.ceil(bounds.right / size) * size;
+  const top = Math.floor(bounds.top / size) * size;
+  const bottom = Math.ceil(bounds.bottom / size) * size;
 
-  var width = right - left;
+  const width = right - left;
 
   if (even) {
-    for (var y = top; y <= bottom + width; y += size) {
-      shape.paths.push([
-        {X: left, Y: y},
-        {X: right, Y: y - width}
+    for (let y = top; y <= bottom + width; y += size) {
+      paths.push([
+        { x: left, y },
+        { x: right, y: y - width }
       ]);
     }
   }
   if (uneven) {
-    for (var y = top - width; y <= bottom; y += size) {
-      shape.paths.push([
-        {X: left, Y: y},
-        {X: right, Y: y + width}
+    for (let y = top - width; y <= bottom; y += size) {
+      paths.push([
+        { x: left, y },
+        { x: right, y: y + width }
       ]);
     }
   }
 
-  return shape;
+  return new Shape(paths, false, true);
 }
