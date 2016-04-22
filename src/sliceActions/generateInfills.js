@@ -59,8 +59,7 @@ export default function generateInfills(slices, settings) {
           highFillArea = highFillArea.intersect(fillArea);
 
           lowFillArea = fillArea.difference(highFillArea);
-        }
-        else {
+        } else {
           highFillArea = fillArea;
         }
 
