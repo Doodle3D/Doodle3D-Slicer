@@ -1,11 +1,11 @@
 import Shape from 'Doodle3D/clipper-js';
 
 export default class {
-	constructor () {
+	constructor() {
 		this.parts = [];
 	}
 
-	optimizePaths (start) {
+	optimizePaths(start) {
 		if (this.brim !== undefined && this.brim.length > 0) {
 			this.brim = this.brim.optimizePath(start);
 			start = this.brim.lastPoint();
@@ -14,7 +14,6 @@ export default class {
 		var parts = [];
 
 		while (this.parts.length > 0) {
-
 			var closestDistance = Infinity;
 			var closestPart;
 
@@ -80,10 +79,10 @@ export default class {
 	}
 
 	getOutline () {
-		var outLines = new Shape([], true);
+		const outLines = new Shape([], true);
 
-		for (var i = 0; i < this.parts.length; i ++) {
-			var part = this.parts[i];
+		for (let i = 0; i < this.parts.length; i ++) {
+			const part = this.parts[i];
 
 			if (part.shape.closed) {
 				outLines.join(this.parts[i].outerLine);
