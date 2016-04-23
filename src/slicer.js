@@ -60,10 +60,10 @@ export default class extends EventDispatcher {
 	}
 
 	slice (settings) {
-		var supportEnabled = settings.config['supportEnabled'];
+		const supportEnabled = settings.config['supportEnabled'];
 
 		// get unique lines from geometry;
-		var lines = createLines(this.geometry, settings);
+		const lines = createLines(this.geometry, settings);
 		this.progress.createdLines = true;
 	  this._updateProgress(settings);
 
@@ -105,8 +105,6 @@ export default class extends EventDispatcher {
 	  this._updateProgress(settings);
 
 		this.dispatchEvent({ type: 'finish', gcode });
-
-		console.log(slices);
 
 		return gcode;
 	}
