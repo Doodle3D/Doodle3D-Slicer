@@ -43,8 +43,5 @@ export default function calculateLayersIntersections(lines, settings) {
     }
   }
 
-  return {
-    layerIntersectionIndexes,
-    layerIntersectionPoints
-  };
+  return { layerIntersectionIndexes, layerIntersectionPoints };
 }
