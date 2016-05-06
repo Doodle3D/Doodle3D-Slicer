@@ -1,4 +1,4 @@
-import getFillTemplate from './getFillTemplate.js';
+import getFillTemplate from '../getFillTemplate.js';
 import Shape from 'Doodle3D/clipper-js';
 import { PRECISION } from '../constants.js';
 
