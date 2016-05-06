@@ -16,18 +16,6 @@ import removePrecision from './sliceActions/removePrecision.js';
 export default class extends EventDispatcher {
 	constructor () {
 		super();
-
-		this.progress = {
-			createdLines: false,
-			calculatedLayerIntersections: false,
-			sliced: false,
-			generatedSlices: false,
-			generatedInnerLines: false,
-			generatedInfills: false,
-			generatedSupport: false,
-			optimizedPaths: false,
-			generatedGCode: false
-		};
 	}
 
 	setMesh (mesh) {
@@ -65,74 +53,33 @@ export default class extends EventDispatcher {
 	slice (settings) {
 		// get unique lines from geometry;
 		const lines = createLines(this.geometry, settings);
-		this.progress.createdLines = true;
-	  this._updateProgress(settings);
 
 		const {
 			layerIntersectionIndexes,
 			layerIntersectionPoints
 		} = calculateLayersIntersections(lines, settings);
-		this.progress.calculatedLayerIntersections = true;
-	  this._updateProgress(settings);
 
 		const shapes = intersectionsToShapes(layerIntersectionIndexes, layerIntersectionPoints, lines, settings);
-		this.progress.sliced = true;
-	  this._updateProgress(settings);
 
 		applyPrecision(shapes);
 
 		const slices = shapesToSlices(shapes, settings);
-		this.progress.generatedSlices = true;
-		this._updateProgress(settings);
 
 		generateInnerLines(slices, settings);
-		this.progress.generatedInnerLines = true;
-	  this._updateProgress(settings);
 
 		generateInfills(slices, settings);
-		this.progress.generatedInfills = true;
-	  this._updateProgress(settings);
 
 		generateSupport(slices, settings);
-		this.progress.generatedSupport = true;
-		this._updateProgress(settings);
 
 		addBrim(slices, settings);
 
 		optimizePaths(slices, settings);
-		this.progress.optimizedPaths = true;
-	  this._updateProgress(settings);
 
 		removePrecision(slices);
 
-		var gcode = slicesToGCode(slices, settings);
-		this.progress.generatedGCode = true;
-	  this._updateProgress(settings);
+		const gcode = slicesToGCode(slices, settings);
 
 		this.dispatchEvent({ type: 'finish', gcode });
-
 		return gcode;
-	}
-
-	_updateProgress (settings) {
-		var supportEnabled = settings.config['supportEnabled'];
-
-		var progress = {};
-
-		var procent = 0;
-		var length = 0;
-		for (var i in this.progress) {
-			if (!(!supportEnabled && i === 'generatedSupport')) {
-				progress[i] = this.progress[i];
-				if (progress[i]) {
-					procent += 1;
-				}
-				length += 1;
-			}
-		}
-
-		progress.procent = procent / length;
-
-		this.dispatchEvent({ type: 'progress', progress 	});
 	}
 }
