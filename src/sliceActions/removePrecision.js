@@ -2,7 +2,7 @@ import THREE from 'three.js';
 import { PRECISION } from '../constants.js';
 
 export default function removePrecision(slices) {
-  console.log('opimize paths');
+  console.log('remove precision');
 
   const start = new THREE.Vector2(0, 0);
 
