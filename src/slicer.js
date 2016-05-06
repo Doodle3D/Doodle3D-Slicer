@@ -6,6 +6,7 @@ import generateInfills from './sliceActions/generateInfills.js';
 import generateInnerLines from './sliceActions/generateInnerLines.js';
 import generateSupport from './sliceActions/generateSupport.js';
 import intersectionsToShapes from './sliceActions/intersectionsToShapes.js';
+import addBrim from './sliceActions/addBrim.js';
 import optimizePaths from './sliceActions/optimizePaths.js';
 import shapesToSlices from './sliceActions/shapesToSlices.js';
 import slicesToGCode from './sliceActions/slicesToGCode.js';
@@ -95,6 +96,8 @@ export default class extends EventDispatcher {
 			this.progress.generatedSupport = true;
 			this._updateProgress(settings);
 		}
+
+		addBrim(slices, settings);
 
 		optimizePaths(slices, settings);
 		this.progress.optimizedPaths = true;
