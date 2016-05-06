@@ -5,6 +5,8 @@ import { PRECISION } from '../constants.js';
 export default function generateSupport(slices, settings) {
   console.log("generating support");
 
+  if (!settings.config.supportEnabled) return;
+
   // need to scale up everything because of clipper rounding errors
   let {
     layerHeight,
@@ -14,6 +16,7 @@ export default function generateSupport(slices, settings) {
     supportDistanceY,
     nozzleDiameter
   } = settings.config;
+
 
   supportGridSize /= PRECISION;
   supportMargin /= PRECISION;
