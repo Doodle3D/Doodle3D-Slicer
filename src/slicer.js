@@ -10,6 +10,8 @@ import addBrim from './sliceActions/addBrim.js';
 import optimizePaths from './sliceActions/optimizePaths.js';
 import shapesToSlices from './sliceActions/shapesToSlices.js';
 import slicesToGCode from './sliceActions/slicesToGCode.js';
+import applyPrecision from './sliceActions/applyPrecision.js';
+import removePrecision from './sliceActions/removePrecision.js';
 
 export default class extends EventDispatcher {
 	constructor () {
@@ -79,6 +81,8 @@ export default class extends EventDispatcher {
 		this.progress.sliced = true;
 	  this._updateProgress(settings);
 
+		applyPrecision(shapes);
+
 		const slices = shapesToSlices(shapes, settings);
 		this.progress.generatedSlices = true;
 		this._updateProgress(settings);
@@ -102,6 +106,8 @@ export default class extends EventDispatcher {
 		optimizePaths(slices, settings);
 		this.progress.optimizedPaths = true;
 	  this._updateProgress(settings);
+
+		removePrecision(slices);
 
 		var gcode = slicesToGCode(slices, settings);
 		this.progress.generatedGCode = true;
