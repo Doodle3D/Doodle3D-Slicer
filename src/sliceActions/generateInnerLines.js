@@ -25,7 +25,7 @@ export default function generateInnerLines(slices, settings) {
 
       if (!part.shape.closed) continue;
 
-      const outerLine = part.shape.scaleDown(PRECISION).offset(-nozzleRadius, offsetOptions);
+      const outerLine = part.shape.offset(-nozzleRadius, offsetOptions);
 
       if (outerLine.paths.length > 0) {
         part.outerLine.join(outerLine);
