@@ -14,9 +14,6 @@ import applyPrecision from './sliceActions/applyPrecision.js';
 import removePrecision from './sliceActions/removePrecision.js';
 
 export default class extends EventDispatcher {
-	constructor () {
-		super();
-	}
 
 	setMesh (mesh) {
 		mesh.updateMatrix();
