@@ -63,8 +63,6 @@ export default class extends EventDispatcher {
 	}
 
 	slice (settings) {
-		const supportEnabled = settings.config['supportEnabled'];
-
 		// get unique lines from geometry;
 		const lines = createLines(this.geometry, settings);
 		this.progress.createdLines = true;
@@ -95,11 +93,9 @@ export default class extends EventDispatcher {
 		this.progress.generatedInfills = true;
 	  this._updateProgress(settings);
 
-		if (supportEnabled) {
-			generateSupport(slices, settings);
-			this.progress.generatedSupport = true;
-			this._updateProgress(settings);
-		}
+		generateSupport(slices, settings);
+		this.progress.generatedSupport = true;
+		this._updateProgress(settings);
 
 		addBrim(slices, settings);
 
