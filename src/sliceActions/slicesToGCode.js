@@ -1,32 +1,5 @@
 import GCode from '../gcode.js';
 
-function pathToGCode(gcode, shape, retract, unRetract, layer, type) {
-  for (let i = 0; i < shape.paths.length; i ++) {
-    const line = shape.paths[i];
-
-    const length = shape.closed ? (line.length + 1) : line.length;
-    for (let i = 0; i < length; i ++) {
-      const point = line[i % line.length];
-
-      if (i === 0) {
-        // TODO
-        // moveTo should impliment combing
-        gcode.moveTo(point.X, point.Y, layer);
-
-        if (unRetract) {
-          gcode.unRetract();
-        }
-      } else {
-        gcode.lineTo(point.X, point.Y, layer, type);
-      }
-    }
-  }
-
-  if (retract) {
-    gcode.retract();
-  }
-}
-
 export default function slicesToGCode(slices, settings) {
   const gcode = new GCode().setSettings(settings);
 
@@ -66,4 +39,31 @@ export default function slicesToGCode(slices, settings) {
   }
 
   return gcode.getGCode();
+}
+
+function pathToGCode(gcode, shape, retract, unRetract, layer, type) {
+  for (let i = 0; i < shape.paths.length; i ++) {
+    const line = shape.paths[i];
+
+    const length = shape.closed ? (line.length + 1) : line.length;
+    for (let i = 0; i < length; i ++) {
+      const point = line[i % line.length];
+
+      if (i === 0) {
+        // TODO
+        // moveTo should impliment combing
+        gcode.moveTo(point.X, point.Y, layer);
+
+        if (unRetract) {
+          gcode.unRetract();
+        }
+      } else {
+        gcode.lineTo(point.X, point.Y, layer, type);
+      }
+    }
+  }
+
+  if (retract) {
+    gcode.retract();
+  }
 }
