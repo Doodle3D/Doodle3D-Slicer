@@ -11,7 +11,8 @@ const offsetOptions = {
 export default function addBrim(slices, settings) {
   console.log('add brim');
 
-  const brimOffset = settings.config['brimOffset'] / PRECISION;
+  let { brimOffset } = settings.config;
+  brimOffset /= PRECISION;
 
   const fistLayer = slices[0];
   fistLayer.brim = fistLayer.getOutline().offset(brimOffset, offsetOptions);
