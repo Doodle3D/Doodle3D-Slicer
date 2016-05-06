@@ -17,7 +17,6 @@ export default function generateSupport(slices, settings) {
     nozzleDiameter
   } = settings.config;
 
-
   supportGridSize /= PRECISION;
   supportMargin /= PRECISION;
   plateSize /= PRECISION;
