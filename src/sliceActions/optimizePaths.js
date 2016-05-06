@@ -1,7 +1,7 @@
 import THREE from 'three.js';
 
 export default function optimizePaths(slices, settings) {
-  console.log('opimize paths');
+  console.log('optimize paths');
 
   const start = new THREE.Vector2(0, 0);
 
