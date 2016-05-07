@@ -3,7 +3,7 @@ import Shape from 'Doodle3D/clipper-js';
 import { PRECISION } from '../constants.js';
 
 export default function generateSupport(slices, settings) {
-  console.log("generating support");
+  console.log('generating support');
 
   if (!settings.config.supportEnabled) return;
 
