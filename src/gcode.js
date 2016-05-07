@@ -151,10 +151,12 @@ export default class {
 	}
 
 	retract () {
-		const retractionAmount = this.settings.config['retractionAmount'];
-		const retractionEnabled = this.settings.config['retractionEnabled'];
-		const retractionMinDistance = this.settings.config['retractionMinDistance'];
-		const retractionSpeed = this.settings.config['retractionSpeed'];
+		const {
+			retractionAmount,
+			retractionEnabled,
+			retractionMinDistance,
+			retractionSpeed
+		} = this.settings;
 
 		if (!this.isRetracted && retractionEnabled) {
 			this.isRetracted = true;
