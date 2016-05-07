@@ -68,8 +68,10 @@ export default class {
 	}
 
 	moveTo (x, y, layer) {
-		const layerHeight = this.settings.config['layerHeight'];
-		const travelSpeed = this.settings.config['travelSpeed'];
+		const {
+			layerHeight,
+			travelSpeed
+		} = this.settings;
 
 		const z = (layer + 1) * layerHeight;
 		const speed = travelSpeed * 60;
@@ -90,15 +92,21 @@ export default class {
 	lineTo (x, y, layer, type) {
 		const newNozzlePosition = new THREE.Vector2(x, y);
 
-		const layerHeight = this.settings.config['layerHeight'];
-		const nozzleDiameter = this.settings.config['nozzleDiameter'];
-		const filamentThickness = this.settings.config['filamentThickness'];
-		const travelSpeed = this.settings.config['travelSpeed'];
+		const {
+			layerHeight,
+			nozzleDiameter,
+			filamentThickness,
+			travelSpeed
+		} = this.settings;
 
 		const profile = this.settings.config[(this.bottom ? 'bottom' : type)];
 
-		const speed = profile['speed'] * 60;
-		const flowRate = profile['flowRate'];
+		let {
+			speed,
+			flowRate
+		} = profile;
+
+		speed *= 60;
 		const z = (layer + 1) * layerHeight;
 
 		const lineLength = this._nozzlePosition.distanceTo(newNozzlePosition);
