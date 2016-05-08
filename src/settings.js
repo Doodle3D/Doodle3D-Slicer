@@ -46,13 +46,13 @@ export default class {
 
 		const heatedBedReplacement = heatedbed ? '' : ';';
 
-		gcode = gcode.replace(/{ printingTemp }/gi, temperature);
-		gcode = gcode.replace(/{ printingBedTemp }/gi, bedTemperature);
-		gcode = gcode.replace(/{ preheatTemp }/gi, heatTemperature);
-		gcode = gcode.replace(/{ preheatBedTemp }/gi, heatBedTemperature);
-		gcode = gcode.replace(/{ printerType }/gi, printerType);
-		gcode = gcode.replace(/{ travelSpeed }/gi, travelSpeed);
-		gcode = gcode.replace(/{ if heatedBed }/gi, heatedBedReplacement);
+		gcode = gcode.replace(/{printingTemp}/gi, temperature);
+		gcode = gcode.replace(/{printingBedTemp}/gi, bedTemperature);
+		gcode = gcode.replace(/{preheatTemp}/gi, heatTemperature);
+		gcode = gcode.replace(/{preheatBedTemp}/gi, heatBedTemperature);
+		gcode = gcode.replace(/{printerType}/gi, printerType);
+		gcode = gcode.replace(/{travelSpeed}/gi, travelSpeed);
+		gcode = gcode.replace(/{if heatedBed}/gi, heatedBedReplacement);
 
 		return gcode;
 	}
