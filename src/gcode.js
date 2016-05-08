@@ -71,7 +71,7 @@ export default class {
 		const {
 			layerHeight,
 			travelSpeed
-		} = this.settings;
+		} = this.settings.config;
 
 		const z = (layer + 1) * layerHeight;
 		const speed = travelSpeed * 60;
@@ -97,7 +97,7 @@ export default class {
 			nozzleDiameter,
 			filamentThickness,
 			travelSpeed
-		} = this.settings;
+		} = this.settings.config;
 
 		const profile = this.settings.config[(this.bottom ? 'bottom' : type)];
 
@@ -158,7 +158,7 @@ export default class {
 			retractionEnabled,
 			retractionMinDistance,
 			retractionSpeed
-		} = this.settings;
+		} = this.settings.config;
 
 		if (!this.isRetracted && retractionEnabled) {
 			this.isRetracted = true;
