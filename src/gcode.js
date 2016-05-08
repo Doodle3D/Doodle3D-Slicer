@@ -10,7 +10,7 @@ const POSITION_Y = 'Y';
 const POSITION_Z = 'Z';
 
 export default class {
-	constructor () {
+	constructor (settings) {
 		this.gcode = '';
 		this.current = {};
 
@@ -19,6 +19,10 @@ export default class {
 		this.isRetracted = false;
 		this.isFanOn = false;
 		this._nozzlePosition = new THREE.Vector2(0, 0);
+
+		if (settings !== undefined) {
+			this.setSettings(settings);
+		}
 	}
 
 	_addGCode (command) {

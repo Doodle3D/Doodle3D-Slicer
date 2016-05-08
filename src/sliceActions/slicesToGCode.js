@@ -3,7 +3,7 @@ import GCode from '../gcode.js';
 export default function slicesToGCode(slices, settings) {
   console.log('slices to gcode');
 
-  const gcode = new GCode().setSettings(settings);
+  const gcode = new GCode(settings);
 
   for (let layer = 0; layer < slices.length; layer ++) {
     const slice = slices[layer];
