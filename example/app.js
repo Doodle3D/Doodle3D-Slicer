@@ -1,11 +1,9 @@
 import THREE from 'three.js';
-import PRINTER_SETTINGS from 'settings/printer_settings.json!';
-import USER_SETTINGS from 'settings/user_settings.json!';
 import * as SLICER from 'src/index';
 
 var settings = new SLICER.Settings();
-settings.updateConfig(PRINTER_SETTINGS["ultimaker2go"]);
-settings.updateConfig(USER_SETTINGS);
+settings.updateConfig(SLICER.printerSettings['ultimaker2go']);
+settings.updateConfig(SLICER.userSettings);
 
 var geometry = new THREE.TorusGeometry(20, 10, 30, 30);
 
