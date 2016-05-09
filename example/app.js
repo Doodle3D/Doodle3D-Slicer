@@ -9,7 +9,7 @@ const geometry = new THREE.TorusGeometry(20, 10, 30, 30);
 
 const slicer = new SLICER.Slicer();
 
-slicer.setGeometry(geometry.clone());
+slicer.setGeometry(geometry);
 slicer.addEventListener('finish', ({ gcode }) => {
 	document.getElementById('gcode').innerHTML = gcode.replace(/(?:\r\n|\r|\n)/g, '<br />');
 });
