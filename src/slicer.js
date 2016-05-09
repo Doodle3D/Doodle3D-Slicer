@@ -14,7 +14,6 @@ import applyPrecision from './sliceActions/applyPrecision.js';
 import removePrecision from './sliceActions/removePrecision.js';
 
 export default class extends EventDispatcher {
-
 	setMesh (mesh) {
 		mesh.updateMatrix();
 
@@ -22,15 +21,12 @@ export default class extends EventDispatcher {
 
 		return this;
 	}
-
 	setGeometry (geometry, matrix) {
 		if (geometry.type === 'BufferGeometry') {
 			geometry = new THREE.Geometry().fromBufferGeometry(geometry);
-		}
-		else if (geometry.type.endsWith('Geometry')) {
+		} else if (geometry.type.endsWith('Geometry')) {
 			geometry = geometry.clone();
-		}
-		else {
+		} else {
 			console.warn('Geometry is not an instance of BufferGeometry or Geometry');
 			return;
 		}
@@ -46,7 +42,6 @@ export default class extends EventDispatcher {
 
 		return this;
 	}
-
 	slice (settings) {
 		// get unique lines from geometry;
 		const lines = createLines(this.geometry, settings);
@@ -63,15 +58,10 @@ export default class extends EventDispatcher {
 		const slices = shapesToSlices(shapes, settings);
 
 		generateInnerLines(slices, settings);
-
 		generateInfills(slices, settings);
-
 		generateSupport(slices, settings);
-
 		addBrim(slices, settings);
-
 		optimizePaths(slices, settings);
-
 		removePrecision(slices);
 
 		const gcode = slicesToGCode(slices, settings);
