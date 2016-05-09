@@ -4,8 +4,7 @@ export default class {
 	constructor() {
 		this.parts = [];
 	}
-
-	getOutline () {
+	getOutline() {
 		const outLines = new Shape([], true);
 
 		for (let i = 0; i < this.parts.length; i ++) {
@@ -18,8 +17,7 @@ export default class {
 
 		return outLines;
 	}
-
-	add (shape) {
+	add(shape) {
 		const part = { shape };
 
 		if (shape.closed) {
