@@ -1,29 +1,25 @@
 export default class {
-	constructor () {
+	constructor() {
 		this.config = {};
 	}
-
-	updateConfig (config) {
-		for (var i in config) {
+	updateConfig(config) {
+		for (const i in config) {
 			this.config[i] = config[i];
 		}
 
 		return this;
 	}
-
-	startCode () {
+	startCode() {
 		const { startCode } = this.config;
 		const gcode = this._subsituteVariables(startCode);
 		return gcode;
 	}
-
-	endCode () {
+	endCode() {
 		const { endCode } = this.config;
 		const gcode = this._subsituteVariables(endCode);
 		return gcode;
 	}
-
-	_subsituteVariables (gcode) {
+	_subsituteVariables(gcode) {
 		let {
 			temperature,
 			bedTemperature,
