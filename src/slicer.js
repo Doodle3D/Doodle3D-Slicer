@@ -22,9 +22,9 @@ export default class extends EventDispatcher {
 		return this;
 	}
 	setGeometry (geometry, matrix) {
-		if (geometry.type === 'BufferGeometry') {
+		if (geometry instanceof THREE.BufferGeometry) {
 			geometry = new THREE.Geometry().fromBufferGeometry(geometry);
-		} else if (geometry.type.endsWith('Geometry')) {
+		} else if (geometry instanceof THREE.Geometry) {
 			geometry = geometry.clone();
 		} else {
 			throw 'Geometry is not an instance of BufferGeometry or Geometry';
