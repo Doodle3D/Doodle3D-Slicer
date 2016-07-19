@@ -7,7 +7,7 @@
     },
     "dependencies": {
       "Doodle3D/clipper-js": "github:Doodle3D/clipper-js@master",
-      "casperlamboo/EventDispatcher": "github:casperlamboo/EventDispatcher@master",
+      "EventDispatcher": "github:mrdoob/eventdispatcher.js@^1.0.0",
       "json": "github:systemjs/plugin-json@^0.1.2",
       "three.js": "github:mrdoob/three.js@r72"
     },

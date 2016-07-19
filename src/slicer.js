@@ -1,5 +1,5 @@
 import THREE from 'three.js';
-import EventDispatcher from 'casperlamboo/EventDispatcher';
+import EventDispatcher from 'EventDispatcher';
 import calculateLayersIntersections from './sliceActions/calculateLayersIntersections.js';
 import createLines from './sliceActions/createLines.js';
 import generateInfills from './sliceActions/generateInfills.js';
