@@ -1,11 +1,9 @@
 export default class {
-	constructor() {
-		this.config = {};
+	constructor(config = {}) {
+		this.config = config;
 	}
 	updateConfig(config) {
-		for (const i in config) {
-			this.config[i] = config[i];
-		}
+		this.config = { ...this.config, ...config };
 
 		return this;
 	}
