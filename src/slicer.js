@@ -14,14 +14,14 @@ import applyPrecision from './sliceActions/applyPrecision.js';
 import removePrecision from './sliceActions/removePrecision.js';
 
 export default class extends EventDispatcher {
-	setMesh (mesh) {
+	setMesh(mesh) {
 		mesh.updateMatrix();
 
 		this.setGeometry(mesh.geometry, mesh.matrix);
 
 		return this;
 	}
-	setGeometry (geometry, matrix) {
+	setGeometry(geometry, matrix) {
 		if (geometry instanceof THREE.BufferGeometry) {
 			geometry = new THREE.Geometry().fromBufferGeometry(geometry);
 		} else if (geometry instanceof THREE.Geometry) {
@@ -41,7 +41,7 @@ export default class extends EventDispatcher {
 
 		return this;
 	}
-	slice (settings) {
+	slice(settings) {
 		// get unique lines from geometry;
 		const lines = createLines(this.geometry, settings);
 

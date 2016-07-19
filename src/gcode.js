@@ -10,7 +10,7 @@ const POSITION_Y = 'Y';
 const POSITION_Z = 'Z';
 
 export default class {
-	constructor (settings) {
+	constructor(settings) {
 		this.gcode = '';
 		this.current = {};
 
@@ -25,7 +25,7 @@ export default class {
 		}
 	}
 
-	_addGCode (command) {
+	_addGCode(command) {
 		let str = '';
 		let first = true;
 
@@ -46,13 +46,13 @@ export default class {
 		this.gcode += `${str}\n`;
 	}
 
-	setSettings (settings) {
+	setSettings(settings) {
 		this.settings = settings;
 
 		return this;
 	}
 
-	turnFanOn (fanSpeed) {
+	turnFanOn(fanSpeed) {
 		this.isFanOn = true;
 
 		const gcode = { [M_COMMAND]: 106 }
@@ -63,7 +63,7 @@ export default class {
 		return this;
 	}
 
-	turnFanOff () {
+	turnFanOff() {
 		this.isFanOn = false;
 
 		this._addGCode({ [M_COMMAND]: 107 });
@@ -71,7 +71,7 @@ export default class {
 		return this;
 	}
 
-	moveTo (x, y, layer) {
+	moveTo(x, y, layer) {
 		const {
 			layerHeight,
 			travelSpeed
@@ -93,7 +93,7 @@ export default class {
 		return this;
 	}
 
-	lineTo (x, y, layer, type) {
+	lineTo(x, y, layer, type) {
 		const newNozzlePosition = new THREE.Vector2(x, y);
 
 		const {
@@ -132,7 +132,7 @@ export default class {
 		return this;
 	}
 
-	unRetract () {
+	unRetract() {
 		const {
 			retractionEnabled,
 			retractionMinDistance,
@@ -156,7 +156,7 @@ export default class {
 		return this;
 	}
 
-	retract () {
+	retract() {
 		const {
 			retractionAmount,
 			retractionEnabled,
@@ -181,7 +181,7 @@ export default class {
 		return this;
 	}
 
-	getGCode () {
+	getGCode() {
 		return this.settings.startCode() + this.gcode + this.settings.endCode();
 	}
 }
