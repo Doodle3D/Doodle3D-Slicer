@@ -27,8 +27,7 @@ export default class extends EventDispatcher {
 		} else if (geometry.type.endsWith('Geometry')) {
 			geometry = geometry.clone();
 		} else {
-			console.warn('Geometry is not an instance of BufferGeometry or Geometry');
-			return;
+			throw 'Geometry is not an instance of BufferGeometry or Geometry';
 		}
 
 		if (matrix instanceof THREE.Matrix4) {
