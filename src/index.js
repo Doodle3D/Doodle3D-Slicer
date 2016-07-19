@@ -1,10 +1,6 @@
 import Slicer from './slicer.js';
-import SlicerWorker from './slicerworker.js';
 import Settings from './settings.js';
-import ClipperLib from 'clipper-lib';
+import printerSettings from './settings/printer_settings.json!json';
+import userSettings from './settings/user_settings.json!json';
 
-ClipperLib.Error = function (message) {
-	console.error(message);
-};
-
-export {Slicer, SlicerWorker, Settings};
+export { Slicer, Settings, printerSettings, userSettings };

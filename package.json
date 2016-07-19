@@ -1,20 +1,31 @@
 {
   "jspm": {
-    "main": "index",
+    "name": "slicer",
+    "main": "index.js",
     "directories": {
       "lib": "src"
     },
     "dependencies": {
-      "clipper-lib": "npm:clipper-lib@^1.0.0",
-      "nodeca/js-yaml": "github:nodeca/js-yaml@^3.3.1",
-      "read-yaml": "npm:read-yaml@^1.0.0",
-      "systemjs/plugin-json": "github:systemjs/plugin-json@^0.1.0",
+      "Doodle3D/clipper-js": "github:Doodle3D/clipper-js@master",
+      "casperlamboo/EventDispatcher": "github:casperlamboo/EventDispatcher@master",
+      "json": "github:systemjs/plugin-json@^0.1.2",
       "three.js": "github:mrdoob/three.js@r72"
     },
     "devDependencies": {
-      "babel": "npm:babel-core@^5.1.13",
       "babel-runtime": "npm:babel-runtime@^5.1.13",
-      "core-js": "npm:core-js@^0.9.4"
+      "core-js": "npm:core-js@^0.9.4",
+      "fs": "github:jspm/nodelibs-fs@^0.2.0-alpha",
+      "plugin-babel": "npm:systemjs-plugin-babel@^0.0.12",
+      "process": "github:jspm/nodelibs-process@^0.2.0-alpha"
+    },
+    "overrides": {
+      "npm:babel-runtime@5.8.38": {
+        "main": false,
+        "dependencies": {},
+        "optionalDependencies": {
+          "core-js": "^1.2.0"
+        }
+      }
     }
   }
 }
