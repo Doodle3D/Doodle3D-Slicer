@@ -1,5 +1,5 @@
 import Shape from 'Doodle3D/clipper-js';
-import Slice from '../slice.js';
+import Slice from '../Slice.js';
 
 import { CLEAN_DELTA } from '../constants.js';
 

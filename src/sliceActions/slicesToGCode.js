@@ -1,4 +1,4 @@
-import GCode from '../gcode.js';
+import GCode from '../GCode.js';
 
 export default function slicesToGCode(slices, settings) {
   console.log('slices to gcode');
