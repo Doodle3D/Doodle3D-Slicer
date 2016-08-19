@@ -47,7 +47,6 @@ SystemJS.config({
     "github:*/*.json"
   ],
   map: {
-    "EventDispatcher": "github:mrdoob/eventdispatcher.js@1.0.0",
     "json": "github:systemjs/plugin-json@0.1.2",
     "Doodle3D/clipper-js": "github:Doodle3D/clipper-js@master",
     "three.js": "github:mrdoob/three.js@r72"
