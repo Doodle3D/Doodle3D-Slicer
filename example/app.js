@@ -11,6 +11,6 @@ const geometry = new THREE.TorusGeometry(20, 10, 30, 30);
 const slicer = new SLICER.Slicer();
 
 slicer.setGeometry(geometry);
-const gcode = slicer.slice(settings).then(gcode => {
+slicer.slice(settings, false).then(gcode => {
 	document.getElementById('gcode').innerHTML = gcode.replace(/(?:\r\n|\r|\n)/g, '<br />');
 });

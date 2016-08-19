@@ -1,5 +1,6 @@
 import THREE from 'three.js';
-import slice from './sliceActions/index.js';
+import slice from './sliceActions/slice.js';
+import SliceWorker from './sliceActions/sliceWorker.js!worker';
 
 export default class {
 	setMesh(mesh) {
@@ -29,7 +30,34 @@ export default class {
 
 		return this;
 	}
-	async slice(settings) {
-		return slice(this.geometry, settings);
+	async slice(settings, async = false) {
+		let gcode;
+
+		if (async) {
+			const sliceWorker = new SliceWorker();
+
+			const geometry = this.geometry.toJSON();
+			const { config } = settings;
+
+			gcode = await new Promise((resolve) => {
+				sliceWorker.addEventListener('message', (event) => {
+					const { message, data } = event.data;
+					switch (message) {
+						case 'SLICE': {
+							sliceWorker.terminate();
+							resolve(data.gcode);
+						}
+					}
+				});
+
+				sliceWorker.postMessage({
+					message: 'SLICE',
+					data: { geometry, config }
+				});
+			});
+		} else {
+			gcode = slice(this.geometry, settings);
+		}
+		return gcode;
 	}
 }
