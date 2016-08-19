@@ -30,34 +30,32 @@ export default class {
 
 		return this;
 	}
-	async slice(settings, async = false) {
-		let gcode;
+	sliceSync(settings) {
+		return slice(this.geometry, settings);
+	}
+	slice(settings) {
+		const sliceWorker = new SliceWorker();
 
-		if (async) {
-			const sliceWorker = new SliceWorker();
+		const geometry = this.geometry.toJSON();
+		const { config } = settings;
 
-			const geometry = this.geometry.toJSON();
-			const { config } = settings;
+		return new Promise((resolve, reject) => {
+			sliceWorker.onerror = reject;
 
-			gcode = await new Promise((resolve) => {
-				sliceWorker.addEventListener('message', (event) => {
-					const { message, data } = event.data;
-					switch (message) {
-						case 'SLICE': {
-							sliceWorker.terminate();
-							resolve(data.gcode);
-						}
+			sliceWorker.addEventListener('message', (event) => {
+				const { message, data } = event.data;
+				switch (message) {
+					case 'SLICE': {
+						sliceWorker.terminate();
+						resolve(data.gcode);
 					}
-				});
-
-				sliceWorker.postMessage({
-					message: 'SLICE',
-					data: { geometry, config }
-				});
+				}
 			});
-		} else {
-			gcode = slice(this.geometry, settings);
-		}
-		return gcode;
+
+			sliceWorker.postMessage({
+				message: 'SLICE',
+				data: { geometry, config }
+			});
+		});
 	}
 }
