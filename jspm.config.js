@@ -10,17 +10,12 @@ SystemJS.config({
   devConfig: {
     "map": {
       "babel-runtime": "npm:babel-runtime@5.8.38",
-      "core-js": "npm:core-js@0.9.18",
+      "core-js": "npm:core-js@1.2.7",
       "plugin-babel": "npm:systemjs-plugin-babel@0.0.12"
     },
     "packages": {
       "npm:babel-runtime@5.8.38": {
         "map": {}
-      },
-      "npm:core-js@0.9.18": {
-        "map": {
-          "systemjs-json": "github:systemjs/plugin-json@0.1.2"
-        }
       }
     }
   },
@@ -29,9 +24,6 @@ SystemJS.config({
     "slicer": {
       "main": "index.js"
     }
-  },
-  bundles: {
-    "bundle.js": []
   },
   map: {
     "babel": "npm:babel-core@5.8.38"
