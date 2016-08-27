@@ -27,5 +27,5 @@ export default function getFillTemplate(bounds, size, even, uneven) {
     }
   }
 
-  return new Shape(paths, false, true);
+  return new Shape(paths, false, true, true);
 }
