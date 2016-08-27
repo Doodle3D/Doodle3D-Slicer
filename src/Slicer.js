@@ -48,6 +48,7 @@ export default class {
 					case 'SLICE': {
 						sliceWorker.terminate();
 						resolve(data.gcode);
+						break;
 					}
 				}
 			});
