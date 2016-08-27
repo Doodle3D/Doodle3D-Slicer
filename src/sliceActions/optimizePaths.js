@@ -148,5 +148,5 @@ function optimizeShape(shape, start) {
     optimizedPaths.push(minPath);
   }
 
-  return new Shape(optimizedPaths, shape.closed, true);
+  return new Shape(optimizedPaths, shape.closed, true, false);
 }
