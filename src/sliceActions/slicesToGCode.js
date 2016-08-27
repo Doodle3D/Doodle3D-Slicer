@@ -44,23 +44,26 @@ export default function slicesToGCode(slices, settings) {
 }
 
 function pathToGCode(gcode, shape, retract, unRetract, layer, type) {
-  for (let i = 0; i < shape.paths.length; i ++) {
-    const line = shape.paths[i];
+  const { closed } = shape;
+  const paths = shape.mapToLower();
 
-    const length = shape.closed ? (line.length + 1) : line.length;
+  for (let i = 0; i < paths.length; i ++) {
+    const line = paths[i];
+
+    const length = closed ? (line.length + 1) : line.length;
     for (let i = 0; i < length; i ++) {
       const point = line[i % line.length];
 
       if (i === 0) {
         // TODO
         // moveTo should impliment combing
-        gcode.moveTo(point.X, point.Y, layer);
+        gcode.moveTo(point.x, point.y, layer);
 
         if (unRetract) {
           gcode.unRetract();
         }
       } else {
-        gcode.lineTo(point.X, point.Y, layer, type);
+        gcode.lineTo(point.x, point.y, layer, type);
       }
     }
   }
