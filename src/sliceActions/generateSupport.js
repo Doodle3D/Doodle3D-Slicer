@@ -42,7 +42,6 @@ export default function generateSupport(slices, settings) {
         }
       }
 
-
       var supportTemplate = getFillTemplate(supportAreas.bounds(), supportGridSize, true, true);
       var supportFill = supportTemplate.intersect(supportAreas);
       if (supportFill.length === 0) {
