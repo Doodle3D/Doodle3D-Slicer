@@ -26,13 +26,12 @@ export default function calculateLayersIntersections(lines, settings) {
         layerIntersectionIndexes[layerIndex].push(lineIndex);
 
         const y = layerIndex * layerHeight;
-        let x, z;
 
+        let x, z;
         if (line.start.y === line.end.y) {
           x = line.start.x;
           z = line.start.z;
-        }
-        else {
+        } else {
           const alpha = (y - line.start.y) / (line.end.y - line.start.y);
           x = line.end.x * alpha + line.start.x * (1 - alpha);
           z = line.end.z * alpha + line.start.z * (1 - alpha);
