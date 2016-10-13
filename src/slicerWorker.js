@@ -1,5 +1,5 @@
-import Settings from '../Settings.js';
-import slice from './slice.js';
+import Settings from './Settings.js';
+import slice from './sliceActions/slice.js';
 import THREE from 'three.js';
 
 const loader = new THREE.JSONLoader();
