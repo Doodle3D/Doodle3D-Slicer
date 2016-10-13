@@ -11,12 +11,12 @@ export default function applyPrecision(shapes) {
 
 function scaleUpShape(shape) {
   for (let i = 0; i < shape.length; i ++) {
-      const path = shape[i];
+    const path = shape[i];
 
-      for (let i = 0; i < path.length; i ++) {
-        const point = path[i];
+    for (let i = 0; i < path.length; i ++) {
+      const point = path[i];
 
-        point.copy(point.divideScalar(PRECISION));
-      }
+      point.copy(point.divideScalar(PRECISION));
+    }
   }
 }
