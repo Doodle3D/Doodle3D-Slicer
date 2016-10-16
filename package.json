@@ -43,6 +43,9 @@
       "vm": "github:jspm/nodelibs-vm@^0.2.0-alpha"
     },
     "overrides": {
+      "github:mrdoob/three.js@r75": {
+        "format": "global"
+      },
       "npm:babel-runtime@5.8.38": {
         "main": false,
         "dependencies": {},

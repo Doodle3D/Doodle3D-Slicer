@@ -137,8 +137,16 @@ SystemJS.config({
       }
     }
   },
+  meta: {
+    "three.js/loaders/STLLoader": {
+      "deps": [
+        "three.js"
+      ]
+    }
+  },
   map: {
-    "babel": "npm:babel-core@5.8.38"
+    "babel": "npm:babel-core@5.8.38",
+    "three.js/loaders/STLLoader": "github:mrdoob/three.js@r75/examples/js/loaders/STLLoader.js",
   }
 });
 
