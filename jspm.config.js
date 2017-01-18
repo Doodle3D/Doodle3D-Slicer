@@ -18,7 +18,8 @@ SystemJS.config({
       "zlib": "github:jspm/nodelibs-zlib@0.2.0-alpha",
       "https": "github:jspm/nodelibs-https@0.2.0-alpha",
       "react-dom": "npm:react-dom@15.3.2",
-      "babel-plugin-transform-react-jsx": "npm:babel-plugin-transform-react-jsx@6.8.0"
+      "babel-plugin-transform-react-jsx": "npm:babel-plugin-transform-react-jsx@6.8.0",
+      "three.js/loaders/STLLoader": "github:mrdoob/three.js@r83/examples/js/loaders/STLLoader.js"
     },
     "packages": {
       "npm:babel-runtime@5.8.38": {
@@ -146,7 +147,7 @@ SystemJS.config({
   },
   map: {
     "babel": "npm:babel-core@5.8.38",
-    "three.js/loaders/STLLoader": "github:mrdoob/three.js@r75/examples/js/loaders/STLLoader.js",
+    "three.js/loaders/STLLoader": "github:mrdoob/three.js@r75/examples/js/loaders/STLLoader.js"
   }
 });
 
@@ -157,6 +158,7 @@ SystemJS.config({
     "github:*/*.json"
   ],
   map: {
+    "three.js": "github:mrdoob/three.js@r83",
     "assert": "github:jspm/nodelibs-assert@0.2.0-alpha",
     "buffer": "github:jspm/nodelibs-buffer@0.2.0-alpha",
     "child_process": "github:jspm/nodelibs-child_process@0.2.0-alpha",
@@ -173,7 +175,6 @@ SystemJS.config({
     "process": "github:jspm/nodelibs-process@0.2.0-alpha",
     "stream": "github:jspm/nodelibs-stream@0.2.0-alpha",
     "string_decoder": "github:jspm/nodelibs-string_decoder@0.2.0-alpha",
-    "three.js": "github:mrdoob/three.js@r75",
     "tty": "github:jspm/nodelibs-tty@0.2.0-alpha",
     "url": "github:jspm/nodelibs-url@0.2.0-alpha",
     "util": "github:jspm/nodelibs-util@0.2.0-alpha",

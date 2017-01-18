@@ -1,4 +1,4 @@
-import THREE from 'three.js';
+import 'three.js';
 import { PRECISION } from '../constants.js';
 
 const offsetOptions = {

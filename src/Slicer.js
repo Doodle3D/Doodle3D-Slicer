@@ -1,4 +1,4 @@
-import THREE from 'three.js';
+import 'three.js';
 import slice from './sliceActions/slice.js';
 import SlicerWorker from './slicerWorker.js!worker';
 
@@ -11,20 +11,20 @@ export default class {
 		return this;
 	}
 	setGeometry(geometry, matrix) {
-		if (geometry instanceof THREE.BufferGeometry) {
-			geometry = new THREE.Geometry().fromBufferGeometry(geometry);
-		} else if (geometry instanceof THREE.Geometry) {
-			geometry = geometry.clone();
-		} else {
-			throw 'Geometry is not an instance of BufferGeometry or Geometry';
-		}
+		if (geometry.type === 'BufferGeometry') {
+	    geometry = new THREE.Geometry().fromBufferGeometry(geometry);
+	  } else if (geometry.type === 'Geometry') {
+	    geometry = geometry.clone();
+	  } else {
+	    throw new Error('Geometry is not an instance of BufferGeometry or Geometry');
+	  }
 
-		if (matrix instanceof THREE.Matrix4) {
-			geometry.applyMatrix(matrix);
-		}
+	  if (matrix) {
+	    geometry.applyMatrix(matrix);
+	  }
 
 		geometry.mergeVertices();
-		geometry.computeFaceNormals();
+	  geometry.computeFaceNormals();
 
 		this.geometry = geometry;
 
