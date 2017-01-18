@@ -33,8 +33,9 @@ export default function calculateLayersIntersections(lines, settings) {
           z = line.start.z;
         } else {
           const alpha = (y - line.start.y) / (line.end.y - line.start.y);
-          x = line.end.x * alpha + line.start.x * (1 - alpha);
-          z = line.end.z * alpha + line.start.z * (1 - alpha);
+          const alpha1 = 1 - alpha;
+          x = line.end.x * alpha + line.start.x * alpha1;
+          z = line.end.z * alpha + line.start.z * alpha1;
         }
 
         layerIntersectionPoints[layerIndex][lineIndex] = new THREE.Vector2(z, x);
