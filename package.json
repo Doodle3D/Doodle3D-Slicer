@@ -8,7 +8,7 @@
     "dependencies": {
       "Doodle3D/clipper-js": "github:Doodle3D/clipper-js@master",
       "json": "github:systemjs/plugin-json@^0.1.2",
-      "three.js": "github:mrdoob/three.js@r75",
+      "three.js": "github:mrdoob/three.js@r83",
       "worker": "github:casperlamboo/plugin-worker@master"
     },
     "devDependencies": {
@@ -43,7 +43,7 @@
       "vm": "github:jspm/nodelibs-vm@^0.2.0-alpha"
     },
     "overrides": {
-      "github:mrdoob/three.js@r75": {
+      "github:mrdoob/three.js@r83": {
         "format": "global"
       },
       "npm:babel-runtime@5.8.38": {

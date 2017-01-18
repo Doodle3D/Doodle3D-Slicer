@@ -1,4 +1,4 @@
-import THREE from 'three.js';
+import 'three.js';
 import Shape from 'Doodle3D/clipper-js';
 
 export default function optimizePaths(slices, settings) {
