@@ -1,4 +1,4 @@
-import 'three.js';
+import * as THREE from 'three.js';
 
 export default function calculateLayersIntersections(lines, settings) {
   console.log('calculating layer intersections');
