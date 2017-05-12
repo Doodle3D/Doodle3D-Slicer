@@ -12,7 +12,7 @@ export default function shapesToSlices(shapes, settings) {
     closedShapes = new Shape(closedShapes, true, true, false)
       .clean(CLEAN_DELTA)
       .fixOrientation()
-      .removeOverlap()
+      .simplify('pftNonZero')
       .seperateShapes();
 
     openShapes = new Shape(openShapes, false, true, false)
