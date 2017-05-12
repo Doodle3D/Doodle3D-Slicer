@@ -1,4 +1,4 @@
-import 'three.js';
+import * as THREE from 'three.js';
 import slice from './sliceActions/slice.js';
 import SlicerWorker from './slicerWorker.js!worker';
 

@@ -1,5 +1,5 @@
-import 'three.js';
-import 'three.js/loaders/STLLoader';
+import * as THREE from 'three.js';
+import stlLoader from 'three.js/loaders/STLLoader';
 import React from 'react';
 import ReactDOM, { render } from 'react-dom';
 import * as SLICER from 'src/index.js';

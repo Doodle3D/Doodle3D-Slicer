@@ -1,4 +1,4 @@
-import 'three.js';
+import * as THREE from 'three.js';
 
 const G_COMMAND = 'G';
 const M_COMMAND = 'M';
