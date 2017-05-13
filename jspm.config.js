@@ -19,7 +19,8 @@ SystemJS.config({
       "https": "github:jspm/nodelibs-https@0.2.0-alpha",
       "react-dom": "npm:react-dom@15.3.2",
       "babel-plugin-transform-react-jsx": "npm:babel-plugin-transform-react-jsx@6.8.0",
-      "three.js/loaders/STLLoader": "github:mrdoob/three.js@r83/examples/js/loaders/STLLoader.js"
+      "three.js/loaders/STLLoader": "github:mrdoob/three.js@r83/examples/js/loaders/STLLoader.js",
+      "file-saver": "npm:file-saver@1.3.3"
     },
     "packages": {
       "npm:babel-runtime@5.8.38": {
