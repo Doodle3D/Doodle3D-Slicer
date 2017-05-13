@@ -10,178 +10,178 @@ const POSITION_Y = 'Y';
 const POSITION_Z = 'Z';
 
 export default class {
-	constructor(settings) {
-		this.gcode = '';
-		this.current = {};
+  constructor(settings) {
+    this.gcode = '';
+    this.current = {};
 
-		this.extruder = 0.0;
-		this.bottom = true;
-		this.isRetracted = false;
-		this.isFanOn = false;
-		this._nozzlePosition = new THREE.Vector2(0, 0);
+    this.extruder = 0.0;
+    this.bottom = true;
+    this.isRetracted = false;
+    this.isFanOn = false;
+    this._nozzlePosition = new THREE.Vector2(0, 0);
 
-		if (settings !== undefined) {
-			this.setSettings(settings);
-		}
-	}
+    if (settings !== undefined) {
+      this.setSettings(settings);
+    }
+  }
 
-	_addGCode(command) {
-		let str = '';
-		let first = true;
+  _addGCode(command) {
+    let str = '';
+    let first = true;
 
-		for (const action in command) {
-			const value = command[action];
-			const currentValue = this.current[action];
-			if (first) {
-				str = action + value;
+    for (const action in command) {
+      const value = command[action];
+      const currentValue = this.current[action];
+      if (first) {
+        str = action + value;
 
-				first = false;
-			} else if (currentValue !== value) {
-				str += ` ${action}${value}`;
+        first = false;
+      } else if (currentValue !== value) {
+        str += ` ${action}${value}`;
 
-				this.current[action] = value;
-			}
-		}
+        this.current[action] = value;
+      }
+    }
 
-		this.gcode += `${str}\n`;
-	}
+    this.gcode += `${str}\n`;
+  }
 
-	setSettings(settings) {
-		this.settings = settings;
+  setSettings(settings) {
+    this.settings = settings;
 
-		return this;
-	}
+    return this;
+  }
 
-	turnFanOn(fanSpeed) {
-		this.isFanOn = true;
+  turnFanOn(fanSpeed) {
+    this.isFanOn = true;
 
-		const gcode = { [M_COMMAND]: 106 }
-		if (fanSpeed !== undefined) gcode[FAN_SPEED] = fanSpeed;
+    const gcode = { [M_COMMAND]: 106 }
+    if (fanSpeed !== undefined) gcode[FAN_SPEED] = fanSpeed;
 
-		this._addGCode(gcode);
+    this._addGCode(gcode);
 
-		return this;
-	}
+    return this;
+  }
 
-	turnFanOff() {
-		this.isFanOn = false;
+  turnFanOff() {
+    this.isFanOn = false;
 
-		this._addGCode({ [M_COMMAND]: 107 });
+    this._addGCode({ [M_COMMAND]: 107 });
 
-		return this;
-	}
+    return this;
+  }
 
-	moveTo(x, y, layer) {
-		const {
-			layerHeight,
-			travelSpeed
-		} = this.settings.config;
+  moveTo(x, y, layer) {
+    const {
+      layerHeight,
+      travelSpeed
+    } = this.settings.config;
 
-		const z = (layer + 1) * layerHeight;
-		const speed = travelSpeed * 60;
+    const z = (layer + 1) * layerHeight;
+    const speed = travelSpeed * 60;
 
-		this._addGCode({
-			[G_COMMAND]: 0,
-			[POSITION_X]: x.toFixed(3),
-			[POSITION_Y]: y.toFixed(3),
-			[POSITION_Z]: z.toFixed(3),
-			[SPEED]: speed.toFixed(3)
-		});
+    this._addGCode({
+      [G_COMMAND]: 0,
+      [POSITION_X]: x.toFixed(3),
+      [POSITION_Y]: y.toFixed(3),
+      [POSITION_Z]: z.toFixed(3),
+      [SPEED]: speed.toFixed(3)
+    });
 
-		this._nozzlePosition.set(x, y);
+    this._nozzlePosition.set(x, y);
 
-		return this;
-	}
+    return this;
+  }
 
-	lineTo(x, y, layer, type) {
-		const newNozzlePosition = new THREE.Vector2(x, y);
+  lineTo(x, y, layer, type) {
+    const newNozzlePosition = new THREE.Vector2(x, y);
 
-		const {
-			layerHeight,
-			nozzleDiameter,
-			filamentThickness,
-			travelSpeed
-		} = this.settings.config;
+    const {
+      layerHeight,
+      nozzleDiameter,
+      filamentThickness,
+      travelSpeed
+    } = this.settings.config;
 
-		const profile = this.settings.config[(this.bottom ? 'bottom' : type)];
+    const profile = this.settings.config[(this.bottom ? 'bottom' : type)];
 
-		let {
-			speed,
-			flowRate
-		} = profile;
+    let {
+      speed,
+      flowRate
+    } = profile;
 
-		speed *= 60;
-		const z = (layer + 1) * layerHeight;
+    speed *= 60;
+    const z = (layer + 1) * layerHeight;
 
-		const lineLength = this._nozzlePosition.distanceTo(newNozzlePosition);
+    const lineLength = this._nozzlePosition.distanceTo(newNozzlePosition);
 
-		const filamentSurfaceArea = Math.pow((filamentThickness / 2), 2) * Math.PI;
-		this.extruder += lineLength * nozzleDiameter * layerHeight / filamentSurfaceArea * flowRate;
+    const filamentSurfaceArea = Math.pow((filamentThickness / 2), 2) * Math.PI;
+    this.extruder += lineLength * nozzleDiameter * layerHeight / filamentSurfaceArea * flowRate;
 
-		this._addGCode({
-			[G_COMMAND]: 1,
-			[POSITION_X]: x.toFixed(3),
-			[POSITION_Y]: y.toFixed(3),
-			[POSITION_Z]: z.toFixed(3),
-			[SPEED]: speed.toFixed(3),
-			[EXTRUDER]: this.extruder.toFixed(3)
-		});
+    this._addGCode({
+      [G_COMMAND]: 1,
+      [POSITION_X]: x.toFixed(3),
+      [POSITION_Y]: y.toFixed(3),
+      [POSITION_Z]: z.toFixed(3),
+      [SPEED]: speed.toFixed(3),
+      [EXTRUDER]: this.extruder.toFixed(3)
+    });
 
-		this._nozzlePosition.copy(newNozzlePosition);
+    this._nozzlePosition.copy(newNozzlePosition);
 
-		return this;
-	}
+    return this;
+  }
 
-	unRetract() {
-		const {
-			retractionEnabled,
-			retractionMinDistance,
-			retractionSpeed
-		} = this.settings.config;
+  unRetract() {
+    const {
+      retractionEnabled,
+      retractionMinDistance,
+      retractionSpeed
+    } = this.settings.config;
 
-		if (this.isRetracted && retractionEnabled) {
-			this.isRetracted = false;
+    if (this.isRetracted && retractionEnabled) {
+      this.isRetracted = false;
 
-			const speed = retractionSpeed * 60;
+      const speed = retractionSpeed * 60;
 
-			if (this.extruder > retractionMinDistance) {
-				this._addGCode({
-					[G_COMMAND]: 0,
-					[EXTRUDER]: this.extruder.toFixed(3),
-					[SPEED]: speed.toFixed(3)
-				});
-			}
-		}
+      if (this.extruder > retractionMinDistance) {
+        this._addGCode({
+          [G_COMMAND]: 0,
+          [EXTRUDER]: this.extruder.toFixed(3),
+          [SPEED]: speed.toFixed(3)
+        });
+      }
+    }
 
-		return this;
-	}
+    return this;
+  }
 
-	retract() {
-		const {
-			retractionAmount,
-			retractionEnabled,
-			retractionMinDistance,
-			retractionSpeed
-		} = this.settings.config;
+  retract() {
+    const {
+      retractionAmount,
+      retractionEnabled,
+      retractionMinDistance,
+      retractionSpeed
+    } = this.settings.config;
 
-		if (!this.isRetracted && retractionEnabled) {
-			this.isRetracted = true;
+    if (!this.isRetracted && retractionEnabled) {
+      this.isRetracted = true;
 
-			const speed = retractionSpeed * 60;
+      const speed = retractionSpeed * 60;
 
-			if (this.extruder > retractionMinDistance && retractionEnabled) {
-				this._addGCode({
-					[G_COMMAND]: 0,
-					[EXTRUDER]: (this.extruder - retractionAmount).toFixed(3),
-					[SPEED]: speed.toFixed(3)
-				});
-			}
-		}
+      if (this.extruder > retractionMinDistance && retractionEnabled) {
+        this._addGCode({
+          [G_COMMAND]: 0,
+          [EXTRUDER]: (this.extruder - retractionAmount).toFixed(3),
+          [SPEED]: speed.toFixed(3)
+        });
+      }
+    }
 
-		return this;
-	}
+    return this;
+  }
 
-	getGCode() {
-		return this.settings.startCode() + this.gcode + this.settings.endCode();
-	}
+  getGCode() {
+    return this.settings.startCode() + this.gcode + this.settings.endCode();
+  }
 }
