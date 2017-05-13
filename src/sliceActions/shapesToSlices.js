@@ -9,13 +9,13 @@ export default function shapesToSlices(shapes, settings) {
   for (let layer = 0; layer < shapes.length; layer ++) {
     let { closedShapes, openShapes } = shapes[layer];
 
-    closedShapes = new Shape(closedShapes, true, true, false)
       .clean(CLEAN_DELTA)
+    closedShapes = new Shape(closedShapes, true, true, true, true)
       .fixOrientation()
       .simplify('pftNonZero')
       .seperateShapes();
 
-    openShapes = new Shape(openShapes, false, true, false)
+    openShapes = new Shape(openShapes, false, true, true, true)
       .clean(CLEAN_DELTA);
 
     const slice = new Slice();
