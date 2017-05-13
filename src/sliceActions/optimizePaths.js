@@ -10,72 +10,72 @@ export default function optimizePaths(slices, settings) {
     const slice = slices[layer];
 
     if (slice.brim !== undefined && slice.brim.paths.length > 0) {
-    	slice.brim = optimizeShape(slice.brim, start);
-    	start.copy(slice.brim.lastPoint(true));
+      slice.brim = optimizeShape(slice.brim, start);
+      start.copy(slice.brim.lastPoint(true));
     }
 
     const parts = [];
 
     while (slice.parts.length > 0) {
-    	let closestDistance = Infinity;
-    	let closestPart;
+      let closestDistance = Infinity;
+      let closestPart;
 
-    	for (let i = 0; i < slice.parts.length; i ++) {
-    		const part = slice.parts[i];
+      for (let i = 0; i < slice.parts.length; i ++) {
+        const part = slice.parts[i];
 
         let bounds;
-    		if (part.shape.closed) {
-    			bounds = part.outerLine.shapeBounds();
-    		} else {
-    			bounds = part.shape.shapeBounds();
-    		}
+        if (part.shape.closed) {
+          bounds = part.outerLine.shapeBounds();
+        } else {
+          bounds = part.shape.shapeBounds();
+        }
 
-    		const top = bounds.top - start.y;
-    		const bottom = start.y - bounds.bottom;
-    		const left = bounds.left - start.x;
-    		const right = start.x - bounds.right;
+        const top = bounds.top - start.y;
+        const bottom = start.y - bounds.bottom;
+        const left = bounds.left - start.x;
+        const right = start.x - bounds.right;
 
-    		const distance = Math.max(top, bottom, left, right);
+        const distance = Math.max(top, bottom, left, right);
 
-    		if (distance < closestDistance) {
-    			closestDistance = distance;
-    			closestPart = i;
-    		}
-    	}
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestPart = i;
+        }
+      }
 
-    	const part = slice.parts.splice(closestPart, 1)[0];
-    	parts.push(part);
+      const part = slice.parts.splice(closestPart, 1)[0];
+      parts.push(part);
 
-    	if (part.shape.closed) {
-    		if (part.outerLine.paths.length > 0) {
-    			part.outerLine = optimizeShape(part.outerLine, start);
-    			start.copy(part.outerLine.lastPoint(true));
-    		}
+      if (part.shape.closed) {
+        if (part.outerLine.paths.length > 0) {
+          part.outerLine = optimizeShape(part.outerLine, start);
+          start.copy(part.outerLine.lastPoint(true));
+        }
 
-    		for (let i = 0; i < part.innerLines.length; i ++) {
-    			const innerLine = part.innerLines[i];
+        for (let i = 0; i < part.innerLines.length; i ++) {
+          const innerLine = part.innerLines[i];
 
-    			if (innerLine.paths.length > 0) {
-    				part.innerLines[i] = optimizeShape(innerLine, start);
-    				start.copy(part.innerLines[i].lastPoint(true));
-    			}
-    		}
+          if (innerLine.paths.length > 0) {
+            part.innerLines[i] = optimizeShape(innerLine, start);
+            start.copy(part.innerLines[i].lastPoint(true));
+          }
+        }
 
-    		if (part.fill.paths.length > 0) {
-    			part.fill = optimizeShape(part.fill, start);
-    			start.copy(part.fill.lastPoint(true));
-    		}
-    	} else {
-    		part.shape = optimizeShape(part.shape, start);
-    		start.copy(part.shape.lastPoint(true));
-    	}
+        if (part.fill.paths.length > 0) {
+          part.fill = optimizeShape(part.fill, start);
+          start.copy(part.fill.lastPoint(true));
+        }
+      } else {
+        part.shape = optimizeShape(part.shape, start);
+        start.copy(part.shape.lastPoint(true));
+      }
     }
 
     slice.parts = parts;
 
     if (slice.support !== undefined && slice.support.length > 0) {
-    	slice.support = optimizeShape(slice.support, start);
-    	start.copy(slice.support.lastPoint(true));
+      slice.support = optimizeShape(slice.support, start);
+      start.copy(slice.support.lastPoint(true));
     }
   }
 }

@@ -12,43 +12,43 @@ import applyPrecision from 'src/sliceActions/applyPrecision.js';
 import removePrecision from 'src/sliceActions/removePrecision.js';
 
 export default function generateRawData(geometry, settings) {
-	const rawData = {};
+  const rawData = {};
 
-	const lines = createLines(geometry, settings);
+  const lines = createLines(geometry, settings);
 
-	const {
-	  layerIntersectionIndexes,
-	  layerIntersectionPoints
-	} = calculateLayersIntersections(lines, settings);
+  const {
+    layerIntersectionIndexes,
+    layerIntersectionPoints
+  } = calculateLayersIntersections(lines, settings);
 
-	rawData.layerIntersectionPoints = layerIntersectionPoints
-		.map(intersectionPoints => intersectionPoints.map(intersectionPoint => intersectionPoint.clone()));
+  rawData.layerIntersectionPoints = layerIntersectionPoints
+    .map(intersectionPoints => intersectionPoints.map(intersectionPoint => intersectionPoint.clone()));
 
-	const layerShapes = intersectionsToShapes(layerIntersectionIndexes, layerIntersectionPoints, lines, settings);
+  const layerShapes = intersectionsToShapes(layerIntersectionIndexes, layerIntersectionPoints, lines, settings);
 
-	rawData.layerShapes = layerShapes
-		.map(({ closedShapes, openShapes }) => ({
-			closedShapes: closedShapes.map(closedShape => closedShape.map(vector => vector.clone())),
-			openShapes: openShapes.map(openShape => openShape.map(vector => vector.clone()))
-		}));
+  rawData.layerShapes = layerShapes
+    .map(({ closedShapes, openShapes }) => ({
+      closedShapes: closedShapes.map(closedShape => closedShape.map(vector => vector.clone())),
+      openShapes: openShapes.map(openShape => openShape.map(vector => vector.clone()))
+    }));
 
 
-	applyPrecision(layerShapes);
+  applyPrecision(layerShapes);
 
-	const slices = shapesToSlices(layerShapes, settings);
+  const slices = shapesToSlices(layerShapes, settings);
 
-	generateInnerLines(slices, settings);
-	generateInfills(slices, settings);
-	generateSupport(slices, settings);
-	addBrim(slices, settings);
-	optimizePaths(slices, settings);
-	removePrecision(slices);
+  generateInnerLines(slices, settings);
+  generateInfills(slices, settings);
+  generateSupport(slices, settings);
+  addBrim(slices, settings);
+  optimizePaths(slices, settings);
+  removePrecision(slices);
 
-	rawData.slices = slices;
+  rawData.slices = slices;
 
-	const gcode = slicesToGCode(slices, settings);
+  const gcode = slicesToGCode(slices, settings);
 
-	rawData.gcode = gcode;
+  rawData.gcode = gcode;
 
-	return rawData;
+  return rawData;
 }
