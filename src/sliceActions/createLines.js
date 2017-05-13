@@ -1,4 +1,4 @@
-import 'three.js';
+import * as THREE from 'three.js';
 
 function addLine(geometry, lineLookup, lines, a, b) {
   const index = lines.length;

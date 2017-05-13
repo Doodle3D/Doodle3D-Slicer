@@ -1,6 +1,6 @@
 import Settings from './Settings.js';
 import slice from './sliceActions/slice.js';
-import 'three.js';
+import * as THREE from 'three.js';
 
 const loader = new THREE.JSONLoader();
 

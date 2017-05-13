@@ -1,4 +1,4 @@
-import 'three.js';
+import * as THREE from 'three.js';
 import { PRECISION } from '../constants.js';
 
 export default function removePrecision(slices) {
