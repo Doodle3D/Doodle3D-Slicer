@@ -1,7 +1,9 @@
 import Shape from 'Doodle3D/clipper-js';
 import Slice from '../Slice.js';
 
-import { CLEAN_DELTA } from '../constants.js';
+import { CLEAN_DELTA, PRECISION } from '../constants.js';
+
+const cleanDelta = CLEAN_DELTA / PRECISION;
 
 export default function shapesToSlices(shapes, settings) {
   const sliceLayers = [];
@@ -12,11 +14,11 @@ export default function shapesToSlices(shapes, settings) {
     closedShapes = new Shape(closedShapes, true, true, true, true)
       .fixOrientation()
       .simplify('pftNonZero')
-      .clean(CLEAN_DELTA)
+      .clean(cleanDelta)
       .seperateShapes();
 
     openShapes = new Shape(openShapes, false, true, true, true)
-      .clean(CLEAN_DELTA);
+      .clean(cleanDelta);
 
     const slice = new Slice();
 
