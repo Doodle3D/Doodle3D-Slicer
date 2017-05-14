@@ -1,6 +1,5 @@
 import React from 'react';
 import { PRECISION } from '../src/constants.js';
-import {ReactSVGPanZoom} from 'react-svg-pan-zoom';
 
 export default class SlicerViewer extends React.Component {
   state = {
