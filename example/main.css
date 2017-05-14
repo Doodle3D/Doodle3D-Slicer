@@ -12,10 +12,10 @@
   height: 100%;
 }
 
-svg, input {
+svg, #controls {
   position: absolute;
 }
 
-input {
+input[type=range] {
   width: 100%;
 }
