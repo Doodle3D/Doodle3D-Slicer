@@ -19,6 +19,8 @@ export default function removePrecision(slices) {
           innerLine.scaleDown(1 / PRECISION);
         }
         part.fill.scaleDown(1 / PRECISION);
+      } else {
+        part.shape.scaleDown(1 / PRECISION);
       }
     }
 
