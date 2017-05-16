@@ -5,17 +5,10 @@ export default class {
     this.parts = [];
   }
   getOutline() {
-    const outLines = new Shape([], true);
-
-    for (let i = 0; i < this.parts.length; i ++) {
-      const part = this.parts[i];
-
-      if (part.shape.closed) {
-        outLines.join(this.parts[i].outerLine);
-      }
-    }
-
-    return outLines;
+    return this.parts.reduce((shape, part) => {
+      if (part.outerLine) shape.join(part.outerLine);
+      return shape;
+    }, new Shape([], true));
   }
   add(shape) {
     const part = { shape };
