@@ -77,7 +77,7 @@ export default class {
       travelSpeed
     } = this.settings.config;
 
-    const z = (layer + 1) * layerHeight;
+    const z = layer * layerHeight + 0.2;
     const speed = travelSpeed * 60;
 
     this._addGCode({
@@ -111,7 +111,7 @@ export default class {
     } = profile;
 
     speed *= 60;
-    const z = (layer + 1) * layerHeight;
+    const z = layer * layerHeight + 0.2;
 
     const lineLength = this._nozzlePosition.distanceTo(newNozzlePosition);
 
