@@ -1,6 +1,8 @@
 import * as THREE from 'three.js';
 import { PRECISION } from '../constants.js';
 
+const inversePrecision = 1 / PRECISION;
+
 export default function removePrecision(slices) {
   console.log('remove precision');
 
@@ -11,22 +13,22 @@ export default function removePrecision(slices) {
       const part = slice.parts[i];
 
       if (part.shape.closed) {
-        part.outerLine.scaleDown(1 / PRECISION);
+        part.outerLine.scaleDown(inversePrecision);
         for (let i = 0; i < part.innerLines.length; i ++) {
           const innerLine = part.innerLines[i];
-          innerLine.scaleDown(1 / PRECISION);
+          innerLine.scaleDown(inversePrecision);
         }
-        part.fill.scaleDown(1 / PRECISION);
+        part.fill.scaleDown(inversePrecision);
       } else {
-        part.shape.scaleDown(1 / PRECISION);
+        part.shape.scaleDown(inversePrecision);
       }
     }
 
     if (slice.support !== undefined) {
-      slice.support.scaleDown(1 / PRECISION);
+      slice.support.scaleDown(inversePrecision);
     }
     if (slice.brim !== undefined) {
-      slice.brim.scaleDown(1 / PRECISION);
+      slice.brim.scaleDown(inversePrecision);
     }
   }
 }
