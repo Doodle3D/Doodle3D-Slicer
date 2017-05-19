@@ -1,7 +1,8 @@
 {
-  "heatupBedTemperature": 70,
-  "heatupTemperature": 20,
   "temperature": 210.0,
+  "bedTemperature": 70,
+  "heatBedTemperature": 20,
+  "heatTemperature": 20,
   "layerHeight": 0.15,
   "bottomThickness": 0.4,
   "topThickness": 0.8,
