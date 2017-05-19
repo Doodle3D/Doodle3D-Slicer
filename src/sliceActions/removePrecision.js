@@ -4,8 +4,6 @@ import { PRECISION } from '../constants.js';
 export default function removePrecision(slices) {
   console.log('remove precision');
 
-  const start = new THREE.Vector2(0, 0);
-
   for (let layer = 0; layer < slices.length; layer ++) {
     const slice = slices[layer];
 
