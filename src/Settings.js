@@ -25,7 +25,7 @@ export default class {
       heatBedTemperature,
       travelSpeed,
       printerType,
-      heatedbed
+      heatedBed
     } = this.config;
 
     travelSpeed *= 60;
@@ -38,7 +38,7 @@ export default class {
       case '_3Dison_plus': printerType = 'r2'; break;
     }
 
-    const heatedBedReplacement = heatedbed ? '' : ';';
+    const heatedBedReplacement = heatedBed ? '' : ';';
 
     gcode = gcode.replace(/{printingTemp}/gi, temperature);
     gcode = gcode.replace(/{printingBedTemp}/gi, bedTemperature);
