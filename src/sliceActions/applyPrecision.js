@@ -5,7 +5,7 @@ export default function applyPrecision(shapes) {
     const { closedShapes, openShapes } = shapes[i];
 
     scaleUpShape(closedShapes);
-    scaleUpShape(openShapes);
+    // scaleUpShape(openShapes);
   }
 }
 
