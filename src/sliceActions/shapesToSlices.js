@@ -17,8 +17,11 @@ export default function shapesToSlices(shapes, settings) {
       .clean(cleanDelta)
       .seperateShapes();
 
-    openShapes = new Shape(openShapes, false, true, true, true)
-      .clean(cleanDelta);
+    openShapes = new Shape(openShapes, false, true, true, true);
+    //   .clean(cleanDelta);
+    // TODO
+    // Cleaning is actually wanted here but there is a bug in the clean function
+    // https://sourceforge.net/p/jsclipper/tickets/16/
 
     const slice = new Slice();
 
