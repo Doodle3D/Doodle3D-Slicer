@@ -23,9 +23,6 @@ export default class {
       geometry.applyMatrix(matrix);
     }
 
-    geometry.mergeVertices();
-    geometry.computeFaceNormals();
-
     this.geometry = geometry;
 
     return this;
