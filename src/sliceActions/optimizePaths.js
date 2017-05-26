@@ -95,7 +95,7 @@ function optimizeShape(shape, start) {
     let pathIndex;
 
     for (let i = 0; i < inputPaths.length; i ++) {
-      if (donePaths.indexOf(i) !== -1) continue;
+      if (donePaths.includes(i)) continue;
 
       const path = inputPaths[i];
 

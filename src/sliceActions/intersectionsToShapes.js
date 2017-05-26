@@ -87,7 +87,7 @@ export default function intersectionsToShapes(layerIntersectionIndexes, layerInt
         index = firstPoints[0];
 
         while (index !== -1) {
-          if (firstPoints.indexOf(index) === -1) {
+          if (!firstPoints.includes(index)) {
             const intersection = intersectionPoints[index];
             shape.unshift(intersection);
 
