@@ -19,10 +19,9 @@ export default function removePrecision(slices) {
           innerLine.scaleDown(inversePrecision);
         }
         part.fill.scaleDown(inversePrecision);
+      } else {
+        part.shape.scaleDown(inversePrecision);
       }
-      // else {
-      //   part.shape.scaleDown(inversePrecision);
-      // }
     }
 
     if (slice.support !== undefined) {
