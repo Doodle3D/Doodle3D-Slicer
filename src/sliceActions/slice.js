@@ -8,12 +8,14 @@ import addBrim from './addBrim.js';
 import optimizePaths from './optimizePaths.js';
 import shapesToSlices from './shapesToSlices.js';
 import slicesToGCode from './slicesToGCode.js';
+import detectOpenClosed from './detectOpenClosed.js';
 import applyPrecision from './applyPrecision.js';
 import removePrecision from './removePrecision.js';
 
 export default function(geometry, settings) {
   // get unique lines from geometry;
-  const lines = createLines(geometry, settings);
+  const openClosed = detectOpenClosed(geometry);
+  const lines = createLines(geometry, settings, openClosed);
 
   const {
     layerIntersectionIndexes,

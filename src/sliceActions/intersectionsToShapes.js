@@ -22,8 +22,9 @@ export default function intersectionsToShapes(layerIntersectionIndexes, layerInt
       const shape = [];
 
       const firstPoints = [index];
+      const { open: openGeometry } = lines[index];
       let isFirstPoint = true;
-      let closed = false;
+      let openShape = true;
 
       while (index !== -1) {
         const intersection = intersectionPoints[index];
@@ -38,8 +39,8 @@ export default function intersectionsToShapes(layerIntersectionIndexes, layerInt
         for (let i = 0; i < connects.length; i ++) {
           index = connects[i];
 
-          if (firstPoints.indexOf(index) !== -1 && shape.length > 2) {
-            closed = true;
+          if (firstPoints.includes(index) && shape.length > 2) {
+            openShape = false;
             index = -1;
             break;
           }
@@ -82,7 +83,7 @@ export default function intersectionsToShapes(layerIntersectionIndexes, layerInt
         isFirstPoint = false;
       }
 
-      if (!closed) {
+      if (openShape) {
         index = firstPoints[0];
 
         while (index !== -1) {
@@ -107,10 +108,11 @@ export default function intersectionsToShapes(layerIntersectionIndexes, layerInt
         }
       }
 
-      if (closed) {
-        closedShapes.push(shape);
-      } else {
+      if (openGeometry) {
+        if (!openShape) shape.push(shape[0].clone());
         openShapes.push(shape);
+      } else {
+        closedShapes.push(shape);
       }
     }
 

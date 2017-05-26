@@ -13,7 +13,7 @@ function addLine(geometry, lineLookup, lines, a, b) {
   return index;
 }
 
-export default function createLines(geometry, settings) {
+export default function createLines(geometry, settings, openClosed) {
   console.log('constructing unique lines from geometry');
 
   const lines = [];
@@ -21,6 +21,8 @@ export default function createLines(geometry, settings) {
 
   for (let i = 0; i < geometry.faces.length; i ++) {
     const face = geometry.faces[i];
+    const open = openClosed[i];
+
     if (face.normal.y !== 1 && face.normal.y !== -1) {
       const normal = new THREE.Vector2(face.normal.z, face.normal.x).normalize();
 
@@ -42,6 +44,8 @@ export default function createLines(geometry, settings) {
       lines[indexA].normals.push(normal);
       lines[indexB].normals.push(normal);
       lines[indexC].normals.push(normal);
+
+      lines[indexA].open = open;
     }
   }
 
