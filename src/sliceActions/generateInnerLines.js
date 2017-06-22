@@ -37,8 +37,7 @@ export default function generateInnerLines(slices, settings) {
 
           if (innerLine.paths.length > 0) {
             part.innerLines.push(innerLine);
-          }
-          else {
+          } else {
             break;
           }
         }
