@@ -42,6 +42,6 @@
 		"printer.heatup.temperature": 180, 
 		"printer.nozzleDiameter": 0.4, 
 		"printer.startcode": ";Generated with Doodle3D (ultimaker2)\nM109 S{printingTemp} ;set target temperature \n{if heatedBed}M190 S{printingBedTemp} ;set target bed temperature\nG21 ;metric values\nG90 ;absolute positioning\nM107 ;start with the fan off\nG28 ; home to endstops\nG1 Z15 F9000 ;move the platform down 15mm\nG92 E0 ;zero the extruded length\nG1 F200 E10 ;extrude 10mm of feed stock\nG92 E0 ;zero the extruded length again\nG1 F9000\nM117 Printing Doodle...   ;display message (20 characters to clear whole screen)",
-		"printer.type": "ultimaker2g0"
+		"printer.type": "ultimaker2go"
 	}
 }
