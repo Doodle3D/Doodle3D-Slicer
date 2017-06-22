@@ -1,6 +1,6 @@
 import * as THREE from 'three.js';
 
-const G_COMMAND = 'G';
+const MOVE = 'G';
 const M_COMMAND = 'M';
 const FAN_SPEED = 'S';
 const SPEED = 'F';
@@ -11,8 +11,9 @@ const POSITION_Z = 'Z';
 
 export default class {
   constructor(settings) {
-    this.gcode = '';
-    this.current = {};
+    this._gcode = '';
+    this._currentValues = {};
+    this._settings = settings;
 
     this.extruder = 0.0;
     this.bottom = true;
@@ -20,18 +21,16 @@ export default class {
     this.isFanOn = false;
     this._nozzlePosition = new THREE.Vector2(0, 0);
 
-    if (settings !== undefined) {
-      this.setSettings(settings);
-    }
+    if (typeof settings !== 'undefined') this.setSettings(settings);
   }
 
   _addGCode(command) {
     let str = '';
-    let first = true;
 
+    let first = true;
     for (const action in command) {
       const value = command[action];
-      const currentValue = this.current[action];
+      const currentValue = this._currentAValues[action];
       if (first) {
         str = action + value;
 
@@ -39,24 +38,18 @@ export default class {
       } else if (currentValue !== value) {
         str += ` ${action}${value}`;
 
-        this.current[action] = value;
+        this._currentAcValues[action] = value;
       }
     }
 
-    this.gcode += `${str}\n`;
-  }
-
-  setSettings(settings) {
-    this.settings = settings;
-
-    return this;
+    this._gcode += `${str}\n`;
   }
 
   turnFanOn(fanSpeed) {
     this.isFanOn = true;
 
     const gcode = { [M_COMMAND]: 106 }
-    if (fanSpeed !== undefined) gcode[FAN_SPEED] = fanSpeed;
+    if (typeof fanSpeed !== 'undefined') gcode[FAN_SPEED] = fanSpeed;
 
     this._addGCode(gcode);
 
@@ -75,13 +68,13 @@ export default class {
     const {
       layerHeight,
       travelSpeed
-    } = this.settings.config;
+    } = this._settings.config;
 
     const z = layer * layerHeight + 0.2;
     const speed = travelSpeed * 60;
 
     this._addGCode({
-      [G_COMMAND]: 0,
+      [MOVE]: 0,
       [POSITION_X]: x.toFixed(3),
       [POSITION_Y]: y.toFixed(3),
       [POSITION_Z]: z.toFixed(3),
@@ -101,9 +94,9 @@ export default class {
       nozzleDiameter,
       filamentThickness,
       travelSpeed
-    } = this.settings.config;
+    } = this._settings.config;
 
-    const profile = this.settings.config[(this.bottom ? 'bottom' : type)];
+    const profile = this._settings.config[(this.bottom ? 'bottom' : type)];
 
     let {
       speed,
@@ -119,7 +112,7 @@ export default class {
     this.extruder += lineLength * nozzleDiameter * layerHeight / filamentSurfaceArea * flowRate;
 
     this._addGCode({
-      [G_COMMAND]: 1,
+      [MOVE]: 1,
       [POSITION_X]: x.toFixed(3),
       [POSITION_Y]: y.toFixed(3),
       [POSITION_Z]: z.toFixed(3),
@@ -137,7 +130,7 @@ export default class {
       retractionEnabled,
       retractionMinDistance,
       retractionSpeed
-    } = this.settings.config;
+    } = this._settings.config;
 
     if (this.isRetracted && retractionEnabled) {
       this.isRetracted = false;
@@ -146,7 +139,7 @@ export default class {
 
       if (this.extruder > retractionMinDistance) {
         this._addGCode({
-          [G_COMMAND]: 0,
+          [MOVE]: 0,
           [EXTRUDER]: this.extruder.toFixed(3),
           [SPEED]: speed.toFixed(3)
         });
@@ -162,7 +155,7 @@ export default class {
       retractionEnabled,
       retractionMinDistance,
       retractionSpeed
-    } = this.settings.config;
+    } = this._settings.config;
 
     if (!this.isRetracted && retractionEnabled) {
       this.isRetracted = true;
@@ -171,7 +164,7 @@ export default class {
 
       if (this.extruder > retractionMinDistance && retractionEnabled) {
         this._addGCode({
-          [G_COMMAND]: 0,
+          [MOVE]: 0,
           [EXTRUDER]: (this.extruder - retractionAmount).toFixed(3),
           [SPEED]: speed.toFixed(3)
         });
@@ -182,6 +175,6 @@ export default class {
   }
 
   getGCode() {
-    return this.settings.startCode() + this.gcode + this.settings.endCode();
+    return this._settings.startCode() + this._gcode + this._settings.endCode();
   }
 }

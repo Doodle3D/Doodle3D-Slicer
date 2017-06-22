@@ -7,7 +7,8 @@ function addLine(geometry, lineLookup, lines, a, b) {
   lines.push({
     line: new THREE.Line3(geometry.vertices[a], geometry.vertices[b]),
     connects: [],
-    normals: []
+    normals: [],
+    open: false
   });
 
   return index;
@@ -46,6 +47,8 @@ export default function createLines(geometry, settings, openClosed) {
       lines[indexC].normals.push(normal);
 
       lines[indexA].open = open;
+      lines[indexB].open = open;
+      lines[indexC].open = open;
     }
   }
 
