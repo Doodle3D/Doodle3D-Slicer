@@ -14,14 +14,12 @@ export default class {
     this._gcode = '';
     this._currentValues = {};
     this._settings = settings;
-
-    this.extruder = 0.0;
-    this.bottom = true;
-    this.isRetracted = false;
-    this.isFanOn = false;
     this._nozzlePosition = new THREE.Vector2(0, 0);
+    this._extruder = 0.0;
+    this._isRetracted = false;
+    this._isFanOn = false;
 
-    if (typeof settings !== 'undefined') this.setSettings(settings);
+    this.bottom = true;
   }
 
   _addGCode(command) {
@@ -30,7 +28,7 @@ export default class {
     let first = true;
     for (const action in command) {
       const value = command[action];
-      const currentValue = this._currentAValues[action];
+      const currentValue = this._currentValues[action];
       if (first) {
         str = action + value;
 
@@ -38,7 +36,7 @@ export default class {
       } else if (currentValue !== value) {
         str += ` ${action}${value}`;
 
-        this._currentAcValues[action] = value;
+        this._currentValues[action] = value;
       }
     }
 
@@ -46,7 +44,7 @@ export default class {
   }
 
   turnFanOn(fanSpeed) {
-    this.isFanOn = true;
+    this._isFanOn = true;
 
     const gcode = { [M_COMMAND]: 106 }
     if (typeof fanSpeed !== 'undefined') gcode[FAN_SPEED] = fanSpeed;
@@ -57,7 +55,7 @@ export default class {
   }
 
   turnFanOff() {
-    this.isFanOn = false;
+    this._isFanOn = false;
 
     this._addGCode({ [M_COMMAND]: 107 });
 
@@ -109,7 +107,7 @@ export default class {
     const lineLength = this._nozzlePosition.distanceTo(newNozzlePosition);
 
     const filamentSurfaceArea = Math.pow((filamentThickness / 2), 2) * Math.PI;
-    this.extruder += lineLength * nozzleDiameter * layerHeight / filamentSurfaceArea * flowRate;
+    this._extruder += lineLength * nozzleDiameter * layerHeight / filamentSurfaceArea * flowRate;
 
     this._addGCode({
       [MOVE]: 1,
@@ -117,7 +115,7 @@ export default class {
       [POSITION_Y]: y.toFixed(3),
       [POSITION_Z]: z.toFixed(3),
       [SPEED]: speed.toFixed(3),
-      [EXTRUDER]: this.extruder.toFixed(3)
+      [EXTRUDER]: this._extruder.toFixed(3)
     });
 
     this._nozzlePosition.copy(newNozzlePosition);
@@ -132,15 +130,15 @@ export default class {
       retractionSpeed
     } = this._settings.config;
 
-    if (this.isRetracted && retractionEnabled) {
-      this.isRetracted = false;
+    if (this._isRetracted && retractionEnabled) {
+      this._isRetracted = false;
 
       const speed = retractionSpeed * 60;
 
-      if (this.extruder > retractionMinDistance) {
+      if (this._extruder > retractionMinDistance) {
         this._addGCode({
           [MOVE]: 0,
-          [EXTRUDER]: this.extruder.toFixed(3),
+          [EXTRUDER]: this._extruder.toFixed(3),
           [SPEED]: speed.toFixed(3)
         });
       }
@@ -157,15 +155,15 @@ export default class {
       retractionSpeed
     } = this._settings.config;
 
-    if (!this.isRetracted && retractionEnabled) {
-      this.isRetracted = true;
+    if (!this._isRetracted && retractionEnabled) {
+      this._isRetracted = true;
 
       const speed = retractionSpeed * 60;
 
-      if (this.extruder > retractionMinDistance && retractionEnabled) {
+      if (this._extruder > retractionMinDistance && retractionEnabled) {
         this._addGCode({
           [MOVE]: 0,
-          [EXTRUDER]: (this.extruder - retractionAmount).toFixed(3),
+          [EXTRUDER]: (this._extruder - retractionAmount).toFixed(3),
           [SPEED]: speed.toFixed(3)
         });
       }
