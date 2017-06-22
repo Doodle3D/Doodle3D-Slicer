@@ -14,9 +14,9 @@ export default function addBrim(slices, settings) {
   let { brimOffset } = settings.config;
   brimOffset /= PRECISION;
 
-  const [fistLayer] = slices;
+  const [firstLayer] = slices;
 
-  fistLayer.brim = fistLayer.parts.reduce((brim, { shape }) => {
+  firstLayer.brim = firstLayer.parts.reduce((brim, { shape }) => {
     brim.join(shape.offset(brimOffset, {
       ...offsetOptions,
       endType: shape.closed ? 'etClosedPolygon' : 'etOpenRound'
