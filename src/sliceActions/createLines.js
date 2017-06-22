@@ -32,9 +32,9 @@ export default function createLines(geometry, settings, openClosed) {
 
       // only add unique lines
       // returns index of said line
-      const indexA = lookupA !== undefined ? lookupA : addLine(geometry, lineLookup, lines, face.a, face.b);
-      const indexB = lookupB !== undefined ? lookupB : addLine(geometry, lineLookup, lines, face.b, face.c);
-      const indexC = lookupC !== undefined ? lookupC : addLine(geometry, lineLookup, lines, face.c, face.a);
+      const indexA = typeof lookupA !== 'undefined' ? lookupA : addLine(geometry, lineLookup, lines, face.a, face.b);
+      const indexB = typeof lookupB !== 'undefined' ? lookupB : addLine(geometry, lineLookup, lines, face.b, face.c);
+      const indexC = typeof lookupC !== 'undefined' ? lookupC : addLine(geometry, lineLookup, lines, face.c, face.a);
 
       // set connecting lines (based on face)
       lines[indexA].connects.push(indexB, indexC);

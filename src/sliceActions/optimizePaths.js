@@ -9,7 +9,7 @@ export default function optimizePaths(slices, settings) {
   for (let layer = 0; layer < slices.length; layer ++) {
     const slice = slices[layer];
 
-    if (slice.brim !== undefined && slice.brim.paths.length > 0) {
+    if (typeof slice.brim !== 'undefined' && slice.brim.paths.length > 0) {
       slice.brim = optimizeShape(slice.brim, start);
       start.copy(slice.brim.lastPoint(true));
     }
@@ -73,7 +73,7 @@ export default function optimizePaths(slices, settings) {
 
     slice.parts = parts;
 
-    if (slice.support !== undefined && slice.support.length > 0) {
+    if (typeof slice.support !== 'undefined' && slice.support.length > 0) {
       slice.support = optimizeShape(slice.support, start);
       start.copy(slice.support.lastPoint(true));
     }
