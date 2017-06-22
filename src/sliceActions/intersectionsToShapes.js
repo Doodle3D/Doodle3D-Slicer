@@ -17,7 +17,7 @@ export default function intersectionsToShapes(layerIntersectionIndexes, layerInt
     for (let i = 0; i < intersectionIndexes.length; i ++) {
       let index = intersectionIndexes[i];
 
-      if (intersectionPoints[index] === undefined) continue;
+      if (typeof intersectionPoints[index] === 'undefined') continue;
 
       const shape = [];
 
@@ -46,7 +46,7 @@ export default function intersectionsToShapes(layerIntersectionIndexes, layerInt
           }
 
           // Check if index has an intersection or is already used
-          if (intersectionPoints[index] !== undefined) {
+          if (typeof intersectionPoints[index] !== 'undefined') {
             const faceNormal = faceNormals[Math.floor(i / 2)];
 
             const a = new THREE.Vector2(intersection.x, intersection.y);
@@ -99,7 +99,7 @@ export default function intersectionsToShapes(layerIntersectionIndexes, layerInt
           for (let i = 0; i < connects.length; i ++) {
             index = connects[i];
 
-            if (intersectionPoints[index] !== undefined) {
+            if (typeof intersectionPoints[index] !== 'undefined') {
               break;
             } else {
               index = -1;

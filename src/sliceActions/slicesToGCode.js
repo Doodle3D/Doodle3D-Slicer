@@ -13,7 +13,7 @@ export default function slicesToGCode(slices, settings) {
       gcode.bottom = false;
     }
 
-    if (slice.brim !== undefined) {
+    if (typeof slice.brim !== 'undefined') {
       pathToGCode(gcode, slice.brim, true, true, layer, 'brim');
     }
 
@@ -30,12 +30,12 @@ export default function slicesToGCode(slices, settings) {
 
         pathToGCode(gcode, part.fill, true, false, layer, 'fill');
       } else {
-        const retract = !(slice.parts.length === 1 && slice.support === undefined);
+        const retract = !(slice.parts.length === 1 && typeof slice.support === 'undefined');
         pathToGCode(gcode, part.shape, retract, retract, layer, 'outerLine');
       }
     }
 
-    if (slice.support !== undefined) {
+    if (typeof slice.support !== 'undefined') {
       pathToGCode(gcode, slice.support, true, true, layer, 'support');
     }
   }

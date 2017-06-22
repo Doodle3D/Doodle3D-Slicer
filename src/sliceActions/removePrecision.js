@@ -24,10 +24,10 @@ export default function removePrecision(slices) {
       }
     }
 
-    if (slice.support !== undefined) {
+    if (typeof slice.support !== 'undefined') {
       slice.support.scaleDown(inversePrecision);
     }
-    if (slice.brim !== undefined) {
+    if (typeof slice.brim !== 'undefined') {
       slice.brim.scaleDown(inversePrecision);
     }
   }
