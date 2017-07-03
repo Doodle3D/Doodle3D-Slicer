@@ -1,4 +1,5 @@
 {
+  "name": "Doodle3D-Slicer"
   "jspm": {
     "name": "slicer",
     "main": "index.js",
