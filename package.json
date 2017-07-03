@@ -1,5 +1,6 @@
 {
   "name": "Doodle3D-Slicer",
+  "version": "0.0.1",
   "jspm": {
     "name": "slicer",
     "main": "index.js",
