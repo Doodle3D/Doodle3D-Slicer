@@ -47,6 +47,11 @@ export default class {
             resolve(data.gcode);
             break;
           }
+          case 'PROGRESS': {
+            if (this.onprogress) {
+              this.onprogress(data);
+            }
+          }
         }
       });
 
