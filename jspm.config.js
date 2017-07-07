@@ -174,7 +174,7 @@ SystemJS.config({
     "module": "npm:jspm-nodelibs-module@0.2.0",
     "os": "npm:jspm-nodelibs-os@0.2.0",
     "path": "npm:jspm-nodelibs-path@0.2.0",
-    "process": "npm:jspm-nodelibs-process@0.2.0",
+    "process": "github:jspm/nodelibs-process@0.2.0-alpha",
     "stream": "npm:jspm-nodelibs-stream@0.2.0",
     "string_decoder": "npm:jspm-nodelibs-string_decoder@0.2.0",
     "tty": "npm:jspm-nodelibs-tty@0.2.0",
@@ -419,7 +419,8 @@ SystemJS.config({
     },
     "github:Doodle3D/clipper-js@1.0.2": {
       "map": {
-        "Breush/clipper-lib": "github:Breush/clipper-lib@patch-1"
+        "Breush/clipper-lib": "github:Breush/clipper-lib@patch-1",
+        "clipper-lib": "npm:clipper-lib@6.2.1"
       }
     }
   }
