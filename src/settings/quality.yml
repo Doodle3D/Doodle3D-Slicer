@@ -1,0 +1,6 @@
+low:
+  layerHeight: .2
+medium:
+  layerHeight: .15
+height:
+  layerHeight: .1

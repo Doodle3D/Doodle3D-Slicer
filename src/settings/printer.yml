@@ -1,0 +1,167 @@
+_3Dison_plus:
+  title: 3Dison plus
+  dimensions:
+    x: 227
+    y: 147
+    z: 150
+bigbuilder3d:
+  title: Big Builder 3D
+builder3d:
+  title: Builder 3D
+bukobot:
+  title: Bukobot
+cartesio:
+  title: Cartesio
+colido_2_0_plus:
+  title: ColiDo 2.0 Plus
+  heatedBed: true
+  dimensions:
+    x: 230
+    y: 150
+    z: 140
+colido_compact:
+  title: ColiDo Compact
+  dimensions:
+    x: 130
+    y: 130
+    z: 115
+colido_diy:
+  title: ColiDo DIY
+  dimensions:
+    z: 170
+colido_m2020:
+  title: ColiDo M2020
+  heatedBed: true
+colido_x3045:
+  title: ColiDo X3045
+  heatedBed: true
+  dimensions:
+    x: 300
+    y: 300
+    z: 450
+craftbot_plus:
+  title: CraftBot PLUS
+  heatedBed: true
+  filamentThickness: 1.75
+  dimensions:
+    x: 250
+cyrus:
+  title: Cyrus
+delta_rostockmax:
+  title: Delta RostockMax
+  dimensions:
+    x: 0
+    y: 0
+deltamaker:
+  title: Deltamaker
+  dimensions:
+    x: 0
+    y: 0
+doodle_dream:
+  title: Doodle Dream
+  filamentThickness: 1.75
+  dimensions:
+    x: 120
+    y: 120
+    z: 80
+eventorbot:
+  title: EventorBot
+felix:
+  title: Felix
+gigabot:
+  title: Gigabot
+kossel:
+  title: Kossel
+  dimensions:
+    x: 0
+    y: 0
+leapfrog_creatr:
+  title: LeapFrog Creatr
+lulzbot_aO_101:
+  title: LulzBot AO-101
+lulzbot_taz_4:
+  title: LulzBot TAZ 4
+  dimensions:
+    x: 298
+    y: 275
+    z: 250
+  heatedBed: true
+makerbot_generic:
+  title: Generic Makerbot Printer
+makerbot_replicator2:
+  title: MakerBot Replicator2
+makerbot_replicator2x:
+  title: MakerBot Replicator2x
+  heatedBed: true
+makerbot_thingomatic:
+  title: MakerBot Thing-o-matic
+makergear_m2:
+  title: MakerGear M2
+makergear_prusa:
+  title: MakerGear Prusa
+makibox:
+  title: Makibox
+mamba3d:
+  title: Mamba3D
+marlin_generic:
+  title: Generic Marlin Printer
+minifactory:
+  title: miniFactory
+  dimensions:
+    x: 150
+    y: 150
+    z: 155
+  heatedBed: true
+orca_0_3:
+  title: Orca 0.3
+ord_bot_hadron:
+  title: ORD Bot Hadron
+printrbot:
+  title: Printrbot
+printxel_3d:
+  title: Printxel 3D
+prusa_i3:
+  title: Prusa I3
+prusa_iteration_2:
+  title: Prusa Iteration 2
+rapman:
+  title: RapMan
+renkforce_rf100:
+  title: Renkforce RF10
+  filamentThickness: 1.75
+reprappro_huxley:
+  title: RepRapPro Huxley
+reprappro_mendel:
+  title: RepRapPro Mendel
+rigidbot:
+  title: Rigidbot
+robo_3d_printer:
+  title: RoBo 3D Printer
+shapercube:
+  title: ShaperCube
+tantillus:
+  title: Tantillus
+ultimaker:
+  title: Ultimaker
+ultimaker2:
+  title: Ultimaker 2
+  heatedBed: true
+ultimaker2go:
+  title: Ultimaker 2 Go
+  dimensions:
+    x: 120
+    y: 120
+    z: 112
+ultimaker_original_plus:
+  title: Ultimaker Original Plus
+  heatedBed: true
+vision_3d_printer:
+  title: Vision 3D Printer
+wanhao_duplicator4:
+  title: Wanhao Duplicator 4
+  filamentThickness: 1.75
+  heatedBed: true
+  dimensions:
+    x: 210
+    y: 140
+    z: 140
