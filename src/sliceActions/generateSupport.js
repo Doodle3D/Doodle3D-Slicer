@@ -5,14 +5,16 @@ import { PRECISION } from '../constants.js';
 export default function generateSupport(slices, settings) {
   console.log('generating support');
 
-  if (!settings.config.supportEnabled) return;
+  if (!settings.config.support.enabled) return;
 
   let {
     layerHeight,
-    supportGridSize,
-    supportAcceptanceMargin,
-    supportPlateSize: plateSize,
-    supportDistanceY,
+    support: {
+      gridSize: supportGridSize,
+      margin: AcceptanceMargin,
+      plateSize: plateSize,
+      distanceY: DistanceY
+    },
     nozzleDiameter
   } = settings.config;
 
