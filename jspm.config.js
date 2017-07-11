@@ -159,6 +159,7 @@ SystemJS.config({
     "github:*/*.json"
   ],
   map: {
+    "js-yaml": "npm:js-yaml@3.9.0",
     "clipper-js": "github:Doodle3D/clipper-js@1.0.2",
     "three.js": "github:mrdoob/three.js@r83",
     "assert": "npm:jspm-nodelibs-assert@0.2.0",
@@ -420,6 +421,17 @@ SystemJS.config({
     "github:Doodle3D/clipper-js@1.0.2": {
       "map": {
         "Breush/clipper-lib": "github:Breush/clipper-lib@patch-1"
+      }
+    },
+    "npm:js-yaml@3.9.0": {
+      "map": {
+        "argparse": "npm:argparse@1.0.9",
+        "esprima": "npm:esprima@4.0.0"
+      }
+    },
+    "npm:argparse@1.0.9": {
+      "map": {
+        "sprintf-js": "npm:sprintf-js@1.0.3"
       }
     }
   }

@@ -1,4 +1,5 @@
 import * as THREE from 'three.js';
+import Settings from './Settings.js';
 import slice from './sliceActions/slice.js';
 import SlicerWorker from './slicerWorker.js!worker';
 
@@ -28,13 +29,13 @@ export default class {
     return this;
   }
   sliceSync(settings) {
-    return slice(this.geometry, settings);
+    return slice(this.geometry, new Settings(settings));
   }
   slice(settings) {
     const slicerWorker = new SlicerWorker();
 
     const geometry = this.geometry.toJSON();
-    const { config } = settings;
+    const { config } = new Settings(settings);
 
     return new Promise((resolve, reject) => {
       slicerWorker.onerror = reject;

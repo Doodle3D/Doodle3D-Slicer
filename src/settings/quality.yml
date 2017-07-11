@@ -1,6 +1,9 @@
 low:
+  title: "Low"
   layerHeight: .2
 medium:
+  title: "Medium"
   layerHeight: .15
 height:
+  title: "High"
   layerHeight: .1
