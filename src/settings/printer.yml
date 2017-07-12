@@ -129,6 +129,10 @@ rapman:
 renkforce_rf100:
   title: Renkforce RF10
   filamentThickness: 1.75
+  dimensions:
+    x: 100
+    y: 100
+    z: 100
 reprappro_huxley:
   title: RepRapPro Huxley
 reprappro_mendel:
