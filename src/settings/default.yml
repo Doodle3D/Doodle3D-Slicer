@@ -42,7 +42,7 @@ brim:
   speed: 40.0
   offset: 4.0
 top:
-  thickness: 0.8
+  thickness: 1.2
 bottom:
   flowRate: 1.2
   speed: 40.0
