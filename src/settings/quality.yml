@@ -1,9 +1,11 @@
 low:
   title: "Low"
   layerHeight: .2
+  fill:
+    gridSize: 15.0
 medium:
   title: "Medium"
   layerHeight: .15
-height:
+high:
   title: "High"
   layerHeight: .1
