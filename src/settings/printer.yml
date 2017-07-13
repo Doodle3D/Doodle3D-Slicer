@@ -127,7 +127,7 @@ prusa_iteration_2:
 rapman:
   title: RapMan
 renkforce_rf100:
-  title: Renkforce RF10
+  title: Renkforce RF100
   filamentThickness: 1.75
   dimensions:
     x: 100
