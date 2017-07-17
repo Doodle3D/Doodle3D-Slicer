@@ -11,9 +11,9 @@ export default class {
     return this;
   }
   setGeometry(geometry, matrix) {
-    if (geometry.type === 'BufferGeometry') {
+    if (geometry.isBufferGeometry) {
       geometry = new THREE.Geometry().fromBufferGeometry(geometry);
-    } else if (geometry.type === 'Geometry') {
+    } else if (geometry.isGeometry) {
       geometry = geometry.clone();
     } else {
       throw new Error('Geometry is not an instance of BufferGeometry or Geometry');
