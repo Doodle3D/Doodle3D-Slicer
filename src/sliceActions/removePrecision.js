@@ -1,4 +1,3 @@
-import * as THREE from 'three.js';
 import { PRECISION } from '../constants.js';
 
 const inversePrecision = 1 / PRECISION;
