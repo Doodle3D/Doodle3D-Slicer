@@ -28,7 +28,7 @@ stlLoader.load('stl/Airplane.stl', (geometry) => {
       layerIntersectionPoints={rawData.layerIntersectionPoints}
       layerShapes={rawData.layerShapes}
       slices={rawData.slices}
-      settings={settings.config}
+      settings={settings}
     />,
     document.getElementById('container')
   );

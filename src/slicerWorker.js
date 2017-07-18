@@ -1,4 +1,3 @@
-import Settings from './Settings.js';
 import slice from './sliceActions/slice.js';
 import * as THREE from 'three.js';
 
@@ -8,10 +7,9 @@ self.addEventListener('message', (event) => {
   const { message, data } = event.data;
   switch (message) {
     case 'SLICE': {
-      const { geometry: JSONGeometry, config } = data;
+      const { geometry: JSONGeometry, settings } = data;
 
       const { geometry } = new loader.parse(JSONGeometry.data);
-      const settings = new Settings(config);
 
       const gcode = slice(geometry, settings);
 

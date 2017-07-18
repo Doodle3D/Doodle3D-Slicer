@@ -1,16 +1,12 @@
 import 'three.js';
-import { Settings, defaultSettings, Slicer } from 'src/index.js';
+import { defaultSettings, Slicer } from 'src/index.js';
 import { saveAs } from 'file-saver';
-
-console.log('defaultSettings: ', defaultSettings);
 
 const settings = {
   ...defaultSettings.base,
   ...defaultSettings.material.pla,
   ...defaultSettings.printer.ultimaker2go,
-  ...defaultSettings.quality.high,
-  startCode: '',
-  endCode: ''
+  ...defaultSettings.quality.high
 };
 
 const jsonLoader = new THREE.JSONLoader();

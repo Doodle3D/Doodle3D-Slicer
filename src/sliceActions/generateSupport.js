@@ -5,7 +5,7 @@ import { PRECISION } from '../constants.js';
 export default function generateSupport(slices, settings) {
   console.log('generating support');
 
-  if (!settings.config.support.enabled) return;
+  if (!settings.support.enabled) return;
 
   let {
     layerHeight,
@@ -16,7 +16,7 @@ export default function generateSupport(slices, settings) {
       distanceY: DistanceY
     },
     nozzleDiameter
-  } = settings.config;
+  } = settings;
 
   supportGridSize /= PRECISION;
   supportMargin /= PRECISION;

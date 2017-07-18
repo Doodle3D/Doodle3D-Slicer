@@ -12,7 +12,7 @@ export default function generateInfills(slices, settings) {
     top: { thickness: topThickness },
     nozzleDiameter,
     fill: { overlap: infillOverlap }
-  } = settings.config;
+  } = settings;
 
   fillGridSize /= PRECISION;
   nozzleDiameter /= PRECISION;

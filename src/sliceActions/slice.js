@@ -17,7 +17,7 @@ export default function(geometry, settings, onProgress) {
   let current = 0;
   const progressMessage = () => {
     current ++;
-    postMessage({ message: 'PROGRESS', data: { done: current, total: totalStages } });
+    // postMessage({ message: 'PROGRESS', data: { done: current, total: totalStages } });
   };
 
   geometry.computeFaceNormals();

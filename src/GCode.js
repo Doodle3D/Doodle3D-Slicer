@@ -66,7 +66,7 @@ export default class {
     const {
       layerHeight,
       travelSpeed
-    } = this._settings.config;
+    } = this._settings;
 
     const z = layer * layerHeight + 0.2;
     const speed = travelSpeed * 60;
@@ -92,9 +92,9 @@ export default class {
       nozzleDiameter,
       filamentThickness,
       travelSpeed
-    } = this._settings.config;
+    } = this._settings;
 
-    const profile = this._settings.config[(this.bottom ? 'bottom' : type)];
+    const profile = this._settings[(this.bottom ? 'bottom' : type)];
 
     let {
       speed,
@@ -130,7 +130,7 @@ export default class {
         minDistance: retractionMinDistance,
         speed: retractionSpeed
       }
-    } = this._settings.config;
+    } = this._settings;
 
     if (this._isRetracted && retractionEnabled) {
       this._isRetracted = false;
@@ -157,7 +157,7 @@ export default class {
         minDistance: retractionMinDistance,
         speed: retractionSpeed
       }
-    } = this._settings.config;
+    } = this._settings;
 
     if (!this._isRetracted && retractionEnabled) {
       this._isRetracted = true;
@@ -177,6 +177,6 @@ export default class {
   }
 
   getGCode() {
-    return this._settings.startCode() + this._gcode + this._settings.endCode();
+    return this._gcode;
   }
 }
