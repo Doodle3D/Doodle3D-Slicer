@@ -14,9 +14,9 @@ SystemJS.config({
       "core-js": "npm:core-js@1.2.7",
       "plugin-babel": "npm:systemjs-plugin-babel@0.0.12",
       "react": "npm:react@15.3.2",
-      "domain": "npm:jspm-nodelibs-domain@0.2.0",
-      "zlib": "npm:jspm-nodelibs-zlib@0.2.0",
-      "https": "npm:jspm-nodelibs-https@0.2.0",
+      "domain": "github:jspm/nodelibs-domain@0.2.0-alpha",
+      "zlib": "github:jspm/nodelibs-zlib@0.2.0-alpha",
+      "https": "github:jspm/nodelibs-https@0.2.0-alpha",
       "react-dom": "npm:react-dom@15.3.2",
       "babel-plugin-transform-react-jsx": "npm:babel-plugin-transform-react-jsx@6.8.0",
       "file-saver": "npm:file-saver@1.3.3"
@@ -105,12 +105,12 @@ SystemJS.config({
           "to-fast-properties": "npm:to-fast-properties@1.0.2"
         }
       },
-      "npm:jspm-nodelibs-zlib@0.2.0": {
+      "github:jspm/nodelibs-zlib@0.2.0-alpha": {
         "map": {
           "zlib-browserify": "npm:browserify-zlib@0.1.4"
         }
       },
-      "npm:jspm-nodelibs-domain@0.2.0": {
+      "github:jspm/nodelibs-domain@0.2.0-alpha": {
         "map": {
           "domain-browserify": "npm:domain-browser@1.1.7"
         }
@@ -157,12 +157,12 @@ SystemJS.config({
     "clipper-js": "github:Doodle3D/clipper-js@1.0.2",
     "assert": "github:jspm/nodelibs-assert@0.2.0-alpha",
     "buffer": "github:jspm/nodelibs-buffer@0.2.0-alpha",
-    "child_process": "npm:jspm-nodelibs-child_process@0.2.0",
+    "child_process": "github:jspm/nodelibs-child_process@0.2.0-alpha",
     "constants": "github:jspm/nodelibs-constants@0.2.0-alpha",
     "crypto": "github:jspm/nodelibs-crypto@0.2.0-alpha",
     "events": "github:jspm/nodelibs-events@0.2.2",
     "fs": "github:jspm/nodelibs-fs@0.2.0-alpha",
-    "http": "npm:jspm-nodelibs-http@0.2.0",
+    "http": "github:jspm/nodelibs-http@0.2.0-alpha",
     "json": "github:systemjs/plugin-json@0.1.2",
     "Doodle3D/clipper-js": "github:Doodle3D/clipper-js@master",
     "module": "npm:jspm-nodelibs-module@0.2.0",
@@ -172,7 +172,7 @@ SystemJS.config({
     "stream": "github:jspm/nodelibs-stream@0.2.0-alpha",
     "string_decoder": "github:jspm/nodelibs-string_decoder@0.2.0-alpha",
     "tty": "npm:jspm-nodelibs-tty@0.2.0",
-    "url": "npm:jspm-nodelibs-url@0.2.0",
+    "url": "github:jspm/nodelibs-url@0.2.0-alpha",
     "util": "github:jspm/nodelibs-util@0.2.0-alpha",
     "vm": "github:jspm/nodelibs-vm@0.2.0-alpha",
     "worker": "github:casperlamboo/plugin-worker@master"
@@ -291,16 +291,6 @@ SystemJS.config({
         "to-arraybuffer": "npm:to-arraybuffer@1.0.1",
         "builtin-status-codes": "npm:builtin-status-codes@2.0.0",
         "xtend": "npm:xtend@4.0.1"
-      }
-    },
-    "npm:jspm-nodelibs-http@0.2.0": {
-      "map": {
-        "http-browserify": "npm:stream-http@2.4.0"
-      }
-    },
-    "npm:jspm-nodelibs-url@0.2.0": {
-      "map": {
-        "url-browserify": "npm:url@0.11.0"
       }
     },
     "github:Doodle3D/clipper-js@1.0.2": {
@@ -473,6 +463,16 @@ SystemJS.config({
     "github:jspm/nodelibs-string_decoder@0.2.0-alpha": {
       "map": {
         "string_decoder-browserify": "npm:string_decoder@0.10.31"
+      }
+    },
+    "github:jspm/nodelibs-http@0.2.0-alpha": {
+      "map": {
+        "http-browserify": "npm:stream-http@2.4.0"
+      }
+    },
+    "github:jspm/nodelibs-url@0.2.0-alpha": {
+      "map": {
+        "url-browserify": "npm:url@0.11.0"
       }
     }
   }
