@@ -1,5 +1,4 @@
 import 'three.js';
-import 'three.js/loaders/STLLoader';
 import { Settings, printerSettings, userSettings, Slicer } from 'src/index.js';
 import { saveAs } from 'file-saver';
 
@@ -8,10 +7,8 @@ const settings = new Settings({
   ...userSettings
 });
 
-const stlLoader = new THREE.STLLoader();
-stlLoader.load('stl/traktor.stl', async (geometry) => {
-  geometry = new THREE.Geometry().fromBufferGeometry(geometry);
-
+const jsonLoader = new THREE.JSONLoader();
+jsonLoader.load('models/airplane.json', async geometry => {
   geometry.applyMatrix(new THREE.Matrix4().makeRotationX(Math.PI / -2));
   geometry.applyMatrix(new THREE.Matrix4().setPosition(new THREE.Vector3(50, -0.1, 50)));
   geometry.mergeVertices();
