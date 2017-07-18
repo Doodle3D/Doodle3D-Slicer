@@ -10,13 +10,12 @@ const settings = new Settings({
 const jsonLoader = new THREE.JSONLoader();
 jsonLoader.load('models/airplane.json', async geometry => {
   geometry.applyMatrix(new THREE.Matrix4().makeRotationX(Math.PI / -2));
-  geometry.applyMatrix(new THREE.Matrix4().setPosition(new THREE.Vector3(50, -0.1, 50)));
-  geometry.mergeVertices();
+  geometry.applyMatrix(new THREE.Matrix4().setPosition(new THREE.Vector3(50, 0.1, 50)));
   geometry.computeFaceNormals();
 
   const slicer = new Slicer().setGeometry(geometry);
-  const gcode = await slicer.slice(settings);
+  const gcode = slicer.sliceSync(settings);
 
-  const file = new File([gcode], 'traktor.gcode', { type: 'text/plain' });
+  const file = new File([gcode], 'gcode.gcode', { type: 'text/plain' });
   saveAs(file);
 });

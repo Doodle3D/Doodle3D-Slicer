@@ -7,12 +7,12 @@ export default function detectOpenClosed(lines) {
   for (let i = 0; i < pools.length; i ++) {
     const pool = pools[i];
 
-    const isOpen = pool.some(lineIndex => openLines[lineIndex]);
+    const isOpenGeometry = pool.some(lineIndex => openLines[lineIndex]);
 
     for (let j = 0; j < pool.length; j ++) {
       const lineIndex = pool[j];
       const line = lines[lineIndex];
-      line.open = isOpen;
+      line.openGeometry = isOpenGeometry;
     }
   }
 }
