@@ -13,12 +13,11 @@ import applyPrecision from './applyPrecision.js';
 import removePrecision from './removePrecision.js';
 
 export default function(geometry, settings) {
-  geometry.mergeVertices();
   geometry.computeFaceNormals();
 
   // get unique lines from geometry;
-  const openClosed = detectOpenClosed(geometry);
-  const lines = createLines(geometry, settings, openClosed);
+  const lines = createLines(geometry, settings);
+  const openClosed = detectOpenClosed(lines);
 
   const {
     layerIntersectionIndexes,
