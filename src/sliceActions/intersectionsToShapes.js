@@ -22,7 +22,7 @@ export default function intersectionsToShapes(layerIntersectionIndexes, layerInt
       const shape = [];
 
       const firstPoints = [index];
-      const { open: openGeometry } = lines[index];
+      const { openGeometry } = lines[index];
       let isFirstPoint = true;
       let openShape = true;
 

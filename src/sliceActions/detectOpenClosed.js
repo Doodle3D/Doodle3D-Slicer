@@ -1,42 +1,45 @@
-export default function detectOpenClosed(geometry) {
+export default function detectOpenClosed(lines) {
   console.log('detecting open and closed lines');
 
-  const pools = getPools(geometry);
-  const openVertices = getOpenVertices(geometry);
+  const pools = getPools(lines);
+  const openLines = lines.map(line => line.connects.length === 2);
 
-  const openFaces = [];
   for (let i = 0; i < pools.length; i ++) {
     const pool = pools[i];
 
-    const isOpen = pool.some(face => openVertices[face.a] || openVertices[face.b] || openVertices[face.c]);
+    const isOpenGeometry = pool.some(lineIndex => openLines[lineIndex]);
 
-    if (isOpen) openFaces.splice(openFaces.length, 0, ...pool);
+    for (let j = 0; j < pool.length; j ++) {
+      const lineIndex = pool[j];
+      const line = lines[lineIndex];
+      line.openGeometry = isOpenGeometry;
+    }
   }
-
-  return geometry.faces.map(face => openFaces.includes(face));
 }
 
-function findPool(pools, faceA) {
+function findPool(pools, lines, lineIndex) {
+  const { connects } = lines[lineIndex];
   for (let i = 0; i < pools.length; i ++) {
     const pool = pools[i];
 
-    if (pool.find(faceB => faceA.a === faceB.a || faceA.a === faceB.b || faceA.a === faceB.c)) {
+    if (pool.find(lineIndex => connects.includes(lineIndex))) {
       return pool;
     }
   }
 
+  // no pool found
+  // create new pool
   const pool = [];
   pools.push(pool);
   return pool;
 }
 
-function getPools(geometry) {
+function getPools(lines) {
   const pools = [];
 
-  for (let i = 0; i < geometry.faces.length; i ++) {
-    const face = geometry.faces[i];
-    const pool = findPool(pools, face);
-    pool.push(face);
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex ++) {
+    const pool = findPool(pools, lines, lineIndex);
+    pool.push(lineIndex);
   }
 
   for (let i = 0; i < pools.length; i ++) {
@@ -46,8 +49,9 @@ function getPools(geometry) {
       const poolB = pools[j];
 
       for (let k = 0; k < poolA.length; k ++) {
-        const faceA = poolA[k];
-        if (poolB.find(faceB => faceA.a === faceB.a || faceA.a === faceB.b || faceA.a === faceB.c)) {
+        const { connects } = lines[poolA[k]];
+
+        if (poolB.find(lineIndex => connects.includes(lineIndex))) {
           poolA.splice(poolA.length, 0, ...poolB);
           poolB.splice(0, poolB.length);
         }
@@ -56,16 +60,4 @@ function getPools(geometry) {
   }
 
   return pools.filter(pool => pool.length > 0);
-}
-
-function getOpenVertices(geometry) {
-  const vertices = Array(geometry.vertices.length).fill(0);
-  for (let i = 0; i < geometry.faces.length; i ++) {
-    const face = geometry.faces[i];
-    vertices[face.a] ++;
-    vertices[face.b] ++;
-    vertices[face.c] ++;
-  }
-
-  return vertices.map(numFaces => numFaces < 4);
 }
