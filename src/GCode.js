@@ -125,9 +125,11 @@ export default class {
 
   unRetract() {
     const {
-      retractionEnabled,
-      retractionMinDistance,
-      retractionSpeed
+      retraction: {
+        enabled: retractionEnabled,
+        minDistance: retractionMinDistance,
+        speed: retractionSpeed
+      }
     } = this._settings.config;
 
     if (this._isRetracted && retractionEnabled) {
@@ -149,10 +151,12 @@ export default class {
 
   retract() {
     const {
-      retractionAmount,
-      retractionEnabled,
-      retractionMinDistance,
-      retractionSpeed
+      retraction: {
+        amount: retractionAmount,
+        enabled: retractionEnabled,
+        minDistance: retractionMinDistance,
+        speed: retractionSpeed
+      }
     } = this._settings.config;
 
     if (!this._isRetracted && retractionEnabled) {

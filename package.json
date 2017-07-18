@@ -8,7 +8,9 @@
     "dependencies": {
       "Doodle3D/clipper-js": "github:Doodle3D/clipper-js@master",
       "clipper-js": "github:Doodle3D/clipper-js@1.0.2",
+      "js-yaml": "npm:js-yaml@^3.9.0",
       "json": "github:systemjs/plugin-json@^0.1.2",
+      "text": "github:systemjs/plugin-text@^0.0.11",
       "three.js": "github:mrdoob/three.js@r83",
       "worker": "github:casperlamboo/plugin-worker@master"
     },
@@ -26,22 +28,22 @@
     },
     "peerDependencies": {
       "assert": "npm:jspm-nodelibs-assert@^0.2.0",
-      "buffer": "npm:jspm-nodelibs-buffer@^0.2.0",
+      "buffer": "github:jspm/nodelibs-buffer@^0.2.0-alpha",
       "child_process": "npm:jspm-nodelibs-child_process@^0.2.0",
       "constants": "npm:jspm-nodelibs-constants@^0.2.0",
       "crypto": "npm:jspm-nodelibs-crypto@^0.2.0",
       "events": "npm:jspm-nodelibs-events@^0.2.0",
-      "fs": "npm:jspm-nodelibs-fs@^0.2.0",
+      "fs": "github:jspm/nodelibs-fs@^0.2.0-alpha",
       "http": "npm:jspm-nodelibs-http@^0.2.0",
       "module": "npm:jspm-nodelibs-module@^0.2.0",
       "os": "npm:jspm-nodelibs-os@^0.2.0",
-      "path": "npm:jspm-nodelibs-path@^0.2.0",
-      "process": "npm:jspm-nodelibs-process@^0.2.0",
+      "path": "github:jspm/nodelibs-path@^0.2.0-alpha",
+      "process": "github:jspm/nodelibs-process@^0.2.0-alpha",
       "stream": "npm:jspm-nodelibs-stream@^0.2.0",
       "string_decoder": "npm:jspm-nodelibs-string_decoder@^0.2.0",
       "tty": "npm:jspm-nodelibs-tty@^0.2.0",
       "url": "npm:jspm-nodelibs-url@^0.2.0",
-      "util": "npm:jspm-nodelibs-util@^0.2.0",
+      "util": "github:jspm/nodelibs-util@^0.2.0-alpha",
       "vm": "npm:jspm-nodelibs-vm@^0.2.0"
     },
     "overrides": {
@@ -77,7 +79,9 @@
       }
     }
   },
-  "dependencies": {},
+  "dependencies": {
+    "js-yaml": "^3.9.0"
+  },
   "devDependencies": {
     "jspm": "^0.17.0-beta.28"
   }

@@ -7,11 +7,11 @@ export default function generateInfills(slices, settings) {
 
   let {
     layerHeight,
-    fillGridSize,
-    bottomThickness,
-    topThickness,
+    fill: { gridSize: fillGridSize },
+    bottom: { thickness: bottomThickness },
+    top: { thickness: topThickness },
     nozzleDiameter,
-    infillOverlap
+    fill: { overlap: infillOverlap }
   } = settings.config;
 
   fillGridSize /= PRECISION;

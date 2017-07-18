@@ -139,7 +139,8 @@ SystemJS.config({
     }
   },
   map: {
-    "babel": "npm:babel-core@5.8.38"
+    "babel": "npm:babel-core@5.8.38",
+    "three.js/loaders/STLLoader": "github:mrdoob/three.js@r83/examples/js/loaders/STLLoader.js"
   }
 });
 
@@ -150,27 +151,29 @@ SystemJS.config({
     "github:*/*.json"
   ],
   map: {
+    "text": "github:systemjs/plugin-text@0.0.11",
+    "js-yaml": "npm:js-yaml@3.9.0",
     "clipper-js": "github:Doodle3D/clipper-js@1.0.2",
     "three.js": "github:mrdoob/three.js@r83",
     "assert": "npm:jspm-nodelibs-assert@0.2.0",
-    "buffer": "npm:jspm-nodelibs-buffer@0.2.0",
+    "buffer": "github:jspm/nodelibs-buffer@0.2.0-alpha",
     "child_process": "npm:jspm-nodelibs-child_process@0.2.0",
     "constants": "npm:jspm-nodelibs-constants@0.2.0",
     "crypto": "npm:jspm-nodelibs-crypto@0.2.0",
     "events": "npm:jspm-nodelibs-events@0.2.0",
-    "fs": "npm:jspm-nodelibs-fs@0.2.0",
+    "fs": "github:jspm/nodelibs-fs@0.2.0-alpha",
     "http": "npm:jspm-nodelibs-http@0.2.0",
     "json": "github:systemjs/plugin-json@0.1.2",
     "Doodle3D/clipper-js": "github:Doodle3D/clipper-js@master",
     "module": "npm:jspm-nodelibs-module@0.2.0",
     "os": "npm:jspm-nodelibs-os@0.2.0",
-    "path": "npm:jspm-nodelibs-path@0.2.0",
-    "process": "npm:jspm-nodelibs-process@0.2.0",
+    "path": "github:jspm/nodelibs-path@0.2.3",
+    "process": "github:jspm/nodelibs-process@0.2.0-alpha",
     "stream": "npm:jspm-nodelibs-stream@0.2.0",
     "string_decoder": "npm:jspm-nodelibs-string_decoder@0.2.0",
     "tty": "npm:jspm-nodelibs-tty@0.2.0",
     "url": "npm:jspm-nodelibs-url@0.2.0",
-    "util": "npm:jspm-nodelibs-util@0.2.0",
+    "util": "github:jspm/nodelibs-util@0.2.0-alpha",
     "vm": "npm:jspm-nodelibs-vm@0.2.0",
     "worker": "github:casperlamboo/plugin-worker@master"
   },
@@ -388,11 +391,6 @@ SystemJS.config({
         "os-browserify": "npm:os-browserify@0.2.1"
       }
     },
-    "npm:jspm-nodelibs-buffer@0.2.0": {
-      "map": {
-        "buffer-browserify": "npm:buffer@4.9.1"
-      }
-    },
     "npm:jspm-nodelibs-stream@0.2.0": {
       "map": {
         "stream-browserify": "npm:stream-browserify@2.0.1"
@@ -410,7 +408,24 @@ SystemJS.config({
     },
     "github:Doodle3D/clipper-js@1.0.2": {
       "map": {
-        "Breush/clipper-lib": "github:Breush/clipper-lib@patch-1"
+        "Breush/clipper-lib": "github:Breush/clipper-lib@patch-1",
+        "clipper-lib": "npm:clipper-lib@6.2.1"
+      }
+    },
+    "npm:js-yaml@3.9.0": {
+      "map": {
+        "argparse": "npm:argparse@1.0.9",
+        "esprima": "npm:esprima@4.0.0"
+      }
+    },
+    "npm:argparse@1.0.9": {
+      "map": {
+        "sprintf-js": "npm:sprintf-js@1.0.3"
+      }
+    },
+    "github:jspm/nodelibs-buffer@0.2.0-alpha": {
+      "map": {
+        "buffer-browserify": "npm:buffer@4.9.1"
       }
     }
   }

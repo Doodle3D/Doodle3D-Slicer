@@ -1,11 +1,17 @@
 import 'three.js';
-import { Settings, printerSettings, userSettings, Slicer } from 'src/index.js';
+import { Settings, defaultSettings, Slicer } from 'src/index.js';
 import { saveAs } from 'file-saver';
 
-const settings = new Settings({
-  ...printerSettings['ultimaker2go'],
-  ...userSettings
-});
+console.log('defaultSettings: ', defaultSettings);
+
+const settings = {
+  ...defaultSettings.base,
+  ...defaultSettings.material.pla,
+  ...defaultSettings.printer.ultimaker2go,
+  ...defaultSettings.quality.high,
+  startCode: '',
+  endCode: ''
+};
 
 const jsonLoader = new THREE.JSONLoader();
 jsonLoader.load('models/airplane.json', async geometry => {
