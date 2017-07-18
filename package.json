@@ -12,7 +12,7 @@
       "json": "github:systemjs/plugin-json@^0.1.2",
       "progress-promise": "npm:progress-promise@^0.0.6",
       "text": "github:systemjs/plugin-text@^0.0.11",
-      "three.js": "github:mrdoob/three.js@r83",
+      "three": "npm:three@0.83.0",
       "worker": "github:casperlamboo/plugin-worker@master"
     },
     "devDependencies": {
@@ -31,26 +31,23 @@
       "assert": "github:jspm/nodelibs-assert@^0.2.0-alpha",
       "buffer": "github:jspm/nodelibs-buffer@^0.2.0-alpha",
       "child_process": "npm:jspm-nodelibs-child_process@^0.2.0",
-      "constants": "npm:jspm-nodelibs-constants@^0.2.0",
-      "crypto": "npm:jspm-nodelibs-crypto@^0.2.0",
-      "events": "npm:jspm-nodelibs-events@^0.2.0",
+      "constants": "github:jspm/nodelibs-constants@^0.2.0-alpha",
+      "crypto": "github:jspm/nodelibs-crypto@^0.2.0-alpha",
+      "events": "github:jspm/nodelibs-events@^0.2.0-alpha",
       "fs": "github:jspm/nodelibs-fs@^0.2.0-alpha",
       "http": "npm:jspm-nodelibs-http@^0.2.0",
       "module": "npm:jspm-nodelibs-module@^0.2.0",
-      "os": "npm:jspm-nodelibs-os@^0.2.0",
+      "os": "github:jspm/nodelibs-os@^0.2.0-alpha",
       "path": "github:jspm/nodelibs-path@^0.2.0-alpha",
       "process": "github:jspm/nodelibs-process@^0.2.0-alpha",
-      "stream": "npm:jspm-nodelibs-stream@^0.2.0",
-      "string_decoder": "npm:jspm-nodelibs-string_decoder@^0.2.0",
+      "stream": "github:jspm/nodelibs-stream@^0.2.0-alpha",
+      "string_decoder": "github:jspm/nodelibs-string_decoder@^0.2.0-alpha",
       "tty": "npm:jspm-nodelibs-tty@^0.2.0",
       "url": "npm:jspm-nodelibs-url@^0.2.0",
       "util": "github:jspm/nodelibs-util@^0.2.0-alpha",
-      "vm": "npm:jspm-nodelibs-vm@^0.2.0"
+      "vm": "github:jspm/nodelibs-vm@^0.2.0-alpha"
     },
     "overrides": {
-      "github:mrdoob/three.js@r83": {
-        "format": "global"
-      },
       "npm:babel-runtime@5.8.38": {
         "main": false,
         "dependencies": {},
@@ -77,6 +74,12 @@
           "buffer": "@empty",
           "process": "@empty"
         }
+      },
+      "npm:pbkdf2@3.0.12": {
+        "main": "browser.js"
+      },
+      "npm:safe-buffer@5.1.1": {
+        "browser": "index.js"
       }
     }
   },

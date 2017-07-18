@@ -1,4 +1,4 @@
-import * as THREE from 'three.js';
+import * as THREE from 'three';
 import slice from './sliceActions/slice.js';
 import SlicerWorker from './slicerWorker.js!worker';
 import ProgressPromise from 'progress-promise';

@@ -1,5 +1,5 @@
 import slice from './sliceActions/slice.js';
-import * as THREE from 'three.js';
+import * as THREE from 'three';
 
 const loader = new THREE.JSONLoader();
 

@@ -3,7 +3,7 @@ JavaScript gcode slicer, Intended to use with the Doodle3D WiFi-Box
 # Usage
 
 ```javascript
-import THREE from 'three.js';
+import * as THREE from 'three';
 import * as SLICER from 'doodle3d-slicer';
 
 const settings = new SLICER.Settings({

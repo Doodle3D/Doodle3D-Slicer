@@ -1,4 +1,4 @@
-import 'three.js';
+import * as THREE from 'three';
 import { defaultSettings, Slicer } from 'src/index.js';
 import { saveAs } from 'file-saver';
 
