@@ -15,8 +15,6 @@ function addLine(geometry, lineLookup, lines, a, b, isFlat) {
 }
 
 export default function createLines(geometry, settings) {
-  console.log('constructing unique lines from geometry');
-
   const lines = [];
   const lineLookup = {};
 

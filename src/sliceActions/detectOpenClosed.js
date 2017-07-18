@@ -1,6 +1,4 @@
 export default function detectOpenClosed(lines) {
-  console.log('detecting open and closed lines');
-
   const pools = getPools(lines);
   const openLines = lines.map(line => line.connects.length === 2);
 

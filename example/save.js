@@ -16,7 +16,11 @@ jsonLoader.load('models/airplane.json', async geometry => {
   geometry.computeFaceNormals();
 
   const slicer = new Slicer().setGeometry(geometry);
-  const gcode = slicer.sliceSync(settings);
+  const gcode = await slicer.slice(settings)
+    .progress(({ done, total, action }) => {
+      const percentage = `${(done / total * 100).toFixed()}%`
+      document.write(`<p>${action}, ${percentage}</p>`);
+    });
 
   const file = new File([gcode], 'gcode.gcode', { type: 'text/plain' });
   saveAs(file);

@@ -151,11 +151,12 @@ SystemJS.config({
     "github:*/*.json"
   ],
   map: {
+    "progress-promise": "npm:progress-promise@0.0.6",
     "text": "github:systemjs/plugin-text@0.0.11",
     "js-yaml": "npm:js-yaml@3.9.0",
     "clipper-js": "github:Doodle3D/clipper-js@1.0.2",
     "three.js": "github:mrdoob/three.js@r83",
-    "assert": "npm:jspm-nodelibs-assert@0.2.0",
+    "assert": "github:jspm/nodelibs-assert@0.2.0-alpha",
     "buffer": "github:jspm/nodelibs-buffer@0.2.0-alpha",
     "child_process": "npm:jspm-nodelibs-child_process@0.2.0",
     "constants": "npm:jspm-nodelibs-constants@0.2.0",

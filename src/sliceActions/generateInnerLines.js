@@ -8,8 +8,6 @@ const offsetOptions = {
 };
 
 export default function generateInnerLines(slices, settings) {
-  console.log('generating outer lines and inner lines');
-
   // need to scale up everything because of clipper rounding errors
   let { layerHeight, nozzleDiameter, shell: { thickness: shellThickness } } = settings;
   nozzleDiameter /= PRECISION;

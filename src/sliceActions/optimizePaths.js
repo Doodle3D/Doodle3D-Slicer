@@ -2,8 +2,6 @@ import * as THREE from 'three.js';
 import Shape from 'Doodle3D/clipper-js';
 
 export default function optimizePaths(slices, settings) {
-  console.log('optimize paths');
-
   const start = new THREE.Vector2(0, 0);
 
   for (let layer = 0; layer < slices.length; layer ++) {

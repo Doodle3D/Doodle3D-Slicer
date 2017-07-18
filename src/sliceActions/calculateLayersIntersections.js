@@ -1,8 +1,6 @@
 import * as THREE from 'three.js';
 
 export default function calculateLayersIntersections(lines, settings) {
-  console.log('calculating layer intersections');
-
   const { layerHeight, dimensions: { z: dimensionsZ } } = settings;
 
   const numLayers = Math.floor(dimensionsZ / layerHeight);

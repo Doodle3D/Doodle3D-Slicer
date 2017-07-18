@@ -1,6 +1,7 @@
 import * as THREE from 'three.js';
 import slice from './sliceActions/slice.js';
 import SlicerWorker from './slicerWorker.js!worker';
+import ProgressPromise from 'progress-promise';
 
 export default class {
   setMesh(mesh) {
@@ -27,15 +28,15 @@ export default class {
 
     return this;
   }
-  sliceSync(settings) {
-    return slice(this.geometry, settings);
+  sliceSync(settings, onprogress) {
+    return slice(this.geometry, settings, onprogress);
   }
   slice(settings) {
     const slicerWorker = new SlicerWorker();
 
     const geometry = this.geometry.toJSON();
 
-    return new Promise((resolve, reject) => {
+    return new ProgressPromise((resolve, reject, progress) => {
       slicerWorker.onerror = reject;
 
       slicerWorker.addEventListener('message', (event) => {
@@ -47,9 +48,8 @@ export default class {
             break;
           }
           case 'PROGRESS': {
-            if (this.onprogress) {
-              this.onprogress(data);
-            }
+            progress(data);
+            break;
           }
         }
       });

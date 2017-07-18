@@ -2,8 +2,6 @@ import * as THREE from 'three.js';
 import Shape from 'Doodle3D/clipper-js';
 
 export default function intersectionsToShapes(layerIntersectionIndexes, layerIntersectionPoints, lines, settings) {
-  console.log('generating slices');
-
   const layers = [];
 
   for (let layer = 1; layer < layerIntersectionIndexes.length; layer ++) {

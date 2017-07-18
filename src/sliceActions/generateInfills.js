@@ -3,8 +3,6 @@ import getFillTemplate from './getFillTemplate.js';
 import Shape from 'Doodle3D/clipper-js';
 
 export default function generateInfills(slices, settings) {
-  console.log('generating infills');
-
   let {
     layerHeight,
     fill: { gridSize: fillGridSize },

@@ -13,51 +13,53 @@ import applyPrecision from './applyPrecision.js';
 import removePrecision from './removePrecision.js';
 
 export default function(geometry, settings, onProgress) {
-  const totalStages = 12;
-  let current = 0;
-  const progressMessage = () => {
+  const totalStages = 11;
+  let current = -1;
+  const updateProgress = (action) => {
     current ++;
-    // postMessage({ message: 'PROGRESS', data: { done: current, total: totalStages } });
+    if (onProgress) onProgress({ done: current, total: totalStages, action });
   };
 
   geometry.computeFaceNormals();
 
   // get unique lines from geometry;
+  updateProgress('Constructing unique lines from geometry');
   const lines = createLines(geometry, settings);
-  progressMessage();
 
+  updateProgress('Detecting open vs closed shapes');
   const openClosed = detectOpenClosed(lines);
-  progressMessage();
 
+  updateProgress('Calculating layer intersections');
   const {
     layerIntersectionIndexes,
     layerIntersectionPoints
   } = calculateLayersIntersections(lines, settings);
-  progressMessage();
 
+  updateProgress('Constructing shapes from intersections');
   const shapes = intersectionsToShapes(layerIntersectionIndexes, layerIntersectionPoints, lines, settings);
-  progressMessage();
 
   applyPrecision(shapes);
 
+  updateProgress('Constructing slices from shapes');
   const slices = shapesToSlices(shapes, settings);
-  progressMessage();
 
+  updateProgress('Generating inner lines');
   generateInnerLines(slices, settings);
-  progressMessage();
+  updateProgress('Generating infills');
   generateInfills(slices, settings);
-  progressMessage();
+  updateProgress('Generating support');
   generateSupport(slices, settings);
-  progressMessage();
+  updateProgress('Adding brim');
   addBrim(slices, settings);
-  progressMessage();
+  updateProgress('Optimizing paths');
   optimizePaths(slices, settings);
-  progressMessage();
-  removePrecision(slices);
-  progressMessage();
 
+  removePrecision(slices);
+
+  updateProgress('Constructing gcode');
   const gcode = slicesToGCode(slices, settings);
-  progressMessage();
+
+  updateProgress('Finished');
 
   return gcode;
 }
