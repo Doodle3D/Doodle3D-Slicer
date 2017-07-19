@@ -14,7 +14,7 @@ import applyPrecision from './applyPrecision.js';
 import removePrecision from './removePrecision.js';
 
 export default function(geometry, settings, onProgress) {
-  const totalStages = 11;
+  const totalStages = 12;
   let current = -1;
   const updateProgress = (action) => {
     current ++;
