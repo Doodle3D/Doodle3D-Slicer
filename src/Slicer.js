@@ -26,10 +26,14 @@ export default class {
     return this;
   }
   sliceSync(settings, onProgress) {
+    if (typeof this.geometry === 'undefined') {
+      throw new Error('Geometry is not set, use Slicer.setGeometry or Slicer.setMesh first');
+    }
+
     return slice(this.geometry, settings, onProgress);
   }
   slice(settings, onProgress) {
-    if (!this.geometry) {
+    if (typeof this.geometry === 'undefined') {
       throw new Error('Geometry is not set, use Slicer.setGeometry or Slicer.setMesh first');
     }
 
