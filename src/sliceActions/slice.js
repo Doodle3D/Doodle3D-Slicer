@@ -28,7 +28,7 @@ export default function(geometry, settings, onProgress) {
   const lines = createLines(geometry, settings);
 
   updateProgress('Detecting open vs closed shapes');
-  const openClosed = detectOpenClosed(lines);
+  detectOpenClosed(lines);
 
   updateProgress('Calculating layer intersections');
   const {
