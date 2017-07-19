@@ -52,7 +52,9 @@ export default class {
             break;
           }
           case 'PROGRESS': {
-            onProgress(data);
+            if (typeof onProgress !== 'undefined') {
+              onProgress(data);
+            }
             break;
           }
         }
