@@ -17,9 +17,8 @@ const geometry = new THREE.TorusGeometry(20, 10, 30, 30);
 
 const slicer = new SLICER.Slicer();
 slicer.setGeometry(geometry);
-const gcode = await slicer.slice(settings)
-  .progress(({ progress: { done, total, action } }) => {
-    const percentage = `${(done / total * 100).toFixed()}%`
-    console.log(action, percentage);
-  });
+const gcode = await slicer.slice(settings, ({ progress: { done, total, action } }) => {
+  const percentage = `${(done / total * 100).toFixed()}%`
+  console.log(action, percentage);
+}));
 ```
