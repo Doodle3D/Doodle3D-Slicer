@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import slice from './sliceActions/slice.js';
 import SlicerWorker from './slicerWorker.js!worker';
-import ProgressPromise from 'progress-promise';
 
 export default class {
   setMesh(mesh) {
@@ -26,15 +25,15 @@ export default class {
 
     return this;
   }
-  sliceSync(settings, onprogress) {
-    return slice(this.geometry, settings, onprogress);
+  sliceSync(settings, onProgress) {
+    return slice(this.geometry, settings, onProgress);
   }
-  slice(settings) {
+  slice(settings, onProgress) {
     if (!this.geometry) {
       throw new Error('Geometry is not set, use Slicer.setGeometry or Slicer.setMesh first');
     }
 
-    return new ProgressPromise((resolve, reject, progress) => {
+    return new Promise((resolve, reject) => {
       // create the slicer worker
       const slicerWorker = new SlicerWorker();
       slicerWorker.onerror = reject;
@@ -49,7 +48,7 @@ export default class {
             break;
           }
           case 'PROGRESS': {
-            progress(data);
+            onProgress(data);
             break;
           }
         }

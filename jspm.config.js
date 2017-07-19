@@ -151,7 +151,6 @@ SystemJS.config({
   ],
   map: {
     "three": "npm:three@0.83.0",
-    "progress-promise": "npm:progress-promise@0.0.6",
     "text": "github:systemjs/plugin-text@0.0.11",
     "js-yaml": "npm:js-yaml@3.9.0",
     "clipper-js": "github:Doodle3D/clipper-js@1.0.2",
