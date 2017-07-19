@@ -1,4 +1,4 @@
-import * as THREE from 'three.js';
+import * as THREE from 'three';
 
 const MOVE = 'G';
 const M_COMMAND = 'M';
@@ -66,7 +66,7 @@ export default class {
     const {
       layerHeight,
       travelSpeed
-    } = this._settings.config;
+    } = this._settings;
 
     const z = layer * layerHeight + 0.2;
     const speed = travelSpeed * 60;
@@ -92,9 +92,9 @@ export default class {
       nozzleDiameter,
       filamentThickness,
       travelSpeed
-    } = this._settings.config;
+    } = this._settings;
 
-    const profile = this._settings.config[(this.bottom ? 'bottom' : type)];
+    const profile = this._settings[(this.bottom ? 'bottom' : type)];
 
     let {
       speed,
@@ -125,10 +125,12 @@ export default class {
 
   unRetract() {
     const {
-      retractionEnabled,
-      retractionMinDistance,
-      retractionSpeed
-    } = this._settings.config;
+      retraction: {
+        enabled: retractionEnabled,
+        minDistance: retractionMinDistance,
+        speed: retractionSpeed
+      }
+    } = this._settings;
 
     if (this._isRetracted && retractionEnabled) {
       this._isRetracted = false;
@@ -149,11 +151,13 @@ export default class {
 
   retract() {
     const {
-      retractionAmount,
-      retractionEnabled,
-      retractionMinDistance,
-      retractionSpeed
-    } = this._settings.config;
+      retraction: {
+        amount: retractionAmount,
+        enabled: retractionEnabled,
+        minDistance: retractionMinDistance,
+        speed: retractionSpeed
+      }
+    } = this._settings;
 
     if (!this._isRetracted && retractionEnabled) {
       this._isRetracted = true;
@@ -173,6 +177,6 @@ export default class {
   }
 
   getGCode() {
-    return this._settings.startCode() + this._gcode + this._settings.endCode();
+    return this._gcode;
   }
 }

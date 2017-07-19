@@ -1,11 +1,8 @@
-import * as THREE from 'three.js';
 import { PRECISION } from '../constants.js';
 
 const inversePrecision = 1 / PRECISION;
 
 export default function removePrecision(slices) {
-  console.log('remove precision');
-
   for (let layer = 0; layer < slices.length; layer ++) {
     const slice = slices[layer];
 

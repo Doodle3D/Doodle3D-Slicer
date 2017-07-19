@@ -1,5 +1,4 @@
 import Shape from 'Doodle3D/clipper-js';
-import * as THREE from 'three.js';
 import { PRECISION } from '../constants.js';
 
 const offsetOptions = {
@@ -9,9 +8,9 @@ const offsetOptions = {
 };
 
 export default function addBrim(slices, settings) {
-  console.log('add brim');
-
-  let { brimOffset } = settings.config;
+  let {
+    brim: { offset: brimOffset }
+  } = settings;
   brimOffset /= PRECISION;
 
   const [firstLayer] = slices;

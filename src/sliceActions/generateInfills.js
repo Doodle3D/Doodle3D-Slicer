@@ -3,16 +3,14 @@ import getFillTemplate from './getFillTemplate.js';
 import Shape from 'Doodle3D/clipper-js';
 
 export default function generateInfills(slices, settings) {
-  console.log('generating infills');
-
   let {
     layerHeight,
-    fillGridSize,
-    bottomThickness,
-    topThickness,
+    fill: { gridSize: fillGridSize },
+    bottom: { thickness: bottomThickness },
+    top: { thickness: topThickness },
     nozzleDiameter,
-    infillOverlap
-  } = settings.config;
+    fill: { overlap: infillOverlap }
+  } = settings;
 
   fillGridSize /= PRECISION;
   nozzleDiameter /= PRECISION;

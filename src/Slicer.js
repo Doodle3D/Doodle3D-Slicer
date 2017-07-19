@@ -1,6 +1,7 @@
-import * as THREE from 'three.js';
+import * as THREE from 'three';
 import slice from './sliceActions/slice.js';
 import SlicerWorker from './slicerWorker.js!worker';
+import ProgressPromise from 'progress-promise';
 
 export default class {
   setMesh(mesh) {
@@ -11,9 +12,9 @@ export default class {
     return this;
   }
   setGeometry(geometry, matrix) {
-    if (geometry.type === 'BufferGeometry') {
+    if (geometry.isBufferGeometry) {
       geometry = new THREE.Geometry().fromBufferGeometry(geometry);
-    } else if (geometry.type === 'Geometry') {
+    } else if (geometry.isGeometry) {
       geometry = geometry.clone();
     } else {
       throw new Error('Geometry is not an instance of BufferGeometry or Geometry');
@@ -27,16 +28,15 @@ export default class {
 
     return this;
   }
-  sliceSync(settings) {
-    return slice(this.geometry, settings);
+  sliceSync(settings, onprogress) {
+    return slice(this.geometry, settings, onprogress);
   }
   slice(settings) {
     const slicerWorker = new SlicerWorker();
 
     const geometry = this.geometry.toJSON();
-    const { config } = settings;
 
-    return new Promise((resolve, reject) => {
+    return new ProgressPromise((resolve, reject, progress) => {
       slicerWorker.onerror = reject;
 
       slicerWorker.addEventListener('message', (event) => {
@@ -47,12 +47,16 @@ export default class {
             resolve(data.gcode);
             break;
           }
+          case 'PROGRESS': {
+            progress(data);
+            break;
+          }
         }
       });
 
       slicerWorker.postMessage({
         message: 'SLICE',
-        data: { geometry, config }
+        data: { geometry, settings }
       });
     });
   }

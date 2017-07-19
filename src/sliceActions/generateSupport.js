@@ -3,18 +3,18 @@ import Shape from 'Doodle3D/clipper-js';
 import { PRECISION } from '../constants.js';
 
 export default function generateSupport(slices, settings) {
-  console.log('generating support');
-
-  if (!settings.config.supportEnabled) return;
+  if (!settings.support.enabled) return;
 
   let {
     layerHeight,
-    supportGridSize,
-    supportAcceptanceMargin,
-    supportPlateSize: plateSize,
-    supportDistanceY,
+    support: {
+      gridSize: supportGridSize,
+      margin: supportMargin,
+      plateSize: plateSize,
+      distanceY: supportDistanceY
+    },
     nozzleDiameter
-  } = settings.config;
+  } = settings;
 
   supportGridSize /= PRECISION;
   supportMargin /= PRECISION;
@@ -62,10 +62,10 @@ export default function generateSupport(slices, settings) {
         var outerLine = slicePart.outerLine;
       }
       else {
-        var outerLine = slicePart.intersect.offset(supportAcceptanceMargin);
+        var outerLine = slicePart.intersect.offset(supportMargin);
       }
 
-      var overlap = supportSkin.offset(supportAcceptanceMargin).intersect(outerLine);
+      var overlap = supportSkin.offset(supportMargin).intersect(outerLine);
       var overhang = outerLine.difference(overlap);
 
       if (overlap.length === 0 || overhang.length > 0) {

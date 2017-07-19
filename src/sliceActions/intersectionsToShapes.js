@@ -1,9 +1,7 @@
-import * as THREE from 'three.js';
+import * as THREE from 'three';
 import Shape from 'Doodle3D/clipper-js';
 
 export default function intersectionsToShapes(layerIntersectionIndexes, layerIntersectionPoints, lines, settings) {
-  console.log('generating slices');
-
   const layers = [];
 
   for (let layer = 1; layer < layerIntersectionIndexes.length; layer ++) {
@@ -22,7 +20,7 @@ export default function intersectionsToShapes(layerIntersectionIndexes, layerInt
       const shape = [];
 
       const firstPoints = [index];
-      const { open: openGeometry } = lines[index];
+      const { openGeometry } = lines[index];
       let isFirstPoint = true;
       let openShape = true;
 
