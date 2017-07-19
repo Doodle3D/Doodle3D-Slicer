@@ -6,7 +6,7 @@ const loader = new THREE.JSONLoader();
 const onProgress = progress => {
   self.postMessage({
     message: 'PROGRESS',
-    data: progress
+    data: { progress }
   });
 }
 
