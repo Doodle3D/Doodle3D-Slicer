@@ -1,7 +1,10 @@
 import * as THREE from 'three';
 
 export default function calculateLayersIntersections(lines, settings) {
-  const { layerHeight, dimensions: { z: dimensionsZ } } = settings;
+  const {
+    layerHeight,
+    dimensions: { z: dimensionsZ }
+  } = settings;
 
   const numLayers = Math.floor(dimensionsZ / layerHeight);
 

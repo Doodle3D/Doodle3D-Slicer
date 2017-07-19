@@ -8,7 +8,9 @@ const offsetOptions = {
 };
 
 export default function addBrim(slices, settings) {
-  let { brim: { offset: brimOffset } } = settings;
+  let {
+    brim: { offset: brimOffset }
+  } = settings;
   brimOffset /= PRECISION;
 
   const [firstLayer] = slices;
