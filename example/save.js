@@ -17,7 +17,7 @@ jsonLoader.load('models/airplane.json', async geometry => {
 
   const slicer = new Slicer().setGeometry(geometry);
   const gcode = await slicer.slice(settings)
-    .progress(({ done, total, action }) => {
+    .progress(({ progress: { done, total, action } }) => {
       const percentage = `${(done / total * 100).toFixed()}%`
       document.write(`<p>${action}, ${percentage}</p>`);
     });

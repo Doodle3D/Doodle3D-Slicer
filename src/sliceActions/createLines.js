@@ -25,7 +25,7 @@ export default function createLines(geometry, settings) {
     const lookupB = lineLookup[`${face.c}_${face.b}`];
     const lookupC = lineLookup[`${face.a}_${face.c}`];
 
-    const isFlat = face.normal.y !== 1 && face.normal.y !== -1;
+    const isFlat = face.normal.y > 0.999 || face.normal.y < -0.999;
 
     // only add unique lines
     // returns index of said line

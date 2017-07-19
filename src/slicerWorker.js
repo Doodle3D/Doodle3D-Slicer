@@ -6,7 +6,7 @@ const loader = new THREE.JSONLoader();
 const onProgress = progress => {
   self.postMessage({
     message: 'PROGRESS',
-    data: progress
+    data: { progress }
   });
 }
 
@@ -16,7 +16,7 @@ self.addEventListener('message', (event) => {
     case 'SLICE': {
       const { geometry: JSONGeometry, settings } = data;
 
-      const { geometry } = new loader.parse(JSONGeometry.data);
+      const { geometry } = loader.parse(JSONGeometry.data);
 
       const gcode = slice(geometry, settings, onProgress);
 

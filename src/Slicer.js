@@ -1,15 +1,12 @@
 import * as THREE from 'three';
 import slice from './sliceActions/slice.js';
 import SlicerWorker from './slicerWorker.js!worker';
-import ProgressPromise from 'progress-promise';
 
 export default class {
   setMesh(mesh) {
     mesh.updateMatrix();
 
-    this.setGeometry(mesh.geometry, mesh.matrix);
-
-    return this;
+    return this.setGeometry(mesh.geometry, mesh.matrix);
   }
   setGeometry(geometry, matrix) {
     if (geometry.isBufferGeometry) {
@@ -20,7 +17,7 @@ export default class {
       throw new Error('Geometry is not an instance of BufferGeometry or Geometry');
     }
 
-    if (matrix) {
+    if (typeof matrix !== 'undefined') {
       geometry.applyMatrix(matrix);
     }
 
@@ -28,17 +25,20 @@ export default class {
 
     return this;
   }
-  sliceSync(settings, onprogress) {
-    return slice(this.geometry, settings, onprogress);
+  sliceSync(settings, onProgress) {
+    return slice(this.geometry, settings, onProgress);
   }
-  slice(settings) {
-    const slicerWorker = new SlicerWorker();
+  slice(settings, onProgress) {
+    if (!this.geometry) {
+      throw new Error('Geometry is not set, use Slicer.setGeometry or Slicer.setMesh first');
+    }
 
-    const geometry = this.geometry.toJSON();
-
-    return new ProgressPromise((resolve, reject, progress) => {
+    return new Promise((resolve, reject) => {
+      // create the slicer worker
+      const slicerWorker = new SlicerWorker();
       slicerWorker.onerror = reject;
 
+      // listen to messages send from worker
       slicerWorker.addEventListener('message', (event) => {
         const { message, data } = event.data;
         switch (message) {
@@ -48,12 +48,14 @@ export default class {
             break;
           }
           case 'PROGRESS': {
-            progress(data);
+            onProgress(data);
             break;
           }
         }
       });
 
+      // send geometry and settings to worker to start the slicing progress
+      const geometry = this.geometry.toJSON();
       slicerWorker.postMessage({
         message: 'SLICE',
         data: { geometry, settings }

@@ -2,6 +2,7 @@ import calculateLayersIntersections from './calculateLayersIntersections.js';
 import createLines from './createLines.js';
 import generateInfills from './generateInfills.js';
 import generateInnerLines from './generateInnerLines.js';
+import generateOutlines from './generateOutlines.js';
 import generateSupport from './generateSupport.js';
 import intersectionsToShapes from './intersectionsToShapes.js';
 import addBrim from './addBrim.js';
@@ -13,7 +14,7 @@ import applyPrecision from './applyPrecision.js';
 import removePrecision from './removePrecision.js';
 
 export default function(geometry, settings, onProgress) {
-  const totalStages = 11;
+  const totalStages = 12;
   let current = -1;
   const updateProgress = (action) => {
     current ++;
@@ -27,7 +28,7 @@ export default function(geometry, settings, onProgress) {
   const lines = createLines(geometry, settings);
 
   updateProgress('Detecting open vs closed shapes');
-  const openClosed = detectOpenClosed(lines);
+  detectOpenClosed(lines);
 
   updateProgress('Calculating layer intersections');
   const {
@@ -45,6 +46,8 @@ export default function(geometry, settings, onProgress) {
 
   updateProgress('Generating inner lines');
   generateInnerLines(slices, settings);
+  updateProgress('Generating out lines');
+  generateOutlines(slices, settings);
   updateProgress('Generating infills');
   generateInfills(slices, settings);
   updateProgress('Generating support');

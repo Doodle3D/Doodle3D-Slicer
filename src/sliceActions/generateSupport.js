@@ -9,9 +9,9 @@ export default function generateSupport(slices, settings) {
     layerHeight,
     support: {
       gridSize: supportGridSize,
-      margin: AcceptanceMargin,
+      margin: supportMargin,
       plateSize: plateSize,
-      distanceY: DistanceY
+      distanceY: supportDistanceY
     },
     nozzleDiameter
   } = settings;
@@ -30,7 +30,7 @@ export default function generateSupport(slices, settings) {
     if (supportAreas.length > 0) {
 
       if (layer >= supportDistanceLayers) {
-        var sliceSkin = slices[layer - supportDistanceLayers].getOutline();
+        var sliceSkin = slices[layer - supportDistanceLayers].outline;
         sliceSkin = sliceSkin;
 
         var supportAreasSlimmed = supportAreas.difference(sliceSkin.offset(supportMargin));
@@ -52,7 +52,7 @@ export default function generateSupport(slices, settings) {
       }
     }
 
-    var supportSkin = slices[layer + supportDistanceLayers - 1].getOutline();
+    var supportSkin = slices[layer + supportDistanceLayers - 1].outline;
 
     var slice = slices[layer + supportDistanceLayers];
     for (var i = 0; i < slice.parts.length; i ++) {
@@ -62,10 +62,10 @@ export default function generateSupport(slices, settings) {
         var outerLine = slicePart.outerLine;
       }
       else {
-        var outerLine = slicePart.intersect.offset(supportAcceptanceMargin);
+        var outerLine = slicePart.intersect.offset(supportMargin);
       }
 
-      var overlap = supportSkin.offset(supportAcceptanceMargin).intersect(outerLine);
+      var overlap = supportSkin.offset(supportMargin).intersect(outerLine);
       var overhang = outerLine.difference(overlap);
 
       if (overlap.length === 0 || overhang.length > 0) {
