@@ -7,9 +7,7 @@ export default class {
   setMesh(mesh) {
     mesh.updateMatrix();
 
-    this.setGeometry(mesh.geometry, mesh.matrix);
-
-    return this;
+    return this.setGeometry(mesh.geometry, mesh.matrix);
   }
   setGeometry(geometry, matrix) {
     if (geometry.isBufferGeometry) {
@@ -20,7 +18,7 @@ export default class {
       throw new Error('Geometry is not an instance of BufferGeometry or Geometry');
     }
 
-    if (matrix) {
+    if (typeof matrix !== 'undefined') {
       geometry.applyMatrix(matrix);
     }
 
@@ -32,13 +30,16 @@ export default class {
     return slice(this.geometry, settings, onprogress);
   }
   slice(settings) {
-    const slicerWorker = new SlicerWorker();
-
-    const geometry = this.geometry.toJSON();
+    if (!this.geometry) {
+      throw new Error('Geometry is not set, use Slicer.setGeometry or Slicer.setMesh first');
+    }
 
     return new ProgressPromise((resolve, reject, progress) => {
+      // create the slicer worker
+      const slicerWorker = new SlicerWorker();
       slicerWorker.onerror = reject;
 
+      // listen to messages send from worker
       slicerWorker.addEventListener('message', (event) => {
         const { message, data } = event.data;
         switch (message) {
@@ -54,6 +55,8 @@ export default class {
         }
       });
 
+      // send geometry and settings to worker to start the slicing progress
+      const geometry = this.geometry.toJSON();
       slicerWorker.postMessage({
         message: 'SLICE',
         data: { geometry, settings }

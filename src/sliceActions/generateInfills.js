@@ -26,8 +26,8 @@ export default function generateInfills(slices, settings) {
 
     let surroundingLayer;
     if (layer - bottomSkinCount >= 0 && layer + topSkinCount < slices.length) {
-      const downSkin = slices[layer - bottomSkinCount].getOutline();
-      const upSkin = slices[layer + topSkinCount].getOutline();
+      const downSkin = slices[layer - bottomSkinCount].outline;
+      const upSkin = slices[layer + topSkinCount].outline;
       surroundingLayer = upSkin.intersect(downSkin);
     }
 
