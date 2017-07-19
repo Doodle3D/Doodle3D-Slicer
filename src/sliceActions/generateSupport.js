@@ -30,7 +30,7 @@ export default function generateSupport(slices, settings) {
     if (supportAreas.length > 0) {
 
       if (layer >= supportDistanceLayers) {
-        var sliceSkin = slices[layer - supportDistanceLayers].getOutline();
+        var sliceSkin = slices[layer - supportDistanceLayers].outline;
         sliceSkin = sliceSkin;
 
         var supportAreasSlimmed = supportAreas.difference(sliceSkin.offset(supportMargin));
@@ -52,7 +52,7 @@ export default function generateSupport(slices, settings) {
       }
     }
 
-    var supportSkin = slices[layer + supportDistanceLayers - 1].getOutline();
+    var supportSkin = slices[layer + supportDistanceLayers - 1].outline;
 
     var slice = slices[layer + supportDistanceLayers];
     for (var i = 0; i < slice.parts.length; i ++) {

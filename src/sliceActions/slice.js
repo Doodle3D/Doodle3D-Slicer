@@ -2,6 +2,7 @@ import calculateLayersIntersections from './calculateLayersIntersections.js';
 import createLines from './createLines.js';
 import generateInfills from './generateInfills.js';
 import generateInnerLines from './generateInnerLines.js';
+import generateOutlines from './generateOutlines.js';
 import generateSupport from './generateSupport.js';
 import intersectionsToShapes from './intersectionsToShapes.js';
 import addBrim from './addBrim.js';
@@ -45,6 +46,8 @@ export default function(geometry, settings, onProgress) {
 
   updateProgress('Generating inner lines');
   generateInnerLines(slices, settings);
+  updateProgress('Generating out lines');
+  generateOutlines(slices, settings);
   updateProgress('Generating infills');
   generateInfills(slices, settings);
   updateProgress('Generating support');
