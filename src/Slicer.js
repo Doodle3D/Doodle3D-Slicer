@@ -25,10 +25,10 @@ export default class {
 
     return this;
   }
-  sliceSync(settings, onprogress) {
-    return slice(this.geometry, settings, onprogress);
+  sliceSync(settings, onProgress) {
+    return slice(this.geometry, settings, onProgress);
   }
-  slice(settings, onprogress) {
+  slice(settings, onProgress) {
     if (!this.geometry) {
       throw new Error('Geometry is not set, use Slicer.setGeometry or Slicer.setMesh first');
     }
@@ -48,7 +48,7 @@ export default class {
             break;
           }
           case 'PROGRESS': {
-            onprogress(data);
+            onProgress(data);
             break;
           }
         }
