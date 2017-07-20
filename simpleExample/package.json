@@ -10,7 +10,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "Doodle3D-Slicer": "github:Doodle3D/Doodle3D-Slicer#webpack",
     "babel-polyfill": "^6.23.0",
     "three": "^0.83.0"
   },
