@@ -1,4 +1,4 @@
-import Shape from 'Doodle3D/clipper-js';
+import Shape from 'clipper-js';
 import { PRECISION } from '../constants.js';
 
 const offsetOptions = {

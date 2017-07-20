@@ -1,6 +1,6 @@
 import { PRECISION } from '../constants.js'
 import getFillTemplate from './getFillTemplate.js';
-import Shape from 'Doodle3D/clipper-js';
+import Shape from 'clipper-js';
 
 export default function generateInfills(slices, settings) {
   let {

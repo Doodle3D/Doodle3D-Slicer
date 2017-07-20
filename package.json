@@ -12,7 +12,9 @@
     "build:main:settings": "cp -r src/settings lib",
     "build:module:settings": "cp -r src/settings module"
   },
-  "dependencies": {},
+  "dependencies": {
+    "clipper-js": "^1.0.2"
+  },
   "devDependencies": {
     "babel-cli": "^6.24.1",
     "babel-plugin-transform-object-rest-spread": "^6.23.0",
