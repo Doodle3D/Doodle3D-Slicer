@@ -11,7 +11,8 @@ const babelLoader = {
         'loose': true 
       }]
     ],
-    plugins: [require('babel-plugin-transform-object-rest-spread')]
+    plugins: [require('babel-plugin-transform-object-rest-spread')],
+    babelrc: false
   }
 }
 
