@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import slice from './sliceActions/slice.js';
-import SlicerWorker from './slicerWorker.js!worker';
+import SlicerWorker from './slicer.worker.js';
 
 export default class {
   setMesh(mesh) {
