@@ -36,7 +36,7 @@ module.exports = {
       },
       {
         test: /\.yml$/,
-        use: [ 'json-loader', 'yaml-frontmatter-loader' ]
+        use: 'yml-loader'
       },
       {
         test: /\.worker\.js$/,

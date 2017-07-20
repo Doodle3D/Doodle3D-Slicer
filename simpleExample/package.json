@@ -19,9 +19,8 @@
     "babel-plugin-transform-object-rest-spread": "^6.23.0",
     "babel-preset-latest": "^6.24.1",
     "html-webpack-plugin": "^2.29.0",
-    "json-loader": "^0.5.4",
     "webpack": "^3.3.0",
     "worker-loader": "^0.8.1",
-    "yaml-frontmatter-loader": "^0.1.0"
+    "yml-loader": "^2.1.0"
   }
 }
