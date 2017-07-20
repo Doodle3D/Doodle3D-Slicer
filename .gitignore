@@ -1,8 +1,9 @@
 
 *.DS_Store
 
-jspm_packages/*
+jspm_package
 
-node_modules/*
+node_modules
 
-bundle.js
+lib
+module
