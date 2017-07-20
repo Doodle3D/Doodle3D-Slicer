@@ -1,4 +1,4 @@
-import Slicer from './Slicer.js';
+import { sliceGeometry, sliceMesh } from './slicer.js';
 import baseSettings from './settings/default.yml!text';
 import printerSettings from './settings/printer.yml!text';
 import materialSettings from './settings/material.yml!text';
@@ -13,6 +13,7 @@ const defaultSettings = {
 };
 
 export {
-  Slicer,
+  sliceGeometry,
+  sliceMesh,
   defaultSettings
 };

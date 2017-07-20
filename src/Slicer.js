@@ -2,70 +2,73 @@ import * as THREE from 'three';
 import slice from './sliceActions/slice.js';
 import SlicerWorker from './slicerWorker.js!worker';
 
-export default class {
-  setMesh(mesh) {
-    mesh.updateMatrix();
-
-    return this.setGeometry(mesh.geometry, mesh.matrix);
+export function sliceMesh(settings, mesh, sync = false, onProgress) {
+  if (typeof mesh === 'undefined' || !mesh.isMesh) {
+    throw new Error('Provide mesh is not intance of THREE.Mesh');
   }
-  setGeometry(geometry, matrix) {
-    if (geometry.isBufferGeometry) {
-      geometry = new THREE.Geometry().fromBufferGeometry(geometry);
-    } else if (geometry.isGeometry) {
-      geometry = geometry.clone();
-    } else {
-      throw new Error('Geometry is not an instance of BufferGeometry or Geometry');
-    }
 
-    if (typeof matrix !== 'undefined') {
-      geometry.applyMatrix(matrix);
-    }
+  mesh.updateMatrix();
+  const { geometry, matrix } = mesh;
+  return sliceGeometry(settings, geometry, matrix, sync, onProgress);
+}
 
-    this.geometry = geometry;
-
-    return this;
+export function sliceGeometry(settings, geometry, matrix, sync = false, onProgress) {
+  if (typeof geometry === 'undefined') {
+    throw new Error('Missing required geometry argument');
+  } else if (geometry.isBufferGeometry) {
+    geometry = new THREE.Geometry().fromBufferGeometry(geometry);
+  } else if (geometry.isGeometry) {
+    geometry = geometry.clone();
+  } else {
+    throw new Error('Geometry is not an instance of BufferGeometry or Geometry');
   }
-  sliceSync(settings, onProgress) {
-    if (typeof this.geometry === 'undefined') {
-      throw new Error('Geometry is not set, use Slicer.setGeometry or Slicer.setMesh first');
-    }
 
-    return slice(this.geometry, settings, onProgress);
+  if (matrix) {
+    geometry.applyMatrix(matrix);
   }
-  slice(settings, onProgress) {
-    if (typeof this.geometry === 'undefined') {
-      throw new Error('Geometry is not set, use Slicer.setGeometry or Slicer.setMesh first');
-    }
 
-    return new Promise((resolve, reject) => {
-      // create the slicer worker
-      const slicerWorker = new SlicerWorker();
-      slicerWorker.onerror = reject;
+  if (sync) {
+    return sliceSync(settings, geometry, onProgress);
+  } else {
+    return sliceAsync(settings, geometry, onProgress);
+  }
+}
 
-      // listen to messages send from worker
-      slicerWorker.addEventListener('message', (event) => {
-        const { message, data } = event.data;
-        switch (message) {
-          case 'SLICE': {
-            slicerWorker.terminate();
-            resolve(data.gcode);
-            break;
-          }
-          case 'PROGRESS': {
-            if (typeof onProgress !== 'undefined') {
-              onProgress(data);
-            }
-            break;
-          }
+function sliceSync(settings, geometry, onProgress) {
+  return slice(settings, geometry, onProgress);
+}
+
+function sliceAsync(settings, geometry, onProgress) {
+  return new Promise((resolve, reject) => {
+    // create the slicer worker
+    const slicerWorker = new SlicerWorker();
+    slicerWorker.onerror = reject;
+
+    // listen to messages send from worker
+    slicerWorker.addEventListener('message', (event) => {
+      const { message, data } = event.data;
+      switch (message) {
+        case 'SLICE': {
+          slicerWorker.terminate();
+          resolve(data.gcode);
+          break;
         }
-      });
-
-      // send geometry and settings to worker to start the slicing progress
-      const geometry = this.geometry.toJSON();
-      slicerWorker.postMessage({
-        message: 'SLICE',
-        data: { geometry, settings }
-      });
+        case 'PROGRESS': {
+          if (typeof onProgress !== 'undefined') {
+            onProgress(data);
+          }
+          break;
+        }
+      }
     });
-  }
+
+    // send geometry and settings to worker to start the slicing progress
+    slicerWorker.postMessage({
+      message: 'SLICE',
+      data: {
+        settings,
+        geometry: geometry.toJSON()
+      }
+    });
+  });
 }
