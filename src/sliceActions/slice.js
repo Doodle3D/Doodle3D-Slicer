@@ -13,12 +13,20 @@ import detectOpenClosed from './detectOpenClosed.js';
 import applyPrecision from './applyPrecision.js';
 import removePrecision from './removePrecision.js';
 
-export default function(geometry, settings, onProgress) {
+export default function(settings, geometry, onProgress) {
   const totalStages = 12;
   let current = -1;
   const updateProgress = (action) => {
     current ++;
-    if (onProgress) onProgress({ done: current, total: totalStages, action });
+    if (typeof onProgress !== 'undefined') {
+      onProgress({
+        progress: {
+          done: current,
+          total: totalStages,
+          action
+        }
+      });
+    }
   };
 
   geometry.computeFaceNormals();
