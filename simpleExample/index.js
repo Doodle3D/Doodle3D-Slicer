@@ -1,16 +1,20 @@
-import 'three.js';
-import * as SLICER from 'src/index.js';
+import * as THREE from 'three';
+import { defaultSettings, Slicer } from 'doodle3d-slicer';
 
-const settings = new SLICER.Settings({
-  ...SLICER.printerSettings['ultimaker2go'],
-  ...SLICER.userSettings.low
-});
+const settings = {
+  ...defaultSettings.base,
+  ...defaultSettings.material.pla,
+  ...defaultSettings.printer.ultimaker2go,
+  ...defaultSettings.quality.high
+};
 
 const geometry = new THREE.TorusGeometry(20, 10, 30, 30).clone();
 
-const slicer = new SLICER.Slicer();
-
+const slicer = new Slicer();
 slicer.setGeometry(geometry);
-slicer.slice(settings, false).then(gcode => {
-  document.getElementById('gcode').innerHTML = gcode.replace(/(?:\r\n|\r|\n)/g, '<br />');
+slicer.slice(settings, onProgress).then(gcode => {
+  document.body.innerHTML = gcode.replace(/(?:\r\n|\r|\n)/g, '<br />');
 });
+function onProgress(data) {
+  console.log('progress: ', data);
+}
