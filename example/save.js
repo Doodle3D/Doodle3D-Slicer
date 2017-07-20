@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { defaultSettings, Slicer } from 'src/index.js';
-import { saveAs } from 'file-saver';
+import { defaultSettings, sliceGeometry } from 'src/index.js';
+import fileSaver from 'file-saver';
 
 const settings = {
   ...defaultSettings.base,
@@ -12,16 +12,16 @@ const settings = {
 const jsonLoader = new THREE.JSONLoader();
 jsonLoader.load('models/airplane.json', async geometry => {
   geometry.applyMatrix(new THREE.Matrix4().makeRotationX(Math.PI / -2));
-  geometry.applyMatrix(new THREE.Matrix4().setPosition(new THREE.Vector3(50, -0.1, 50)));
+  geometry.applyMatrix(new THREE.Matrix4().setPosition(new THREE.Vector3(50, -0.0, 50)));
   geometry.computeFaceNormals();
 
-  const slicer = new Slicer().setGeometry(geometry);
-  const gcode = await slicer.slice(settings)
-    .progress(({ progress: { done, total, action } }) => {
-      const percentage = `${(done / total * 100).toFixed()}%`
-      document.write(`<p>${action}, ${percentage}</p>`);
-    });
+  const onProgress = ({ progress: { done, total, action } }) => {
+    const percentage = `${(done / total * 100).toFixed()}%`
+    document.write(`<p>${action}, ${percentage}</p>`);
+  };
+
+  const gcode = await sliceGeometry(settings, geometry, null, false, onProgress);
 
   const file = new File([gcode], 'gcode.gcode', { type: 'text/plain' });
-  saveAs(file);
+  fileSaver.saveAs(file);
 });
