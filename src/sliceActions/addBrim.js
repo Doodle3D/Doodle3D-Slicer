@@ -15,11 +15,10 @@ export default function addBrim(slices, settings) {
 
   const [firstLayer] = slices;
 
-  firstLayer.brim = firstLayer.parts.reduce((brim, { shape }) => {
+  firstLayer.brim = firstLayer.parts.reduce((brim, { shape }) => (
     brim.join(shape.offset(brimOffset, {
       ...offsetOptions,
       endType: shape.closed ? 'etClosedPolygon' : 'etOpenRound'
-    }));
-    return brim;
-  }, new Shape([], true)).simplify('pftNonZero');
+    }))
+  ), new Shape([], true)).simplify('pftNonZero');
 }

@@ -4,7 +4,7 @@ import SlicerWorker from './slicerWorker.js!worker';
 
 export function sliceMesh(settings, mesh, sync = false, onProgress) {
   if (typeof mesh === 'undefined' || !mesh.isMesh) {
-    throw new Error('Provide mesh is not intance of THREE.Mesh');
+    throw new Error('Provided mesh is not intance of THREE.Mesh');
   }
 
   mesh.updateMatrix();
@@ -21,6 +21,10 @@ export function sliceGeometry(settings, geometry, matrix, sync = false, onProgre
     geometry = geometry.clone();
   } else {
     throw new Error('Geometry is not an instance of BufferGeometry or Geometry');
+  }
+
+  if (geometry.faces.length === 0) {
+    throw new Error('Geometry does not contain any data');
   }
 
   if (matrix) {
@@ -42,7 +46,11 @@ function sliceAsync(settings, geometry, onProgress) {
   return new Promise((resolve, reject) => {
     // create the slicer worker
     const slicerWorker = new SlicerWorker();
-    slicerWorker.onerror = reject;
+
+    slicerWorker.onerror = error => {
+      slicerWorker.terminate();
+      reject(error);
+    };
 
     // listen to messages send from worker
     slicerWorker.addEventListener('message', (event) => {
@@ -63,11 +71,12 @@ function sliceAsync(settings, geometry, onProgress) {
     });
 
     // send geometry and settings to worker to start the slicing progress
+    geometry = geometry.toJSON();
     slicerWorker.postMessage({
       message: 'SLICE',
       data: {
         settings,
-        geometry: geometry.toJSON()
+        geometry
       }
     });
   });
