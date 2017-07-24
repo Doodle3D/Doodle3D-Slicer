@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import Shape from 'Doodle3D/clipper-js';
+import Shape from 'clipper-js';
 
 export default function optimizePaths(slices, settings) {
   const start = new THREE.Vector2(0, 0);
@@ -21,12 +21,8 @@ export default function optimizePaths(slices, settings) {
       for (let i = 0; i < slice.parts.length; i ++) {
         const part = slice.parts[i];
 
-        let bounds;
-        if (part.shape.closed) {
-          bounds = part.outerLine.shapeBounds();
-        } else {
-          bounds = part.shape.shapeBounds();
-        }
+        const shape = part.shape.closed ? part.outerLine : part.shape;
+        const bounds = shape.shapeBounds();
 
         const top = bounds.top - start.y;
         const bottom = start.y - bounds.bottom;
@@ -41,7 +37,7 @@ export default function optimizePaths(slices, settings) {
         }
       }
 
-      const part = slice.parts.splice(closestPart, 1)[0];
+      const [part] = slice.parts.splice(closestPart, 1);
       parts.push(part);
 
       if (part.shape.closed) {

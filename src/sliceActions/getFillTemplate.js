@@ -1,4 +1,4 @@
-import Shape from 'Doodle3D/clipper-js';
+import Shape from 'clipper-js';
 
 export default function getFillTemplate(bounds, size, even, uneven) {
   const paths = [];

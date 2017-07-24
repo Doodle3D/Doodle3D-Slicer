@@ -9,7 +9,11 @@ const offsetOptions = {
 
 export default function generateInnerLines(slices, settings) {
   // need to scale up everything because of clipper rounding errors
-  let { layerHeight, nozzleDiameter, shell: { thickness: shellThickness } } = settings;
+  let {
+    layerHeight,
+    nozzleDiameter,
+    shell: { thickness: shellThickness }
+  } = settings;
   nozzleDiameter /= PRECISION;
   shellThickness /= PRECISION;
   const nozzleRadius = nozzleDiameter / 2;

@@ -1,4 +1,4 @@
-import Shape from 'Doodle3D/clipper-js';
+import Shape from 'clipper-js';
 import { PRECISION } from '../constants.js';
 
 const offsetOptions = {
@@ -8,16 +8,17 @@ const offsetOptions = {
 };
 
 export default function addBrim(slices, settings) {
-  let { brim: { offset: brimOffset } } = settings;
+  let {
+    brim: { offset: brimOffset }
+  } = settings;
   brimOffset /= PRECISION;
 
   const [firstLayer] = slices;
 
-  firstLayer.brim = firstLayer.parts.reduce((brim, { shape }) => {
+  firstLayer.brim = firstLayer.parts.reduce((brim, { shape }) => (
     brim.join(shape.offset(brimOffset, {
       ...offsetOptions,
       endType: shape.closed ? 'etClosedPolygon' : 'etOpenRound'
-    }));
-    return brim;
-  }, new Shape([], true)).simplify('pftNonZero');
+    }))
+  ), new Shape([], true)).simplify('pftNonZero');
 }
