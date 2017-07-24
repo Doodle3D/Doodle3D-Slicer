@@ -71,11 +71,12 @@ function sliceAsync(settings, geometry, onProgress) {
     });
 
     // send geometry and settings to worker to start the slicing progress
+    geometry = geometry.toJSON();
     slicerWorker.postMessage({
       message: 'SLICE',
       data: {
         settings,
-        geometry: geometry.toJSON()
+        geometry
       }
     });
   });
