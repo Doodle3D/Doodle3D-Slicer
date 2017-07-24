@@ -4,7 +4,7 @@ import SlicerWorker from './slicerWorker.js!worker';
 
 export function sliceMesh(settings, mesh, sync = false, onProgress) {
   if (typeof mesh === 'undefined' || !mesh.isMesh) {
-    throw new Error('Provide mesh is not intance of THREE.Mesh');
+    throw new Error('Provided mesh is not intance of THREE.Mesh');
   }
 
   mesh.updateMatrix();
