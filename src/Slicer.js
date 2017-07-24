@@ -23,6 +23,10 @@ export function sliceGeometry(settings, geometry, matrix, sync = false, onProgre
     throw new Error('Geometry is not an instance of BufferGeometry or Geometry');
   }
 
+  if (geometry.faces.length === 0) {
+    throw new Error('Geometry does not contain any data');
+  }
+
   if (matrix) {
     geometry.applyMatrix(matrix);
   }
