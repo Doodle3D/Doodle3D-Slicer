@@ -1,4 +1,4 @@
-import Shape from 'Doodle3D/clipper-js';
+import Shape from 'clipper-js';
 
 export default function calculateOutlines(slices, settings) {
   for (let layer = 0; layer < slices.length; layer ++) {

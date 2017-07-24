@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import Shape from 'Doodle3D/clipper-js';
+import Shape from 'clipper-js';
 
 export default function intersectionsToShapes(layerIntersectionIndexes, layerIntersectionPoints, lines, settings) {
   const layers = [];

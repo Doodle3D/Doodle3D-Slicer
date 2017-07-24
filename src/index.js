@@ -1,15 +1,14 @@
 import { sliceGeometry, sliceMesh } from './slicer.js';
-import baseSettings from './settings/default.yml!text';
-import printerSettings from './settings/printer.yml!text';
-import materialSettings from './settings/material.yml!text';
-import qualitySettings from './settings/quality.yml!text';
-import yaml from 'js-yaml';
+import baseSettings from './settings/default.yml';
+import printerSettings from './settings/printer.yml';
+import materialSettings from './settings/material.yml';
+import qualitySettings from './settings/quality.yml';
 
 const defaultSettings = {
-  base: yaml.safeLoad(baseSettings),
-  printer: yaml.safeLoad(printerSettings),
-  material: yaml.safeLoad(materialSettings),
-  quality: yaml.safeLoad(qualitySettings)
+  base: baseSettings,
+  printer: printerSettings,
+  material: materialSettings,
+  quality: qualitySettings
 };
 
 export {

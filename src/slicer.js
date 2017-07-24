@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import slice from './sliceActions/slice.js';
-import SlicerWorker from './slicerWorker.js!worker';
+import SlicerWorker from './slicer.worker.js';
 
 export function sliceMesh(settings, mesh, sync = false, onProgress) {
   if (typeof mesh === 'undefined' || !mesh.isMesh) {
