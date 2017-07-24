@@ -46,7 +46,11 @@ function sliceAsync(settings, geometry, onProgress) {
   return new Promise((resolve, reject) => {
     // create the slicer worker
     const slicerWorker = new SlicerWorker();
-    slicerWorker.onerror = reject;
+
+    slicerWorker.onerror = error => {
+      slicerWorker.terminate();
+      reject(error);
+    };
 
     // listen to messages send from worker
     slicerWorker.addEventListener('message', (event) => {
