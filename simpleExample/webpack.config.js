@@ -6,9 +6,9 @@ const babelLoader = {
   loader: 'babel-loader',
   options: {
     presets: [
-      ['latest', { 
-        'modules': false, 
-        'loose': true 
+      ['latest', {
+        'modules': false,
+        'loose': true
       }]
     ],
     plugins: [require('babel-plugin-transform-object-rest-spread')],
@@ -24,7 +24,9 @@ module.exports = {
   },
   resolve: {
     alias: {
-      'doodle3d-slicer': path.resolve(__dirname, '../src/index.js')
+      'doodle3d-slicer': path.resolve(__dirname, '../src/index.js'),
+      'clipper-lib': '@doodle3d/clipper-lib',
+      'clipper-js': '@doodle3d/clipper-js'
     }
   },
   module: {
