@@ -32,6 +32,7 @@ export default function generateInnerLines(slices, settings) {
       if (outerLine.paths.length > 0) {
         part.outerLine.join(outerLine);
 
+        // start with 1 because outerLine is the 1st (0) shell
         for (let shell = 1; shell < shells; shell += 1) {
           const offset = shell * nozzleDiameter;
 
