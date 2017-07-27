@@ -13,6 +13,15 @@ export default function optimizePaths(slices, settings) {
     }
 
     const parts = [];
+    const boundingBoxes = new WeakMap();
+    for (let i = 0; i < slice.parts.length; i ++) {
+      const part = slice.parts[i];
+
+      const shape = part.shape.closed ? part.outerLine : part.shape;
+      const bounds = shape.shapeBounds();
+
+      boundingBoxes.set(part, bounds);
+    }
 
     while (slice.parts.length > 0) {
       let closestDistance = Infinity;
@@ -20,16 +29,14 @@ export default function optimizePaths(slices, settings) {
 
       for (let i = 0; i < slice.parts.length; i ++) {
         const part = slice.parts[i];
+        const bounds = boundingBoxes.get(part);
 
-        const shape = part.shape.closed ? part.outerLine : part.shape;
-        const bounds = shape.shapeBounds();
+        const topDistance = bounds.top - start.y;
+        const bottomDistance = start.y - bounds.bottom;
+        const leftDistance = bounds.left - start.x;
+        const rightDistance = start.x - bounds.right;
 
-        const top = bounds.top - start.y;
-        const bottom = start.y - bounds.bottom;
-        const left = bounds.left - start.x;
-        const right = start.x - bounds.right;
-
-        const distance = Math.max(top, bottom, left, right);
+        const distance = Math.max(topDistance, bottomDistance, leftDistance, rightDistance);
 
         if (distance < closestDistance) {
           closestDistance = distance;

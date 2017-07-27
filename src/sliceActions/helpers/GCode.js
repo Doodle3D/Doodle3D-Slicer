@@ -107,7 +107,7 @@ export default class {
     const lineLength = this._nozzlePosition.distanceTo(newNozzlePosition);
 
     const filamentSurfaceArea = Math.pow((filamentThickness / 2), 2) * Math.PI;
-    this._extruder += lineLength * nozzleDiameter * layerHeight / filamentSurfaceArea * flowRate;
+    this._extruder += lineLength * ((nozzleDiameter * layerHeight) / filamentSurfaceArea) * flowRate;
 
     this._addGCode({
       [MOVE]: 1,
@@ -164,7 +164,7 @@ export default class {
 
       const speed = retractionSpeed * 60;
 
-      if (this._extruder > retractionMinDistance && retractionEnabled) {
+      if (this._extruder > retractionMinDistance) {
         this._addGCode({
           [MOVE]: 0,
           [EXTRUDER]: (this._extruder - retractionAmount).toFixed(3),
