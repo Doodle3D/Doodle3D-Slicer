@@ -13,7 +13,6 @@ export default function generateInfills(slices, settings) {
 
   fillGridSize /= PRECISION;
   nozzleDiameter /= PRECISION;
-  infillOverlap /= PRECISION;
 
   const bottomSkinCount = Math.ceil(bottomThickness/layerHeight);
   const topSkinCount = Math.ceil(topThickness/layerHeight);
