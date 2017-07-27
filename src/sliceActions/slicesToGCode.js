@@ -1,6 +1,6 @@
 import GCode from './helpers/GCode.js';
 
-const PROFILE_TYPES = ['brim', 'outerLine', 'innerLine', 'fill', 'support'];
+const PROFILE_TYPES = ['support', 'innerShell', 'outerShell', 'innerInfill', 'outerInfill', 'brim'];
 
 export default function slicesToGCode(slices, settings) {
   const {
@@ -9,7 +9,7 @@ export default function slicesToGCode(slices, settings) {
     nozzleDiameter,
     travelSpeed,
     retraction,
-    retractionEnabled
+    travel
   } = settings;
 
   const filamentSurfaceArea = Math.pow((filamentThickness / 2), 2) * Math.PI;
@@ -19,29 +19,24 @@ export default function slicesToGCode(slices, settings) {
   const gcode = new GCode(nozzleToFilamentRatio);
 
   const defaultProfile = {
-    travelProfile: {
-      speed: travelSpeed
-    },
-    retractProfile: {
-      ...retraction,
-      enabled: retractionEnabled
-    }
+    travelProfile: travel,
+    retractionProfile: retraction
   };
 
-  let isBottom = true;
+  let isFirstLayer = true;
   for (let layer = 0; layer < slices.length; layer ++) {
     const slice = slices[layer];
     const z = layer * layerHeight + 0.2;
 
     if (layer === 1) {
       gcode.turnFanOn();
-      isBottom = false;
+      isFirstLayer = false;
     }
 
     const profiles = PROFILE_TYPES.reduce((profiles, profileType) => {
       profiles[profileType] = {
         ...defaultProfile,
-        lineProfile: isBottom ? settings.bottom : settings[profileType]
+        lineProfile: isFirstLayer ? settings.firstLayer : settings[profileType]
       }
       return profiles;
     }, {});
@@ -54,17 +49,17 @@ export default function slicesToGCode(slices, settings) {
       const part = slice.parts[i];
 
       if (part.shape.closed) {
-        pathToGCode(gcode, part.outerLine, false, true, profiles.outerLine);
+        pathToGCode(gcode, part.outerLine, false, true, profiles.outerShell);
 
         for (let i = 0; i < part.innerLines.length; i ++) {
           const innerLine = part.innerLines[i];
-          pathToGCode(gcode, innerLine, false, false, z, profiles.innerLine);
+          pathToGCode(gcode, innerLine, false, false, z, profiles.innerShell);
         }
 
-        pathToGCode(gcode, part.fill, true, false, z, profiles.fill);
+        pathToGCode(gcode, part.fill, true, false, z, profiles.outerInfill);
       } else {
         const retract = !(slice.parts.length === 1 && typeof slice.support === 'undefined');
-        pathToGCode(gcode, part.shape, retract, retract, z, profiles.outerLine);
+        pathToGCode(gcode, part.shape, retract, retract, z, profiles.outerShell);
       }
     }
 
@@ -76,7 +71,7 @@ export default function slicesToGCode(slices, settings) {
   return gcode.getGCode();
 }
 
-function pathToGCode(gcode, shape, retract, unRetract, z, { lineProfile, travelProfile, retractProfile }) {
+function pathToGCode(gcode, shape, retract, unRetract, z, { lineProfile, travelProfile, retractionProfile }) {
   const { closed } = shape;
   const paths = shape.mapToLower();
 
@@ -93,7 +88,7 @@ function pathToGCode(gcode, shape, retract, unRetract, z, { lineProfile, travelP
         gcode.moveTo(point.x, point.y, z, travelProfile);
 
         if (unRetract) {
-          gcode.unRetract(retractProfile);
+          gcode.unRetract(retractionProfile);
         }
       } else {
         gcode.lineTo(point.x, point.y, z, lineProfile);
@@ -102,6 +97,6 @@ function pathToGCode(gcode, shape, retract, unRetract, z, { lineProfile, travelP
   }
 
   if (retract) {
-    gcode.retract(retractProfile);
+    gcode.retract(retractionProfile);
   }
 }

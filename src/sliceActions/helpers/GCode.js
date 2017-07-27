@@ -103,9 +103,9 @@ export default class {
     if (this._isRetracted && enabled) {
       this._isRetracted = false;
 
-      const speed = retractionSpeed * 60;
+      speed *= 60;
 
-      if (this._extruder > retractionMinDistance) {
+      if (this._extruder > minDistance) {
         this._addGCode({
           [MOVE]: 0,
           [EXTRUDER]: this._extruder.toFixed(3),
@@ -121,9 +121,9 @@ export default class {
     if (!this._isRetracted && enabled) {
       this._isRetracted = true;
 
-      const speed = retractionSpeed * 60;
+      speed *= 60;
 
-      if (this._extruder > retractionMinDistance) {
+      if (this._extruder > minDistance) {
         this._addGCode({
           [MOVE]: 0,
           [EXTRUDER]: (this._extruder - retractionAmount).toFixed(3),

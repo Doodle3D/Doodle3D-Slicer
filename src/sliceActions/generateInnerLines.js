@@ -12,10 +12,12 @@ export default function generateInnerLines(slices, settings) {
   let {
     layerHeight,
     nozzleDiameter,
-    shell: { thickness: shellThickness }
+    thickness: { shell: shellThickness }
   } = settings;
+
   nozzleDiameter /= PRECISION;
   shellThickness /= PRECISION;
+
   const nozzleRadius = nozzleDiameter / 2;
   const shells = Math.round(shellThickness / nozzleDiameter);
 

@@ -5,15 +5,16 @@ import Shape from 'clipper-js';
 export default function generateInfills(slices, settings) {
   let {
     layerHeight,
-    fill: { gridSize: fillGridSize },
-    bottom: { thickness: bottomThickness },
-    top: { thickness: topThickness },
+    innerInfill: { gridSize: infillGridSize },
+    thickness: {
+      top: topThickness,
+      bottom: bottomThickness
+    },
     nozzleDiameter
   } = settings;
 
-  fillGridSize /= PRECISION;
+  infillGridSize /= PRECISION;
   nozzleDiameter /= PRECISION;
-  infillOverlap /= PRECISION;
 
   const bottomSkinCount = Math.ceil(bottomThickness/layerHeight);
   const topSkinCount = Math.ceil(topThickness/layerHeight);
@@ -54,7 +55,7 @@ export default function generateInfills(slices, settings) {
 
         if (lowFillArea && lowFillArea.paths.length > 0) {
           const bounds = lowFillArea.shapeBounds();
-          const lowFillTemplate = getFillTemplate(bounds, fillGridSize, true, true);
+          const lowFillTemplate = getFillTemplate(bounds, infillGridSize, true, true);
 
           part.fill.join(lowFillTemplate.intersect(lowFillArea));
         }
