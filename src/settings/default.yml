@@ -35,7 +35,6 @@ innerLine:
 fill:
   flowRate: 1.0
   speed: 50.0
-  overlap: 0.0
   gridSize: 5.0
 brim:
   flowRate: 1.0

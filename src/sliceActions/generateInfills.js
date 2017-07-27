@@ -8,8 +8,7 @@ export default function generateInfills(slices, settings) {
     fill: { gridSize: fillGridSize },
     bottom: { thickness: bottomThickness },
     top: { thickness: topThickness },
-    nozzleDiameter,
-    fill: { overlap: infillOverlap }
+    nozzleDiameter
   } = settings;
 
   fillGridSize /= PRECISION;
@@ -47,13 +46,7 @@ export default function generateInfills(slices, settings) {
         let lowFillArea;
         let highFillArea;
         if (surroundingLayer) {
-          highFillArea = fillArea.difference(surroundingLayer);
-
-          if (infillOverlap > 0) {
-            highFillArea = highFillArea.offset(infillOverlap);
-          }
-
-          highFillArea = highFillArea.intersect(fillArea);
+          highFillArea = fillArea.difference(surroundingLayer).intersect(fillArea);
           lowFillArea = fillArea.difference(highFillArea);
         } else {
           highFillArea = fillArea;
