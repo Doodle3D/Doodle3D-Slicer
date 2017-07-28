@@ -8,7 +8,6 @@ filamentThickness: 2.85
 temperature: 210
 bedTemperature: 70
 layerHeight: 0.15
-brimOffset: 4.0
 thickness:
   top: 1.2
   bottom: 1.2
@@ -43,6 +42,7 @@ outerInfill:
   flowRate: 1.0
   speed: 50.0
 brim:
+  offset: 4.0
   flowRate: 1.0
   speed: 40.0
 firstLayer:
