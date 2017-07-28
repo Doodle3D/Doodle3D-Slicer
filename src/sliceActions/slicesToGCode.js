@@ -76,8 +76,6 @@ function pathToGCode(gcode, shape, retract, unRetract, z, { lineProfile, travelP
   const { closed } = shape;
   const paths = shape.mapToLower();
 
-  console.log('retractionProfile: ', retractionProfile);
-
   for (let i = 0; i < paths.length; i ++) {
     const line = paths[i];
 
