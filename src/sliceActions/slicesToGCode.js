@@ -37,7 +37,7 @@ export default function slicesToGCode(slices, settings) {
       profiles[profileType] = {
         ...defaultProfile,
         lineProfile: isFirstLayer ? settings.firstLayer : settings[profileType]
-      }
+      };
       return profiles;
     }, {});
 
@@ -48,7 +48,7 @@ export default function slicesToGCode(slices, settings) {
     for (let i = 0; i < slice.parts.length; i ++) {
       const part = slice.parts[i];
 
-      if (part.shape.closed) {
+      if (part.closed) {
         for (let i = 0; i < part.shell.length; i ++) {
           const shell = part.shell[i];
           const isOuterShell = i === 0;

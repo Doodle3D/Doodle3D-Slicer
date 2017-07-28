@@ -17,7 +17,7 @@ export default function optimizePaths(slices, settings) {
     for (let i = 0; i < slice.parts.length; i ++) {
       const part = slice.parts[i];
 
-      const shape = part.shape.closed ? part.shell[0] : part.shape;
+      const shape = part.closed ? part.shell[0] : part.shape;
       const bounds = shape.shapeBounds();
 
       boundingBoxes.set(part, bounds);
@@ -47,7 +47,7 @@ export default function optimizePaths(slices, settings) {
       const [part] = slice.parts.splice(closestPart, 1);
       parts.push(part);
 
-      if (part.shape.closed) {
+      if (part.closed) {
         for (let i = 0; i < part.shell.length; i ++) {
           const shell = part.shell[i];
 

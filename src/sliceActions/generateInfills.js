@@ -34,7 +34,7 @@ export default function generateInfills(slices, settings) {
     for (let i = 0; i < slice.parts.length; i ++) {
       const part = slice.parts[i];
 
-      if (!part.shape.closed) continue;
+      if (!part.closed) continue;
 
       const innerShell = part.shell[part.shell.length - 1];
 

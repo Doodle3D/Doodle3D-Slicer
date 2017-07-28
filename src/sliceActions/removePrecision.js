@@ -9,7 +9,7 @@ export default function removePrecision(slices) {
     for (let i = 0; i < slice.parts.length; i ++) {
       const part = slice.parts[i];
 
-      if (part.shape.closed) {
+      if (part.closed) {
         for (let i = 0; i < part.shell.length; i ++) {
           const innerLine = part.shell[i];
           innerLine.scaleDown(inversePrecision);

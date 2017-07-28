@@ -4,10 +4,10 @@ export default class {
   constructor() {
     this.parts = [];
   }
-  add(shape) {
-    const part = { shape };
+  add(shape, closed) {
+    const part = { shape, closed };
 
-    if (shape.closed) {
+    if (closed) {
       part.shell = [];
       part.innerFill = new Shape([], false);
       part.outerFill = new Shape([], false);

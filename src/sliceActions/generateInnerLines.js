@@ -27,7 +27,7 @@ export default function generateInnerLines(slices, settings) {
     for (let i = 0; i < slice.parts.length; i ++) {
       const part = slice.parts[i];
 
-      if (!part.shape.closed) continue;
+      if (!part.closed) continue;
 
       const outerLine = part.shape.offset(-nozzleRadius, offsetOptions);
 
