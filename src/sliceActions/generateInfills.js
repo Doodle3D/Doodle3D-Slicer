@@ -34,39 +34,35 @@ export default function generateInfills(slices, settings) {
     for (let i = 0; i < slice.parts.length; i ++) {
       const part = slice.parts[i];
 
-      if (!part.shape.closed) {
-        continue;
+      if (!part.shape.closed) continue;
+
+      const innerShell = part.shell[part.shell.length - 1];
+
+      if (innerShell.paths.length === 0) continue;
+
+      const fillArea = innerShell.offset(-nozzleRadius);
+      let innerFillArea;
+      let outerFillArea;
+      if (surroundingLayer) {
+        outerFillArea = fillArea.difference(surroundingLayer).intersect(fillArea);
+        innerFillArea = fillArea.difference(outerFillArea);
+      } else {
+        outerFillArea = fillArea;
       }
 
-      const outerLine = part.outerLine;
+      if (innerFillArea && innerFillArea.paths.length > 0) {
+        const bounds = innerFillArea.shapeBounds();
+        const innerFillTemplate = getFillTemplate(bounds, infillGridSize, true, true);
 
-      if (outerLine.paths.length > 0) {
-        const inset = (part.innerLines.length > 0) ? part.innerLines[part.innerLines.length - 1] : outerLine;
+        part.innerFill.join(innerFillTemplate.intersect(innerFillArea));
+      }
 
-        const fillArea = inset.offset(-nozzleRadius);
-        let innerFillArea;
-        let outerFillArea;
-        if (surroundingLayer) {
-          outerFillArea = fillArea.difference(surroundingLayer).intersect(fillArea);
-          innerFillArea = fillArea.difference(outerFillArea);
-        } else {
-          outerFillArea = fillArea;
-        }
+      if (outerFillArea.paths.length > 0) {
+        const bounds = outerFillArea.shapeBounds();
+        const even = (layer % 2 === 0);
+        const outerFillTemplate = getFillTemplate(bounds, outerFillTemplateSize, even, !even);
 
-        if (innerFillArea && innerFillArea.paths.length > 0) {
-          const bounds = innerFillArea.shapeBounds();
-          const innerFillTemplate = getFillTemplate(bounds, infillGridSize, true, true);
-
-          part.innerFill.join(innerFillTemplate.intersect(innerFillArea));
-        }
-
-        if (outerFillArea.paths.length > 0) {
-          const bounds = outerFillArea.shapeBounds();
-          const even = (layer % 2 === 0);
-          const outerFillTemplate = getFillTemplate(bounds, outerFillTemplateSize, even, !even);
-
-          part.outerFill.join(outerFillTemplate.intersect(outerFillArea));
-        }
+        part.outerFill.join(outerFillTemplate.intersect(outerFillArea));
       }
     }
   }

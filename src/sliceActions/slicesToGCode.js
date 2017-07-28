@@ -49,15 +49,17 @@ export default function slicesToGCode(slices, settings) {
       const part = slice.parts[i];
 
       if (part.shape.closed) {
-        pathToGCode(gcode, part.innerFill, false, true, z, profiles.innerInfill);
-        pathToGCode(gcode, part.outerFill, false, false, z, profiles.outerInfill);
+        for (let i = 0; i < part.shell.length; i ++) {
+          const shell = part.shell[i];
+          const isOuterShell = i === 0;
 
-        for (let i = 0; i < part.innerLines.length; i ++) {
-          const innerLine = part.innerLines[i];
-          pathToGCode(gcode, innerLine, false, false, z, profiles.innerShell);
+          const unRetract = isOuterShell;
+          const profile = isOuterShell ? profiles.outerShell : profiles.innerShell;
+          pathToGCode(gcode, shell, false, unRetract, z, profile);
         }
 
-        pathToGCode(gcode, part.outerLine, true, false, z, profiles.outerShell);
+        pathToGCode(gcode, part.outerFill, false, false, z, profiles.outerInfill);
+        pathToGCode(gcode, part.innerFill, true, false, z, profiles.innerInfill);
       } else {
         const retract = !(slice.parts.length === 1 && typeof slice.support === 'undefined');
         pathToGCode(gcode, part.shape, retract, retract, z, profiles.outerShell);

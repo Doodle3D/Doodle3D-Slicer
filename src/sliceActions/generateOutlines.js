@@ -5,7 +5,10 @@ export default function calculateOutlines(slices, settings) {
     const slice = slices[layer];
 
     slice.outline = slice.parts.reduce((shape, part) => {
-      if (part.outerLine) shape.join(part.outerLine);
+      if (part.shape.closed) {
+        const [outerLine] = part.shell;
+        shape.join(outerLine);
+      }
       return shape;
     }, new Shape([], true));
   }

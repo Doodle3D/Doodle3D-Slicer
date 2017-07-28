@@ -19,7 +19,7 @@ export default function generateInnerLines(slices, settings) {
   shellThickness /= PRECISION;
 
   const nozzleRadius = nozzleDiameter / 2;
-  const shells = Math.round(shellThickness / nozzleDiameter);
+  const numShells = Math.round(shellThickness / nozzleDiameter);
 
   for (let layer = 0; layer < slices.length; layer ++) {
     const slice = slices[layer];
@@ -32,16 +32,16 @@ export default function generateInnerLines(slices, settings) {
       const outerLine = part.shape.offset(-nozzleRadius, offsetOptions);
 
       if (outerLine.paths.length > 0) {
-        part.outerLine.join(outerLine);
+        part.shell.push(outerLine);
 
         // start with 1 because outerLine is the 1st (0) shell
-        for (let shell = 1; shell < shells; shell += 1) {
-          const offset = shell * nozzleDiameter;
+        for (let inset = 1; inset < numShells; inset += 1) {
+          const offset = inset * nozzleDiameter;
 
-          const innerLine = outerLine.offset(-offset, offsetOptions);
+          const shell = outerLine.offset(-offset, offsetOptions);
 
-          if (innerLine.paths.length > 0) {
-            part.innerLines.push(innerLine);
+          if (shell.paths.length > 0) {
+            part.shell.push(shell);
           } else {
             break;
           }

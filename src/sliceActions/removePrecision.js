@@ -10,9 +10,8 @@ export default function removePrecision(slices) {
       const part = slice.parts[i];
 
       if (part.shape.closed) {
-        part.outerLine.scaleDown(inversePrecision);
-        for (let i = 0; i < part.innerLines.length; i ++) {
-          const innerLine = part.innerLines[i];
+        for (let i = 0; i < part.shell.length; i ++) {
+          const innerLine = part.shell[i];
           innerLine.scaleDown(inversePrecision);
         }
         part.innerFill.scaleDown(inversePrecision);
