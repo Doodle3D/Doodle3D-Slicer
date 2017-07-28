@@ -10,8 +10,9 @@ export default function intersectionsToShapes(layerIntersectionIndexes, layerInt
 
     if (intersectionIndexes.length === 0) continue;
 
-    const closedShapes = [];
-    const openShapes = [];
+    const fillShapes = [];
+    const lineShapesOpen = [];
+    const lineShapesClosed = [];
     for (let i = 0; i < intersectionIndexes.length; i ++) {
       let index = intersectionIndexes[i];
 
@@ -107,14 +108,17 @@ export default function intersectionsToShapes(layerIntersectionIndexes, layerInt
       }
 
       if (openGeometry) {
-        if (!openShape) shape.push(shape[0].clone());
-        openShapes.push(shape);
+        if (openShape) {
+          lineShapesOpen.push(shape);
+        } else {
+          lineShapesClosed.push(shape);          
+        }
       } else {
-        closedShapes.push(shape);
+        fillShapes.push(shape);
       }
     }
 
-    layers.push({ closedShapes, openShapes });
+    layers.push({ fillShapes, lineShapesOpen, lineShapesClosed });
   }
 
   return layers;

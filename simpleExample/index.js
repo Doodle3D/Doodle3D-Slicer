@@ -9,6 +9,7 @@ const settings = {
 };
 
 const geometry = new THREE.TorusGeometry(20, 10, 30, 30).clone();
+geometry.mergeVertices();
 
 const onProgress = ({ progress: { done, total, action } }) => {
   const percentage = `${(done / total * 100).toFixed()}%`

@@ -10,16 +10,15 @@ const POSITION_Y = 'Y';
 const POSITION_Z = 'Z';
 
 export default class {
-  constructor(settings) {
+  constructor(nozzleToFilamentRatio) {
+    this._nozzleToFilamentRatio = nozzleToFilamentRatio;
+
     this._gcode = '';
     this._currentValues = {};
-    this._settings = settings;
     this._nozzlePosition = new THREE.Vector2(0, 0);
     this._extruder = 0.0;
     this._isRetracted = false;
     this._isFanOn = false;
-
-    this.bottom = true;
   }
 
   _addGCode(command) {
@@ -62,14 +61,8 @@ export default class {
     return this;
   }
 
-  moveTo(x, y, layer) {
-    const {
-      layerHeight,
-      travelSpeed
-    } = this._settings;
-
-    const z = layer * layerHeight + 0.2;
-    const speed = travelSpeed * 60;
+  moveTo(x, y, z, { speed }) {
+    speed *= 60;
 
     this._addGCode({
       [MOVE]: 0,
@@ -84,30 +77,13 @@ export default class {
     return this;
   }
 
-  lineTo(x, y, layer, type) {
+  lineTo(x, y, z, { speed, flowRate }) {
     const newNozzlePosition = new THREE.Vector2(x, y);
 
-    const {
-      layerHeight,
-      nozzleDiameter,
-      filamentThickness,
-      travelSpeed
-    } = this._settings;
-
-    const profile = this._settings[(this.bottom ? 'bottom' : type)];
-
-    let {
-      speed,
-      flowRate
-    } = profile;
-
     speed *= 60;
-    const z = layer * layerHeight + 0.2;
 
     const lineLength = this._nozzlePosition.distanceTo(newNozzlePosition);
-
-    const filamentSurfaceArea = Math.pow((filamentThickness / 2), 2) * Math.PI;
-    this._extruder += lineLength * ((nozzleDiameter * layerHeight) / filamentSurfaceArea) * flowRate;
+    this._extruder += this._nozzleToFilamentRatio * lineLength * flowRate;
 
     this._addGCode({
       [MOVE]: 1,
@@ -123,21 +99,13 @@ export default class {
     return this;
   }
 
-  unRetract() {
-    const {
-      retraction: {
-        enabled: retractionEnabled,
-        minDistance: retractionMinDistance,
-        speed: retractionSpeed
-      }
-    } = this._settings;
-
-    if (this._isRetracted && retractionEnabled) {
+  unRetract({ enabled, speed, minDistance }) {
+    if (this._isRetracted && enabled) {
       this._isRetracted = false;
 
-      const speed = retractionSpeed * 60;
+      speed *= 60;
 
-      if (this._extruder > retractionMinDistance) {
+      if (this._extruder > minDistance) {
         this._addGCode({
           [MOVE]: 0,
           [EXTRUDER]: this._extruder.toFixed(3),
@@ -149,25 +117,16 @@ export default class {
     return this;
   }
 
-  retract() {
-    const {
-      retraction: {
-        amount: retractionAmount,
-        enabled: retractionEnabled,
-        minDistance: retractionMinDistance,
-        speed: retractionSpeed
-      }
-    } = this._settings;
-
-    if (!this._isRetracted && retractionEnabled) {
+  retract({ enabled, speed, minDistance, amount }) {
+    if (!this._isRetracted && enabled) {
       this._isRetracted = true;
 
-      const speed = retractionSpeed * 60;
+      speed *= 60;
 
-      if (this._extruder > retractionMinDistance) {
+      if (this._extruder > minDistance) {
         this._addGCode({
           [MOVE]: 0,
-          [EXTRUDER]: (this._extruder - retractionAmount).toFixed(3),
+          [EXTRUDER]: (this._extruder - amount).toFixed(3),
           [SPEED]: speed.toFixed(3)
         });
       }

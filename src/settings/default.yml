@@ -2,49 +2,49 @@ dimensions:
   x: 200
   y: 200
   z: 200
-temperature: 210
-bedTemperature: 70
-# heatBedTemperature: 20
-# heatTemperature: 20
-# heatupEnabled: true
-travelSpeed: 200.0
-layerHeight: 0.15
 heatedBed: false
 nozzleDiameter: 0.4
 filamentThickness: 2.85
+temperature: 210
+bedTemperature: 70
+layerHeight: 0.15
+thickness:
+  top: 1.2
+  bottom: 1.2
+  shell: 0.8
 retraction:
-  amount: 3.0
   enabled: true
+  amount: 3.0
   speed: 50.0
   minDistance: 0.0
+travel:
+  speed: 200.0
 support:
+  enabled: false
   acceptanceMargin: 1.5
   distanceY: 0.4
-  enabled: false
   gridSize: 6.0
   margin: 2.0
   plateSize: 4.0
   flowRate: 0.8
   speed: 40.0
-outerLine:
+innerShell:
+  flowRate: 1.0
+  speed: 50.0
+outerShell:
   flowRate: 1.0
   speed: 40.0
-innerLine:
+innerInfill:
   flowRate: 1.0
-  speed: 50.0
-fill:
-  flowRate: 1.0
-  speed: 50.0
+  speed: 80.0
   gridSize: 5.0
+outerInfill:
+  flowRate: 1.0
+  speed: 50.0
 brim:
+  offset: 4.0
   flowRate: 1.0
   speed: 40.0
-  offset: 4.0
-top:
-  thickness: 1.2
-bottom:
+firstLayer:
   flowRate: 1.2
   speed: 40.0
-  thickness: 0.4
-shell:
-  thickness: 0.4

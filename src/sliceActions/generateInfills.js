@@ -5,19 +5,21 @@ import Shape from 'clipper-js';
 export default function generateInfills(slices, settings) {
   let {
     layerHeight,
-    fill: { gridSize: fillGridSize },
-    bottom: { thickness: bottomThickness },
-    top: { thickness: topThickness },
+    innerInfill: { gridSize: infillGridSize },
+    thickness: {
+      top: topThickness,
+      bottom: bottomThickness
+    },
     nozzleDiameter
   } = settings;
 
-  fillGridSize /= PRECISION;
+  infillGridSize /= PRECISION;
   nozzleDiameter /= PRECISION;
 
   const bottomSkinCount = Math.ceil(bottomThickness/layerHeight);
   const topSkinCount = Math.ceil(topThickness/layerHeight);
   const nozzleRadius = nozzleDiameter / 2;
-  const hightemplateSize = Math.sqrt(2 * Math.pow(nozzleDiameter, 2));
+  const outerFillTemplateSize = Math.sqrt(2 * Math.pow(nozzleDiameter, 2));
 
   for (let layer = 0; layer < slices.length; layer ++) {
     const slice = slices[layer];
@@ -32,39 +34,35 @@ export default function generateInfills(slices, settings) {
     for (let i = 0; i < slice.parts.length; i ++) {
       const part = slice.parts[i];
 
-      if (!part.shape.closed) {
-        continue;
+      if (!part.closed) continue;
+
+      const innerShell = part.shell[part.shell.length - 1];
+
+      if (innerShell.paths.length === 0) continue;
+
+      const fillArea = innerShell.offset(-nozzleRadius);
+      let innerFillArea;
+      let outerFillArea;
+      if (surroundingLayer) {
+        outerFillArea = fillArea.difference(surroundingLayer).intersect(fillArea);
+        innerFillArea = fillArea.difference(outerFillArea);
+      } else {
+        outerFillArea = fillArea;
       }
 
-      const outerLine = part.outerLine;
+      if (innerFillArea && innerFillArea.paths.length > 0) {
+        const bounds = innerFillArea.shapeBounds();
+        const innerFillTemplate = getFillTemplate(bounds, infillGridSize, true, true);
 
-      if (outerLine.paths.length > 0) {
-        const inset = (part.innerLines.length > 0) ? part.innerLines[part.innerLines.length - 1] : outerLine;
+        part.innerFill.join(innerFillTemplate.intersect(innerFillArea));
+      }
 
-        const fillArea = inset.offset(-nozzleRadius);
-        let lowFillArea;
-        let highFillArea;
-        if (surroundingLayer) {
-          highFillArea = fillArea.difference(surroundingLayer).intersect(fillArea);
-          lowFillArea = fillArea.difference(highFillArea);
-        } else {
-          highFillArea = fillArea;
-        }
+      if (outerFillArea.paths.length > 0) {
+        const bounds = outerFillArea.shapeBounds();
+        const even = (layer % 2 === 0);
+        const outerFillTemplate = getFillTemplate(bounds, outerFillTemplateSize, even, !even);
 
-        if (lowFillArea && lowFillArea.paths.length > 0) {
-          const bounds = lowFillArea.shapeBounds();
-          const lowFillTemplate = getFillTemplate(bounds, fillGridSize, true, true);
-
-          part.fill.join(lowFillTemplate.intersect(lowFillArea));
-        }
-
-        if (highFillArea.paths.length > 0) {
-          const bounds = highFillArea.shapeBounds();
-          const even = (layer % 2 === 0);
-          const highFillTemplate = getFillTemplate(bounds, hightemplateSize, even, !even);
-
-          part.fill.join(highFillTemplate.intersect(highFillArea));
-        }
+        part.outerFill.join(outerFillTemplate.intersect(outerFillArea));
       }
     }
   }

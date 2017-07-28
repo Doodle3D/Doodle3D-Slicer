@@ -9,15 +9,18 @@ export default function shapesToSlices(shapes, settings) {
   const sliceLayers = [];
 
   for (let layer = 0; layer < shapes.length; layer ++) {
-    let { closedShapes, openShapes } = shapes[layer];
+    let { fillShapes, lineShapesOpen, lineShapesClosed } = shapes[layer];
 
-    closedShapes = new Shape(closedShapes, true, true, true, true)
+    fillShapes = new Shape(fillShapes, true, true, true, true)
       .fixOrientation()
       .simplify('pftNonZero')
       .clean(cleanDelta)
       .seperateShapes();
 
-    openShapes = new Shape(openShapes, false, true, true, true);
+    lineShapesClosed = new Shape(lineShapesClosed, true, true, true, true)
+      .clean(cleanDelta);
+
+    lineShapesOpen = new Shape(lineShapesOpen, false, true, true, true);
     //   .clean(cleanDelta);
     // TODO
     // Cleaning is actually wanted here but there is a bug in the clean function
@@ -25,17 +28,24 @@ export default function shapesToSlices(shapes, settings) {
 
     const slice = new Slice();
 
-    for (let i = 0; i < closedShapes.length; i ++) {
-      const closedShape = closedShapes[i];
-      slice.add(closedShape);
+    for (let i = 0; i < fillShapes.length; i ++) {
+      const fillShape = fillShapes[i];
+      slice.add(fillShape, true);
 
-      // if (openShapes.path.length > 0) {
-      //   openShapes = openShapes.difference(closedShape);
+      // if (lineShapesClosed.paths.length > 0) {
+      //   lineShapesClosed = lineShapesClosed.difference(closedShape);
+      // }
+      // if (lineShapesOpen.paths.length > 0) {
+      //   lineShapesOpen = lineShapesOpen.difference(closedShape);
       // }
     }
 
-    if (openShapes.paths.length > 0) {
-      slice.add(openShapes);
+    if (lineShapesClosed.paths.length > 0) {
+      slice.add(lineShapesClosed, false);
+    }
+
+    if (lineShapesOpen.paths.length > 0) {
+      slice.add(lineShapesOpen, false);
     }
 
     sliceLayers.push(slice);
