@@ -117,7 +117,7 @@ export default class {
     return this;
   }
 
-  retract({ enabled, speed, minDistance }) {
+  retract({ enabled, speed, minDistance, amount }) {
     if (!this._isRetracted && enabled) {
       this._isRetracted = true;
 
@@ -126,7 +126,7 @@ export default class {
       if (this._extruder > minDistance) {
         this._addGCode({
           [MOVE]: 0,
-          [EXTRUDER]: (this._extruder - retractionAmount).toFixed(3),
+          [EXTRUDER]: (this._extruder - amount).toFixed(3),
           [SPEED]: speed.toFixed(3)
         });
       }

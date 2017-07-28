@@ -15,7 +15,8 @@ export default function removePrecision(slices) {
           const innerLine = part.innerLines[i];
           innerLine.scaleDown(inversePrecision);
         }
-        part.fill.scaleDown(inversePrecision);
+        part.innerFill.scaleDown(inversePrecision);
+        part.outerFill.scaleDown(inversePrecision);
       } else {
         part.shape.scaleDown(inversePrecision);
       }

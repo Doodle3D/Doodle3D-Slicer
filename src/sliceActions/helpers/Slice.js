@@ -10,7 +10,8 @@ export default class {
     if (shape.closed) {
       part.innerLines = [];
       part.outerLine = new Shape([], true);
-      part.fill = new Shape([], false);
+      part.innerFill = new Shape([], false);
+      part.outerFill = new Shape([], false);
     }
 
     this.parts.push(part);

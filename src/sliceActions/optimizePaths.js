@@ -48,9 +48,14 @@ export default function optimizePaths(slices, settings) {
       parts.push(part);
 
       if (part.shape.closed) {
-        if (part.outerLine.paths.length > 0) {
-          part.outerLine = optimizeShape(part.outerLine, start);
-          start.copy(part.outerLine.lastPoint(true));
+        if (part.innerFill.paths.length > 0) {
+          part.innerFill = optimizeShape(part.innerFill, start);
+          start.copy(part.innerFill.lastPoint(true));
+        }
+
+        if (part.outerFill.paths.length > 0) {
+          part.outerFill = optimizeShape(part.outerFill, start);
+          start.copy(part.outerFill.lastPoint(true));
         }
 
         for (let i = 0; i < part.innerLines.length; i ++) {
@@ -62,9 +67,9 @@ export default function optimizePaths(slices, settings) {
           }
         }
 
-        if (part.fill.paths.length > 0) {
-          part.fill = optimizeShape(part.fill, start);
-          start.copy(part.fill.lastPoint(true));
+        if (part.outerLine.paths.length > 0) {
+          part.outerLine = optimizeShape(part.outerLine, start);
+          start.copy(part.outerLine.lastPoint(true));
         }
       } else {
         part.shape = optimizeShape(part.shape, start);

@@ -49,14 +49,15 @@ export default function slicesToGCode(slices, settings) {
       const part = slice.parts[i];
 
       if (part.shape.closed) {
-        pathToGCode(gcode, part.outerLine, false, true, profiles.outerShell);
+        pathToGCode(gcode, part.innerFill, false, true, z, profiles.innerInfill);
+        pathToGCode(gcode, part.outerFill, false, false, z, profiles.outerInfill);
 
         for (let i = 0; i < part.innerLines.length; i ++) {
           const innerLine = part.innerLines[i];
           pathToGCode(gcode, innerLine, false, false, z, profiles.innerShell);
         }
 
-        pathToGCode(gcode, part.fill, true, false, z, profiles.outerInfill);
+        pathToGCode(gcode, part.outerLine, true, false, z, profiles.outerShell);
       } else {
         const retract = !(slice.parts.length === 1 && typeof slice.support === 'undefined');
         pathToGCode(gcode, part.shape, retract, retract, z, profiles.outerShell);
@@ -74,6 +75,8 @@ export default function slicesToGCode(slices, settings) {
 function pathToGCode(gcode, shape, retract, unRetract, z, { lineProfile, travelProfile, retractionProfile }) {
   const { closed } = shape;
   const paths = shape.mapToLower();
+
+  console.log('retractionProfile: ', retractionProfile);
 
   for (let i = 0; i < paths.length; i ++) {
     const line = paths[i];
