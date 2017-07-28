@@ -2,10 +2,11 @@ import { PRECISION } from '../constants.js'
 
 export default function applyPrecision(shapes) {
   for (let i = 0; i < shapes.length; i ++) {
-    const { closedShapes, openShapes } = shapes[i];
+    const { fillShapes, lineShapesOpen, lineShapesClosed } = shapes[i];
 
-    scaleUpShape(closedShapes);
-    scaleUpShape(openShapes);
+    scaleUpShape(fillShapes);
+    scaleUpShape(lineShapesOpen);
+    scaleUpShape(lineShapesClosed);
   }
 }
 

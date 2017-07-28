@@ -17,7 +17,7 @@ export default function optimizePaths(slices, settings) {
     for (let i = 0; i < slice.parts.length; i ++) {
       const part = slice.parts[i];
 
-      const shape = part.shape.closed ? part.outerLine : part.shape;
+      const shape = part.closed ? part.shell[0] : part.shape;
       const bounds = shape.shapeBounds();
 
       boundingBoxes.set(part, bounds);
@@ -47,24 +47,24 @@ export default function optimizePaths(slices, settings) {
       const [part] = slice.parts.splice(closestPart, 1);
       parts.push(part);
 
-      if (part.shape.closed) {
-        if (part.outerLine.paths.length > 0) {
-          part.outerLine = optimizeShape(part.outerLine, start);
-          start.copy(part.outerLine.lastPoint(true));
+      if (part.closed) {
+        for (let i = 0; i < part.shell.length; i ++) {
+          const shell = part.shell[i];
+
+          if (shell.paths.length === 0) continue;
+
+          part.shell[i] = optimizeShape(shell, start);
+          start.copy(part.shell[i].lastPoint(true));
         }
 
-        for (let i = 0; i < part.innerLines.length; i ++) {
-          const innerLine = part.innerLines[i];
-
-          if (innerLine.paths.length > 0) {
-            part.innerLines[i] = optimizeShape(innerLine, start);
-            start.copy(part.innerLines[i].lastPoint(true));
-          }
+        if (part.outerFill.paths.length > 0) {
+          part.outerFill = optimizeShape(part.outerFill, start);
+          start.copy(part.outerFill.lastPoint(true));
         }
 
-        if (part.fill.paths.length > 0) {
-          part.fill = optimizeShape(part.fill, start);
-          start.copy(part.fill.lastPoint(true));
+        if (part.innerFill.paths.length > 0) {
+          part.innerFill = optimizeShape(part.innerFill, start);
+          start.copy(part.innerFill.lastPoint(true));
         }
       } else {
         part.shape = optimizeShape(part.shape, start);

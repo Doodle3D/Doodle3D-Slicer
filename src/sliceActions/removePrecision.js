@@ -9,13 +9,13 @@ export default function removePrecision(slices) {
     for (let i = 0; i < slice.parts.length; i ++) {
       const part = slice.parts[i];
 
-      if (part.shape.closed) {
-        part.outerLine.scaleDown(inversePrecision);
-        for (let i = 0; i < part.innerLines.length; i ++) {
-          const innerLine = part.innerLines[i];
+      if (part.closed) {
+        for (let i = 0; i < part.shell.length; i ++) {
+          const innerLine = part.shell[i];
           innerLine.scaleDown(inversePrecision);
         }
-        part.fill.scaleDown(inversePrecision);
+        part.innerFill.scaleDown(inversePrecision);
+        part.outerFill.scaleDown(inversePrecision);
       } else {
         part.shape.scaleDown(inversePrecision);
       }
