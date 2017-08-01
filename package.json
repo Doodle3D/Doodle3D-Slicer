@@ -27,7 +27,8 @@
     "url": "git+https://github.com/Doodle3D/Doodle3D-Slicer.git"
   },
   "author": "",
-  "license": "ISC",
+  "license": "UNLICENSED",
+  "private": true,
   "bugs": {
     "url": "https://github.com/Doodle3D/Doodle3D-Slicer/issues"
   },
