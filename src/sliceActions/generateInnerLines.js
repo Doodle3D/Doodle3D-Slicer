@@ -31,22 +31,24 @@ export default function generateInnerLines(slices, settings) {
 
       const outerLine = part.shape.offset(-nozzleRadius, offsetOptions);
 
-      if (outerLine.paths.length > 0) {
-        part.shell.push(outerLine);
+      if (outerLine.paths.length === 0) continue;
 
-        // start with 1 because outerLine is the 1st (0) shell
-        for (let inset = 1; inset < numShells; inset += 1) {
-          const offset = inset * nozzleDiameter;
+      part.shell.push(outerLine);
 
-          const shell = outerLine.offset(-offset, offsetOptions);
+      // start with 1 because outerLine is the 1st (0) shell
+      for (let inset = 1; inset < numShells; inset += 1) {
+        const offset = inset * nozzleDiameter;
 
-          if (shell.paths.length > 0) {
-            part.shell.push(shell);
-          } else {
-            break;
-          }
+        const shell = outerLine.offset(-offset, offsetOptions);
+
+        if (shell.paths.length === 0) {
+          break;
+        } else {
+          part.shell.push(shell);
         }
       }
     }
+
+    slice.parts.filter(part => !part.closed || part.shell.length !== 0);
   }
 }
