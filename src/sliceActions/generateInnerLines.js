@@ -49,6 +49,6 @@ export default function generateInnerLines(slices, settings) {
       }
     }
 
-    slice.parts.filter(part => !part.closed || part.shell.length !== 0);
+    slice.parts = slice.parts.filter(part => !part.closed || part.shell.length !== 0);
   }
 }
