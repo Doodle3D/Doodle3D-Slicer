@@ -17,6 +17,7 @@ export default class {
     this._currentValues = {};
     this._nozzlePosition = new THREE.Vector2(0, 0);
     this._extruder = 0.0;
+    this._duration = 0.0;
     this._isRetracted = false;
     this._isFanOn = false;
   }
@@ -62,35 +63,37 @@ export default class {
   }
 
   moveTo(x, y, z, { speed }) {
-    speed *= 60;
+    const newNozzlePosition = new THREE.Vector2(x, y);
+    const lineLength = this._nozzlePosition.distanceTo(newNozzlePosition);
+
+    this._duration += lineLength / speed;
 
     this._addGCode({
       [MOVE]: 0,
       [POSITION_X]: x.toFixed(3),
       [POSITION_Y]: y.toFixed(3),
       [POSITION_Z]: z.toFixed(3),
-      [SPEED]: speed.toFixed(3)
+      [SPEED]: (speed * 60).toFixed(3)
     });
 
-    this._nozzlePosition.set(x, y);
+    this._nozzlePosition.copy(newNozzlePosition);
 
     return this;
   }
 
   lineTo(x, y, z, { speed, flowRate }) {
     const newNozzlePosition = new THREE.Vector2(x, y);
-
-    speed *= 60;
-
     const lineLength = this._nozzlePosition.distanceTo(newNozzlePosition);
+
     this._extruder += this._nozzleToFilamentRatio * lineLength * flowRate;
+    this._duration += lineLength / speed;
 
     this._addGCode({
       [MOVE]: 1,
       [POSITION_X]: x.toFixed(3),
       [POSITION_Y]: y.toFixed(3),
       [POSITION_Z]: z.toFixed(3),
-      [SPEED]: speed.toFixed(3),
+      [SPEED]: (speed * 60).toFixed(3),
       [EXTRUDER]: this._extruder.toFixed(3)
     });
 
@@ -99,17 +102,17 @@ export default class {
     return this;
   }
 
-  unRetract({ enabled, speed, minDistance }) {
+  unRetract({ enabled, speed, minDistance, amount }) {
     if (this._isRetracted && enabled) {
       this._isRetracted = false;
 
-      speed *= 60;
-
       if (this._extruder > minDistance) {
+        this._duration += amount / speed;
+
         this._addGCode({
           [MOVE]: 0,
           [EXTRUDER]: this._extruder.toFixed(3),
-          [SPEED]: speed.toFixed(3)
+          [SPEED]: (speed * 60).toFixed(3)
         });
       }
     }
@@ -121,13 +124,13 @@ export default class {
     if (!this._isRetracted && enabled) {
       this._isRetracted = true;
 
-      speed *= 60;
-
       if (this._extruder > minDistance) {
+        this._duration += amount / speed;
+
         this._addGCode({
           [MOVE]: 0,
           [EXTRUDER]: (this._extruder - amount).toFixed(3),
-          [SPEED]: speed.toFixed(3)
+          [SPEED]: (speed * 60).toFixed(3)
         });
       }
     }
@@ -136,6 +139,10 @@ export default class {
   }
 
   getGCode() {
-    return this._gcode;
+    return {
+      gcode: this._gcode,
+      duration: this._duration,
+      filament: this._extruder
+    };
   }
 }
