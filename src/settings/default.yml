@@ -8,6 +8,7 @@ filamentThickness: 2.85
 temperature: 210
 bedTemperature: 70
 layerHeight: 0.15
+combing: true
 thickness:
   top: 1.2
   bottom: 1.2

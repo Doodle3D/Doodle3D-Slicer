@@ -10,7 +10,8 @@ export default function slicesToGCode(slices, settings) {
     nozzleDiameter,
     travelSpeed,
     retraction,
-    travel
+    travel,
+    combing
   } = settings;
 
   const filamentSurfaceArea = Math.pow((filamentThickness / 2), 2) * Math.PI;
@@ -48,6 +49,7 @@ export default function slicesToGCode(slices, settings) {
 
     for (let i = 0; i < slice.parts.length; i ++) {
       const part = slice.parts[i];
+      const outline = part.shell[0];
 
       if (part.closed) {
         for (let i = 0; i < part.shell.length; i ++) {
@@ -56,11 +58,11 @@ export default function slicesToGCode(slices, settings) {
 
           const unRetract = isOuterShell;
           const profile = isOuterShell ? profiles.outerShell : profiles.innerShell;
-          pathToGCode(null, false, gcode, shell, false, unRetract, z, profile);
+          pathToGCode(outline, combing && true, gcode, shell, false, unRetract, z, profile);
         }
 
-        pathToGCode(part.shell[0], true, gcode, part.outerFill, false, false, z, profiles.outerInfill);
-        pathToGCode(part.shell[0], true, gcode, part.innerFill, true, false, z, profiles.innerInfill);
+        pathToGCode(outline, combing && true, gcode, part.outerFill, false, false, z, profiles.outerInfill);
+        pathToGCode(outline, combing && true, gcode, part.innerFill, true, false, z, profiles.innerInfill);
       } else {
         const retract = !(slice.parts.length === 1 && typeof slice.support === 'undefined');
         pathToGCode(null, false, gcode, part.shape, retract, retract, z, profiles.outerShell);
@@ -87,7 +89,7 @@ function pathToGCode(outline, combing, gcode, shape, retract, unRetract, z, { li
       const point = line[i % line.length];
 
       if (i === 0) {
-        if (combing && gcode._nozzlePosition.distanceTo(point) > 3) {
+        if (combing) {
           const combPath = comb(outline, gcode._nozzlePosition, point);
           for (let i = 0; i < combPath.length; i ++) {
             const combPoint = combPath[i];

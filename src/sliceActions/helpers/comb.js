@@ -1,43 +1,79 @@
+import Shape from 'clipper-js';
+
 export default function comb(outline, start, end) {
-  const [path] = outline.mapToLower();
-  const combPath = [];
-
-  const { closestPoint: closestPointStart, lineIndex: lineIndexStart } = findClosestPointOnPath(path, start);
-  const { closestPoint: closestPointEnd, lineIndex: lineIndexEnd } = findClosestPointOnPath(path, end);
-
-  combPath.push(start, closestPointStart);
-
-  if (lineIndexEnd > lineIndexStart) {
-    if (lineIndexStart + path.length - lineIndexEnd < lineIndexEnd - lineIndexStart) {
-      for (let i = lineIndexStart + path.length; i > lineIndexEnd; i --) {
-        combPath.push(path[i % path.length]);
-      }
-    } else {
-      for (let i = lineIndexStart; i < lineIndexEnd; i ++) {
-        combPath.push(path[i + 1]);
-      }
-    }
-  } else {
-    if (lineIndexEnd + path.length - lineIndexStart < lineIndexStart - lineIndexEnd) {
-      for (let i = lineIndexStart; i < lineIndexEnd + path.length; i ++) {
-        combPath.push(path[(i + 1) % path.length]);
-      }
-    } else {
-      for (let i = lineIndexStart; i > lineIndexEnd; i --) {
-        combPath.push(path[i]);
-      }
-    }
+  if (distanceTo(start, end) < 5) {
+    return [start, end];
   }
 
-  combPath.push(closestPointEnd, end);
+  let combPath = new Shape([[start, end]], false, true, false);
 
-  return combPath;
+  for (let i = 0; i < outline.paths.length; i ++) {
+    let outlinePart = new Shape([outline.paths[i]], true, false, false);
+    let snappedCombPaths = i === 0 ? combPath.intersect(outlinePart) : combPath.difference(outlinePart);
+
+    if (snappedCombPaths.paths.length <= 1) continue;
+
+    snappedCombPaths = snappedCombPaths.mapToLower();
+    outlinePart = outlinePart.mapToLower()[0];
+
+    const distanceMap = new WeakMap();
+
+    for (let i = 0; i < snappedCombPaths.length; i ++) {
+      const snappedCombPath = snappedCombPaths[i];
+      const distanceStart = distanceTo(start, snappedCombPath[0]);
+      const distanceEnd = distanceTo(start, snappedCombPath[snappedCombPath.length - 1]);
+
+      if (distanceStart < distanceEnd) {
+        distanceMap.set(snappedCombPath, distanceStart);
+      } else {
+        snappedCombPath.reverse();
+        distanceMap.set(snappedCombPath, distanceEnd);
+      }
+    }
+
+    snappedCombPaths.sort((a, b) => distanceMap.get(a) - distanceMap.get(b));
+
+    const startPath = snappedCombPaths[0];
+    const startPoint = startPath[startPath.length - 1];
+
+    const endPath = snappedCombPaths[snappedCombPaths.length - 1];
+    const endPoint = endPath[0];
+
+    const lineIndexStart = findClosestLineOnPath(outlinePart, startPoint);
+    const lineIndexEnd = findClosestLineOnPath(outlinePart, endPoint);
+
+    const path = [];
+    if (lineIndexEnd > lineIndexStart) {
+      if (lineIndexStart + outlinePart.length - lineIndexEnd < lineIndexEnd - lineIndexStart) {
+        for (let i = lineIndexStart + outlinePart.length; i > lineIndexEnd; i --) {
+          path.push(outlinePart[i % outlinePart.length]);
+        }
+      } else {
+        for (let i = lineIndexStart; i < lineIndexEnd; i ++) {
+          path.push(outlinePart[i + 1]);
+        }
+      }
+    } else {
+      if (lineIndexEnd + outlinePart.length - lineIndexStart < lineIndexStart - lineIndexEnd) {
+        for (let i = lineIndexStart; i < lineIndexEnd + outlinePart.length; i ++) {
+          path.push(outlinePart[(i + 1) % outlinePart.length]);
+        }
+      } else {
+        for (let i = lineIndexStart; i > lineIndexEnd; i --) {
+          path.push(outlinePart[i]);
+        }
+      }
+    }
+
+    combPath = new Shape([[...startPath, ...path, ...endPath]], false, true, false);
+  }
+
+  return combPath.mapToLower()[0];
 }
 
-function findClosestPointOnPath(path, point) {
+function findClosestLineOnPath(path, point) {
   let distance = Infinity;
   let lineIndex;
-  let closestPoint;
 
   for (let i = 0; i < path.length; i ++) {
     const pointA = path[i];
@@ -49,11 +85,10 @@ function findClosestPointOnPath(path, point) {
     if (tempDistance < distance) {
       distance = tempDistance;
       lineIndex = i;
-      closestPoint = tempClosestPoint;
     }
   }
 
-  return { closestPoint, lineIndex };
+  return lineIndex;
 }
 
 function findClosestPointOnLine(a, b, c) {
