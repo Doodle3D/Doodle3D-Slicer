@@ -1,5 +1,6 @@
 import GCode from './helpers/GCode.js';
 import comb from './helpers/comb.js';
+import { PRECISION } from '../constants.js';
 
 const PROFILE_TYPES = ['support', 'innerShell', 'outerShell', 'innerInfill', 'outerInfill', 'brim'];
 
@@ -90,7 +91,7 @@ function pathToGCode(outline, combing, gcode, shape, retract, unRetract, z, { li
 
       if (i === 0) {
         if (combing) {
-          const combPath = comb(outline, gcode._nozzlePosition, point);
+          const combPath = comb(outline, gcode._nozzlePosition.divideScalar(PRECISION), point);
           for (let i = 0; i < combPath.length; i ++) {
             const combPoint = combPath[i];
             gcode.moveTo(combPoint.x, combPoint.y, z, travelProfile);

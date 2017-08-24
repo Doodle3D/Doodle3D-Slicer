@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { PRECISION } from '../../constants.js';
 
 const MOVE = 'G';
 const M_COMMAND = 'M';
@@ -63,15 +64,15 @@ export default class {
   }
 
   moveTo(x, y, z, { speed }) {
-    const newNozzlePosition = new THREE.Vector2(x, y);
+    const newNozzlePosition = new THREE.Vector2(x, y).multiplyScalar(PRECISION);
     const lineLength = this._nozzlePosition.distanceTo(newNozzlePosition);
 
     this._duration += lineLength / speed;
 
     this._addGCode({
       [MOVE]: 0,
-      [POSITION_X]: x.toFixed(3),
-      [POSITION_Y]: y.toFixed(3),
+      [POSITION_X]: newNozzlePosition.x.toFixed(3),
+      [POSITION_Y]: newNozzlePosition.y.toFixed(3),
       [POSITION_Z]: z.toFixed(3),
       [SPEED]: (speed * 60).toFixed(3)
     });
@@ -82,7 +83,7 @@ export default class {
   }
 
   lineTo(x, y, z, { speed, flowRate }) {
-    const newNozzlePosition = new THREE.Vector2(x, y);
+    const newNozzlePosition = new THREE.Vector2(x, y).multiplyScalar(PRECISION);
     const lineLength = this._nozzlePosition.distanceTo(newNozzlePosition);
 
     this._extruder += this._nozzleToFilamentRatio * lineLength * flowRate;
@@ -90,8 +91,8 @@ export default class {
 
     this._addGCode({
       [MOVE]: 1,
-      [POSITION_X]: x.toFixed(3),
-      [POSITION_Y]: y.toFixed(3),
+      [POSITION_X]: newNozzlePosition.x.toFixed(3),
+      [POSITION_Y]: newNozzlePosition.y.toFixed(3),
       [POSITION_Z]: z.toFixed(3),
       [SPEED]: (speed * 60).toFixed(3),
       [EXTRUDER]: this._extruder.toFixed(3)

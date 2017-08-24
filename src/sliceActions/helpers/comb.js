@@ -1,25 +1,33 @@
 import Shape from 'clipper-js';
+import { subtract, add, scale, normalize, dot, length, distanceTo } from './VectorUtils.js';
+import { PRECISION } from '../../constants.js';
+
+const TOLERANCE = 5 / PRECISION;
 
 export default function comb(outline, start, end) {
-  if (distanceTo(start, end) < 5) {
+  if (distanceTo(start, end) < TOLERANCE) {
     return [start, end];
   }
 
   let combPath = new Shape([[start, end]], false, true, false);
 
   for (let i = 0; i < outline.paths.length; i ++) {
-    let outlinePart = new Shape([outline.paths[i]], true, false, false);
-    let snappedCombPaths = i === 0 ? combPath.intersect(outlinePart) : combPath.difference(outlinePart);
+    let outlinePart = new Shape([outline.paths[i]], true, false, false, true);
 
-    if (snappedCombPaths.paths.length <= 1) continue;
+    let snappedCombPaths = i === 0 ? combPath.intersect(outlinePart) : combPath.difference(outlinePart);
 
     snappedCombPaths = snappedCombPaths.mapToLower();
     outlinePart = outlinePart.mapToLower()[0];
+
+    if (distanceTo(start, outlinePart[outlinePart.length - 1]) < distanceTo(start, outlinePart[0])) {
+      outlinePart = outlinePart.reverse();
+    }
 
     const distanceMap = new WeakMap();
 
     for (let i = 0; i < snappedCombPaths.length; i ++) {
       const snappedCombPath = snappedCombPaths[i];
+
       const distanceStart = distanceTo(start, snappedCombPath[0]);
       const distanceEnd = distanceTo(start, snappedCombPath[snappedCombPath.length - 1]);
 
@@ -30,8 +38,23 @@ export default function comb(outline, start, end) {
         distanceMap.set(snappedCombPath, distanceEnd);
       }
     }
-
     snappedCombPaths.sort((a, b) => distanceMap.get(a) - distanceMap.get(b));
+
+    const firstPath = snappedCombPaths[0];
+    const lastPath = snappedCombPaths[snappedCombPaths.length - 1];
+
+    if (snappedCombPaths.length === 0) {
+      continue;
+      // snappedCombPaths.push([start], [end]);
+    } else if (distanceTo(firstPath[0], start) > 1.0) {
+      snappedCombPaths.unshift([start]);
+    } else if (distanceTo(lastPath[lastPath.length - 1], end) > 1.0) {
+      snappedCombPaths.push([end]);
+    }
+
+    if (snappedCombPaths.length === 1) {
+      continue;
+    }
 
     const startPath = snappedCombPaths[0];
     const startPoint = startPath[startPath.length - 1];
@@ -43,7 +66,9 @@ export default function comb(outline, start, end) {
     const lineIndexEnd = findClosestLineOnPath(outlinePart, endPoint);
 
     const path = [];
-    if (lineIndexEnd > lineIndexStart) {
+    if (lineIndexEnd === lineIndexStart) {
+      continue;
+    } else if (lineIndexEnd > lineIndexStart) {
       if (lineIndexStart + outlinePart.length - lineIndexEnd < lineIndexEnd - lineIndexStart) {
         for (let i = lineIndexStart + outlinePart.length; i > lineIndexEnd; i --) {
           path.push(outlinePart[i % outlinePart.length]);
@@ -65,7 +90,7 @@ export default function comb(outline, start, end) {
       }
     }
 
-    combPath = new Shape([[...startPath, ...path, ...endPath]], false, true, false);
+    combPath = new Shape([[...startPath, ...path, ...endPath]], false, true, false, true);
   }
 
   return combPath.mapToLower()[0];
@@ -104,46 +129,4 @@ function findClosestPointOnLine(a, b, c) {
   } else {
     return a;
   }
-}
-
-function subtract(a, b) {
-  return {
-    x: a.x - b.x,
-    y: a.y - b.y
-  };
-}
-
-function add(a, b) {
-  return {
-    x: a.x + b.x,
-    y: a.y + b.y
-  };
-}
-
-function scale(a, factor) {
-  return {
-    x: a.x * factor,
-    y: a.y * factor
-  }
-}
-
-function dot(a, b) {
-  return a.x * b.x + a.y * b.y;
-}
-
-function normalize(a) {
-  const l = length(a);
-
-  return {
-    x: a.x / l,
-    y: a.y / l
-  };
-}
-
-function length(a) {
-  return Math.sqrt(a.x * a.x + a.y * a.y);
-}
-
-function distanceTo(a, b) {
-  return length(subtract(a, b));
 }
