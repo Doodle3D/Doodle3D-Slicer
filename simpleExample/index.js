@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { defaultSettings, sliceGeometry } from 'doodle3d-slicer';
-import fileURL from '!url-loader!./models/Doodle.json';
+import fileURL from '!url-loader!./models/combingtest.json';
 import fileSaver from 'file-saver';
 
 const settings = {
