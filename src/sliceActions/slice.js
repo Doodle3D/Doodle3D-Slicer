@@ -11,7 +11,7 @@ import shapesToSlices from './shapesToSlices.js';
 import slicesToGCode from './slicesToGCode.js';
 import detectOpenClosed from './detectOpenClosed.js';
 import applyPrecision from './applyPrecision.js';
-import removePrecision from './removePrecision.js';
+// import removePrecision from './removePrecision.js';
 
 export default function(settings, geometry, onProgress) {
   const totalStages = 12;
@@ -65,7 +65,7 @@ export default function(settings, geometry, onProgress) {
   updateProgress('Optimizing paths');
   optimizePaths(slices, settings);
 
-  removePrecision(slices);
+  // removePrecision(slices);
 
   updateProgress('Constructing gcode');
   const gcode = slicesToGCode(slices, settings);
