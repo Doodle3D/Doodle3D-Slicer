@@ -14,7 +14,7 @@ export default function comb(outline, start, end) {
   for (let i = 0; i < outline.paths.length; i ++) {
     let outlinePart = new Shape([outline.paths[i]], true, false, false, true);
 
-    let snappedCombPaths = i === 0 ? combPath.intersect(outlinePart) : combPath.difference(outlinePart);
+    let snappedCombPaths = outlinePart.orientation(0) ? combPath.intersect(outlinePart) : combPath.difference(outlinePart);
 
     snappedCombPaths = snappedCombPaths.mapToLower();
     outlinePart = outlinePart.mapToLower()[0];
@@ -44,8 +44,7 @@ export default function comb(outline, start, end) {
     const lastPath = snappedCombPaths[snappedCombPaths.length - 1];
 
     if (snappedCombPaths.length === 0) {
-      continue;
-      // snappedCombPaths.push([start], [end]);
+      snappedCombPaths.push([start], [end]);
     } else if (distanceTo(firstPath[0], start) > 1.0) {
       snappedCombPaths.unshift([start]);
     } else if (distanceTo(lastPath[lastPath.length - 1], end) > 1.0) {
