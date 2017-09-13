@@ -20,11 +20,8 @@ export default function shapesToSlices(shapes, settings) {
     lineShapesClosed = new Shape(lineShapesClosed, true, true, true, true)
       .clean(cleanDelta);
 
-    lineShapesOpen = new Shape(lineShapesOpen, false, true, true, true);
-    //   .clean(cleanDelta);
-    // TODO
-    // Cleaning is actually wanted here but there is a bug in the clean function
-    // https://sourceforge.net/p/jsclipper/tickets/16/
+    lineShapesOpen = new Shape(lineShapesOpen, false, true, true, true)
+      .clean(cleanDelta);
 
     const slice = new Slice();
 
