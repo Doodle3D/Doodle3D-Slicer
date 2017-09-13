@@ -50,9 +50,10 @@ export default function slicesToGCode(slices, settings) {
 
     for (let i = 0; i < slice.parts.length; i ++) {
       const part = slice.parts[i];
-      const outline = part.shell[0];
 
       if (part.closed) {
+        const outline = part.shell[0];
+
         for (let i = 0; i < part.shell.length; i ++) {
           const shell = part.shell[i];
           const isOuterShell = i === 0;

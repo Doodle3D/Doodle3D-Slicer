@@ -1,3 +1,4 @@
+import 'core-js'; // polyfills
 import slice from './sliceActions/slice.js';
 import * as THREE from 'three';
 
