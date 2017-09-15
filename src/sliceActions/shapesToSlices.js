@@ -1,9 +1,7 @@
 import Shape from 'clipper-js';
 import Slice from './helpers/Slice.js';
 
-import { CLEAN_DELTA, PRECISION } from '../constants.js';
-
-const cleanDelta = CLEAN_DELTA / PRECISION;
+import { PRECISION } from '../constants.js';
 
 export default function shapesToSlices(shapes, settings) {
   const sliceLayers = [];
@@ -14,14 +12,14 @@ export default function shapesToSlices(shapes, settings) {
     fillShapes = new Shape(fillShapes, true, true, true, true)
       .fixOrientation()
       .simplify('pftNonZero')
-      .clean(cleanDelta)
+      .clean(1)
       .seperateShapes();
 
     lineShapesClosed = new Shape(lineShapesClosed, true, true, true, true)
-      .clean(cleanDelta);
+      .clean(1);
 
     lineShapesOpen = new Shape(lineShapesOpen, false, true, true, true)
-      .clean(cleanDelta);
+      .clean(1);
 
     const slice = new Slice();
 
