@@ -18,8 +18,10 @@ export default function shapesToSlices(shapes, settings) {
     lineShapesClosed = new Shape(lineShapesClosed, true, true, true, true)
       .clean(1);
 
-    lineShapesOpen = new Shape(lineShapesOpen, false, true, true, true)
-      .clean(1);
+    lineShapesOpen = new Shape(lineShapesOpen, false, true, true, true);
+      // .clean(1);
+    // TODO
+    // Enable cleaning when https://sourceforge.net/p/jsclipper/tickets/24/ is fixed
 
     const slice = new Slice();
 
