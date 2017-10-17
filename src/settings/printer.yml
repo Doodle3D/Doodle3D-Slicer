@@ -154,6 +154,13 @@ ultimaker2:
     x: 223
     y: 223
     z: 205
+ultimaker2_plus:
+  title: Ultimaker 2+
+  heatedBed: true
+  dimensions:
+    x: 223
+    y: 223
+    z: 305
 ultimaker2go:
   title: Ultimaker 2 Go
   dimensions:
@@ -173,3 +180,7 @@ wanhao_duplicator4:
     x: 210
     y: 140
     z: 140
+wanhao_duplicator_i3_plus:
+  title: Wanhao Duplicator i3 Plus
+  filamentThickness: 1.75
+  heatedBed: false
