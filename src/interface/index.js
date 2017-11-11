@@ -6,7 +6,8 @@ import materialSettings from '../settings/material.yml';
 import qualitySettings from '../settings/quality.yml';
 import PropTypes from 'proptypes';
 import injectSheet from 'react-jss';
-import { sliceMesh } from '../slicer.js';
+import { sliceGeometry } from '../slicer.js';
+import * as THREE from 'three';
 
 const styles = {
   container: {
@@ -47,7 +48,7 @@ class Interface extends React.Component {
     defaultPrinter: PropTypes.string.isRequired,
   };
   state = {
-    controlMode: 'translate'
+    controlMode: 'translate',
   };
 
   componentDidMount() {
@@ -75,7 +76,16 @@ class Interface extends React.Component {
       ...materialSettings.pla,
       ...printerSettings[this.props.defaultPrinter]
     };
-    const { gcode } = await sliceMesh(settings, mesh, true, (process) => {
+
+    const { dimensions } = settings;
+    const centerX = dimensions.x / 2;
+    const centerY = dimensions.y / 2;
+
+    const geometry = mesh.geometry.clone();
+    mesh.updateMatrix();
+    geometry.applyMatrix(new THREE.Matrix4().makeTranslation(centerY, 0, centerX).multiply(mesh.matrix));
+
+    const { gcode } = await sliceGeometry(settings, geometry, null, true, (process) => {
       console.log('process: ', process);
     });
 
@@ -83,9 +93,12 @@ class Interface extends React.Component {
     scene.remove(control, mesh);
 
     const line = createGcodeGeometry(gcode);
+    line.position.x = -centerY;
+    line.position.z = -centerX;
     scene.add(line);
 
     render();
+    this.setState({ sliced: true });
   };
 
   componentWillUnmount() {
