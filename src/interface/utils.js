@@ -20,6 +20,8 @@ export function createScene(canvas, props, state) {
   } else if (props.geometry.isBufferGeometry) {
     geometry = new THREE.Geometry().fromBufferGeometry(props.geometry);
   }
+
+  // center geometry
   geometry.computeBoundingBox();
   const centerX = (geometry.boundingBox.max.x + geometry.boundingBox.min.x) / 2;
   const centerY = (geometry.boundingBox.max.y + geometry.boundingBox.min.y) / 2;
