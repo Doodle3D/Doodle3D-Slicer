@@ -49,6 +49,7 @@ class Interface extends React.Component {
   };
   state = {
     controlMode: 'translate',
+    sliced: false
   };
 
   componentDidMount() {
@@ -113,18 +114,19 @@ class Interface extends React.Component {
 
   render() {
     const { width, height, classes } = this.props;
+    const { sliced } = this.state;
     return (
       <div style={{ width, height }} className={classes.container}>
         <canvas className={classes.canvas} ref="canvas" width={width} height={height} />
-        <div className={classes.controlBar}>
+        {!sliced && <div className={classes.controlBar}>
           <button onClick={this.resetMesh}>Reset</button>
           <button onClick={() => this.setState({ controlMode: 'translate' })}>Translate</button>
           <button onClick={() => this.setState({ controlMode: 'rotate' })}>Rotate</button>
           <button onClick={() => this.setState({ controlMode: 'scale' })}>Scale</button>
-        </div>
-        <div className={classes.sliceBar}>
+        </div>}
+        {!sliced && <div className={classes.sliceBar}>
           <button onClick={this.slice}>Slice</button>
-        </div>
+        </div>}
       </div>
     );
   }
