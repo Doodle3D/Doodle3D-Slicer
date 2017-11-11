@@ -2,8 +2,6 @@ import * as THREE from 'three';
 import 'three/examples/js/controls/EditorControls';
 import 'three/examples/js/controls/TransformControls';
 
-const MAX_SPEED = 100 * 60;
-
 export function placeOnGround(mesh) {
   const boundingBox = new THREE.Box3();
   const vertices = mesh.geometry.vertices.map(vertex => vertex.clone().applyMatrix4(mesh.matrix));
@@ -84,38 +82,4 @@ export function createScene(canvas, props, state) {
   render();
 
   return { control, editorControls, scene, mesh, camera, renderer, render };
-}
-
-export function createGcodeGeometry(gcode) {
-  const geometry = new THREE.Geometry();
-
-  let lastPoint
-  for (let i = 0; i < gcode.length; i ++) {
-    const { G, F, X, Y, Z } = gcode[i];
-
-    if (X || Y || Z) {
-      const point = new THREE.Vector3(Y, Z, X);
-
-      let color;
-      if (G === 0) {
-        color = new THREE.Color(0x00ff00);
-      } else if (G === 1) {
-        color = new THREE.Color().setHSL(F / MAX_SPEED, 0.5, 0.5);
-      }
-
-      if (G === 1) {
-        if (lastPoint) geometry.vertices.push(lastPoint);
-        geometry.vertices.push(new THREE.Vector3(Y, Z, X));
-        geometry.colors.push(color);
-        geometry.colors.push(color);
-      }
-
-      lastPoint = point;
-    }
-  }
-
-  const material = new THREE.LineBasicMaterial({ vertexColors: THREE.VertexColors });
-  const line = new THREE.LineSegments(geometry, material);
-
-  return line;
 }

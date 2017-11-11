@@ -84,19 +84,19 @@ class Interface extends React.Component {
 
     const geometry = mesh.geometry.clone();
     mesh.updateMatrix();
-    geometry.applyMatrix(new THREE.Matrix4().makeTranslation(centerY, 0, centerX).multiply(mesh.matrix));
 
-    const { gcode } = await sliceGeometry(settings, geometry, null, true, (process) => {
+    const matrix = new THREE.Matrix4().makeTranslation(centerY, 0, centerX).multiply(mesh.matrix);
+    const { gcode, linePreview } = await sliceGeometry(settings, geometry, matrix, true, true, (process) => {
       console.log('process: ', process);
     });
 
+    // can't disable control so remove it
     control.dispose();
     scene.remove(control, mesh);
 
-    const line = createGcodeGeometry(gcode);
-    line.position.x = -centerY;
-    line.position.z = -centerX;
-    scene.add(line);
+    linePreview.position.x = -centerY;
+    linePreview.position.z = -centerX;
+    scene.add(linePreview);
 
     render();
     this.setState({ sliced: true });
