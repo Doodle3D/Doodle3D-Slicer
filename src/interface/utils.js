@@ -79,7 +79,7 @@ export function createScene(canvas, props, state) {
   scene.add(box);
 
   const { dimensions } = printers[defaultPrinter];
-  box.scale.set(dimensions.x, dimensions.y, dimensions.z);
+  box.scale.set(dimensions.y, dimensions.z, dimensions.x);
 
   render();
 
