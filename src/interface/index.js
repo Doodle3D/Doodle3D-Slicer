@@ -1,11 +1,12 @@
 import React from 'react';
-import { placeOnGround, createScene } from './utils.js';
+import { placeOnGround, createScene, createGcodeGeometry } from './utils.js';
 import baseSettings from '../settings/default.yml';
 import printerSettings from '../settings/printer.yml';
 import materialSettings from '../settings/material.yml';
 import qualitySettings from '../settings/quality.yml';
 import PropTypes from 'proptypes';
 import injectSheet from 'react-jss';
+import { sliceMesh } from '../slicer.js';
 
 const styles = {
   container: {
@@ -67,6 +68,26 @@ class Interface extends React.Component {
     }
   }
 
+  slice = async () => {
+    const { mesh, render, scene, control } = this.state;
+    const settings = {
+      ...baseSettings,
+      ...materialSettings.pla,
+      ...printerSettings[this.props.defaultPrinter]
+    };
+    const { gcode } = await sliceMesh(settings, mesh, true, (process) => {
+      console.log('process: ', process);
+    });
+
+    control.dispose();
+    scene.remove(control, mesh);
+
+    const line = createGcodeGeometry(gcode);
+    scene.add(line);
+
+    render();
+  };
+
   componentWillUnmount() {
     if (this.state.editorControls) this.state.editorControls.dispose();
     if (this.state.control) this.state.control.dispose();
@@ -83,13 +104,13 @@ class Interface extends React.Component {
       <div style={{ width, height }} className={classes.container}>
         <canvas className={classes.canvas} ref="canvas" width={width} height={height} />
         <div className={classes.controlBar}>
-          <button onClick={() => this.resetMesh()}>Reset</button>
+          <button onClick={this.resetMesh}>Reset</button>
           <button onClick={() => this.setState({ controlMode: 'translate' })}>Translate</button>
           <button onClick={() => this.setState({ controlMode: 'rotate' })}>Rotate</button>
           <button onClick={() => this.setState({ controlMode: 'scale' })}>Scale</button>
         </div>
         <div className={classes.sliceBar}>
-          <button>Slice</button>
+          <button onClick={this.slice}>Slice</button>
         </div>
       </div>
     );
