@@ -3,7 +3,7 @@ import slice from './sliceActions/slice.js';
 import SlicerWorker from './slicer.worker.js';
 
 export function sliceMesh(settings, mesh, sync = false, onProgress) {
-  if (typeof mesh === 'undefined' || !mesh.isMesh) {
+  if (!mesh || !mesh.isMesh) {
     throw new Error('Provided mesh is not intance of THREE.Mesh');
   }
 
@@ -13,7 +13,7 @@ export function sliceMesh(settings, mesh, sync = false, onProgress) {
 }
 
 export function sliceGeometry(settings, geometry, matrix, sync = false, onProgress) {
-  if (typeof geometry === 'undefined') {
+  if (!geometry) {
     throw new Error('Missing required geometry argument');
   } else if (geometry.isBufferGeometry) {
     geometry = new THREE.Geometry().fromBufferGeometry(geometry);
@@ -27,7 +27,7 @@ export function sliceGeometry(settings, geometry, matrix, sync = false, onProgre
     throw new Error('Geometry does not contain any data');
   }
 
-  if (matrix) {
+  if (matrix && matrix.isMatrix4) {
     geometry.applyMatrix(matrix);
   }
 
