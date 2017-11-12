@@ -94,6 +94,7 @@ class Interface extends React.Component {
 
   reset = () => {
     const { control, mesh, render, gcode, scene } = this.state;
+    control.enabled = true;
     control.visible = true;
     mesh.visible = true;
 
@@ -133,6 +134,7 @@ class Interface extends React.Component {
 
     // TODO
     // can't disable control ui still interacts with mouse input
+    control.enabled = false;
     control.visible = false;
     mesh.visible = false;
 
