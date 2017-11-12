@@ -124,6 +124,12 @@ class Interface extends React.Component {
     render();
   };
 
+  updateDrawRange = (event) => {
+    const { gcode, render } = this.state;
+    gcode.linePreview.geometry.setDrawRange(0, event.target.value);
+    render();
+  };
+
   componentWillUnmount() {
     if (this.state.editorControls) this.state.editorControls.dispose();
     if (this.state.control) this.state.control.dispose();
@@ -146,6 +152,16 @@ class Interface extends React.Component {
           <button onClick={() => this.setState({ controlMode: 'translate' })}>Translate</button>
           <button onClick={() => this.setState({ controlMode: 'rotate' })}>Rotate</button>
           <button onClick={() => this.setState({ controlMode: 'scale' })}>Scale</button>
+        </div>}
+        {sliced && <div className={classes.controlBar}>
+          <input
+            type="range"
+            step="2"
+            min="1"
+            max={gcode.linePreview.geometry.getAttribute('position').count}
+            defaultValue={gcode.linePreview.geometry.getAttribute('position').count}
+            onChange={this.updateDrawRange}
+          />
         </div>}
         {!sliced && <div className={classes.sliceBar}>
           <button onClick={this.slice}>Slice</button>

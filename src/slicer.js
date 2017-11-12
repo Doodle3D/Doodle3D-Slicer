@@ -110,15 +110,16 @@ function gcodeToString(gcode) {
 
 const MAX_SPEED = 100 * 60;
 function createGcodeGeometry(gcode) {
-  const geometry = new THREE.Geometry();
+  const geometry = new THREE.BufferGeometry();
+
+  const positions = [];
+  const colors = [];
 
   let lastPoint
   for (let i = 0; i < gcode.length; i ++) {
     const { G, F, X, Y, Z } = gcode[i];
 
     if (X || Y || Z) {
-      const point = new THREE.Vector3(Y, Z, X);
-
       let color;
       if (G === 0) {
         color = new THREE.Color(0x00ff00);
@@ -127,15 +128,19 @@ function createGcodeGeometry(gcode) {
       }
 
       if (G === 1) {
-        if (lastPoint) geometry.vertices.push(lastPoint);
-        geometry.vertices.push(new THREE.Vector3(Y, Z, X));
-        geometry.colors.push(color);
-        geometry.colors.push(color);
+        if (lastPoint) positions.push(lastPoint[0], lastPoint[1], lastPoint[2]);
+        positions.push(Y, Z, X);
+
+        colors.push(color.r, color.g, color.b);
+        colors.push(color.r, color.g, color.b);
       }
 
-      lastPoint = point;
+      lastPoint = [Y, Z, X];
     }
   }
+
+  geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+  geometry.addAttribute('color', new THREE.BufferAttribute(new Float32Array(colors), 3));
 
   const material = new THREE.LineBasicMaterial({ vertexColors: THREE.VertexColors });
   const line = new THREE.LineSegments(geometry, material);
