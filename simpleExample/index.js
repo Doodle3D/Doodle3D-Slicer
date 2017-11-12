@@ -5,6 +5,9 @@ import fileURL from '!url-loader!./models/shape.json';
 import { render } from 'react-dom';
 import fileSaver from 'file-saver';
 
+document.body.style.margin = 0;
+document.body.style.padding = 0;
+
 const downloadGCode = gcode => {
   const file = new File([gcode], 'gcode.gcode', { type: 'text/plain' });
   fileSaver.saveAs(file);
@@ -13,9 +16,11 @@ const downloadGCode = gcode => {
 const jsonLoader = new THREE.JSONLoader();
 jsonLoader.load(fileURL, geometry => {
   render((
-    <div style={{ position: 'absolute', border: '1px solid black' }}>
+    <div>
       <Interface
         geometry={geometry}
+        width={window.innerWidth}
+        height={window.innerHeight}
         onCompleteActions={[{ title: 'Download', callback: downloadGCode }]}
       />
     </div>
