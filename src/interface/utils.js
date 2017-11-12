@@ -10,12 +10,8 @@ export function placeOnGround(mesh) {
 }
 
 export function createScene(canvas, props, state) {
-  let geometry;
-  if (props.geometry.isGeometry) {
-    geometry = props.geometry;
-  } else if (props.geometry.isBufferGeometry) {
-    geometry = new THREE.Geometry().fromBufferGeometry(props.geometry);
-  }
+  const { width, height, printers, geometry } = props;
+  const { controlMode, printer } = state;
 
   // center geometry
   geometry.computeBoundingBox();
@@ -23,9 +19,6 @@ export function createScene(canvas, props, state) {
   const centerY = (geometry.boundingBox.max.y + geometry.boundingBox.min.y) / 2;
   const centerZ = (geometry.boundingBox.max.z + geometry.boundingBox.min.z) / 2;
   geometry.applyMatrix(new THREE.Matrix4().makeTranslation(-centerX, -centerY, -centerZ));
-
-  const { width, height, printers } = props;
-  const { controlMode, printer } = state;
 
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
   renderer.setClearColor(0xffffff, 0);
