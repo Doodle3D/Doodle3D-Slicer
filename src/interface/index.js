@@ -53,6 +53,14 @@ class Interface extends React.Component {
     sliced: false
   };
 
+  constructor(props) {
+    super(props);
+    this.state = {
+      printer: props.defaultPrinter
+    };
+  }
+
+
   componentDidMount() {
     const { canvas } = this.refs;
     const scene = createScene(canvas, this.props, this.state);
@@ -84,11 +92,11 @@ class Interface extends React.Component {
   };
 
   slice = async () => {
-    const { mesh, render, scene, control } = this.state;
+    const { mesh, render, scene, control, printer } = this.state;
     const settings = {
       ...baseSettings,
       ...materialSettings.pla,
-      ...printerSettings[this.props.defaultPrinter]
+      ...printerSettings[printer]
     };
 
     const { dimensions } = settings;

@@ -26,7 +26,8 @@ export function createScene(canvas, props, state) {
   const centerZ = (geometry.boundingBox.max.z + geometry.boundingBox.min.z) / 2;
   geometry.applyMatrix(new THREE.Matrix4().makeTranslation(-centerX, -centerY, -centerZ));
 
-  const { width, height, printers, defaultPrinter } = props;
+  const { width, height, printers } = props;
+  const { controlMode, printer } = state;
 
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
   renderer.setClearColor(0xffffff, 0);
@@ -52,7 +53,7 @@ export function createScene(canvas, props, state) {
   const editorControls = new THREE.EditorControls(camera, canvas);
 
   const control = new THREE.TransformControls(camera, canvas);
-  control.setMode(state.controlMode);
+  control.setMode(controlMode);
   control.setRotationSnap(THREE.Math.degToRad(45));
   control.addEventListener('mouseDown', () => editorControls.enabled = false);
   control.addEventListener('mouseUp', () => {
@@ -76,7 +77,7 @@ export function createScene(canvas, props, state) {
   box.material.color.setHex(0x72bcd4);
   scene.add(box);
 
-  const { dimensions } = printers[defaultPrinter];
+  const { dimensions } = printers[printer];
   box.scale.set(dimensions.y, dimensions.z, dimensions.x);
 
   render();
