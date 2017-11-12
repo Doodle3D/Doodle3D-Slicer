@@ -11,10 +11,15 @@ import { sliceGeometry } from '../slicer.js';
 import RaisedButton from 'material-ui/RaisedButton';
 import Paper from 'material-ui/Paper';
 import Slider from 'material-ui/Slider';
+import { Tabs, Tab } from 'material-ui/Tabs';
+import SelectField from 'material-ui/SelectField'
+import MenuItem from 'material-ui/MenuItem';
+import { grey50 } from 'material-ui/styles/colors';
 
 const styles = {
   container: {
-    position: 'relative'
+    position: 'relative',
+    backgroundColor: grey50
   },
   canvas: {
     position: 'absolute',
@@ -28,7 +33,7 @@ const styles = {
     position: 'absolute',
     top: '10px',
     right: '10px',
-    width: '300px',
+    width: '380px',
     padding: '10px 20px',
   },
   overlay: {
@@ -42,6 +47,9 @@ const styles = {
   },
   sliceActions: {
     listStyleType: 'none'
+  },
+  button: {
+    margin: '5px 0'
   }
 };
 
@@ -50,7 +58,11 @@ class Interface extends React.Component {
     width: 720,
     height: 480,
     printers: printerSettings,
-    defaultPrinter: 'ultimaker2'
+    defaultPrinter: 'ultimaker2',
+    quality: qualitySettings,
+    defaultQuality: 'medium',
+    materials: materialSettings,
+    defaultMaterial: 'pla',
   };
   static propTypes = {
     geometry: (props, propName) => {
@@ -63,6 +75,10 @@ class Interface extends React.Component {
     classes: PropTypes.objectOf(PropTypes.string),
     printers: PropTypes.object.isRequired,
     defaultPrinter: PropTypes.string.isRequired,
+    quality: PropTypes.object.isRequired,
+    defaultQuality: PropTypes.string.isRequired,
+    materials: PropTypes.object.isRequired,
+    defaultMaterial: PropTypes.string.isRequired,
     onCompleteActions: PropTypes.arrayOf(PropTypes.shape({ title: PropTypes.string, callback: PropTypes.func })).isRequired,
   };
   constructor(props) {
@@ -165,8 +181,8 @@ class Interface extends React.Component {
   }
 
   render() {
-    const { width, height, classes, onCompleteActions } = this.props;
-    const { sliced, isSlicing, progress, gcode, controlMode } = this.state;
+    const { width, height, classes, onCompleteActions, printers, materials, quality } = this.props;
+    const { sliced, isSlicing, progress, gcode, controlMode, printer } = this.state;
 
     return (
       <div style={{ width, height }} className={classes.container}>
@@ -189,12 +205,37 @@ class Interface extends React.Component {
           />
         </div>}
         {!sliced && <Paper className={classes.sliceBar}>
-          <RaisedButton fullWidth disabled={isSlicing} onTouchTap={this.slice} primary label="slice" />
+          <Tabs>
+            <Tab label="basic settings">
+              <div>
+                <SelectField name="printer" value={printer} floatingLabelText="Printer" fullWidth>
+                  {Object.entries(printers).map(([value, { title }]) => (
+                    <MenuItem key={value} value={value} primaryText={title} />
+                  ))}
+                </SelectField>
+                <SelectField value="medium" floatingLabelText="Quality" fullWidth>
+                  {Object.entries(quality).map(([value, { title }]) => (
+                    <MenuItem key={value} value={value} primaryText={title} />
+                  ))}
+                </SelectField>
+                <SelectField value="pla" floatingLabelText="Material" fullWidth>
+                  {Object.entries(materials).map(([value, { title }]) => (
+                    <MenuItem key={value} value={value} primaryText={title} />
+                  ))}
+                </SelectField>
+              </div>
+            </Tab>
+            <Tab label="advanced settings">
+              <div>
+              </div>
+            </Tab>
+          </Tabs>
+          <RaisedButton className={classes.button} fullWidth disabled={isSlicing} onTouchTap={this.slice} primary label="slice" />
         </Paper>}
         {sliced && <Paper className={classes.sliceBar}>
-          <RaisedButton fullWidth onTouchTap={this.reset} primary label="slice again" />
+          <RaisedButton className={classes.button} fullWidth onTouchTap={this.reset} primary label="slice again" />
           {onCompleteActions.map(({ title, callback }, i) => (
-            <RaisedButton key={i} fullWidth onTouchTap={() => callback(gcode.gcode)} primary label={title} />
+            <RaisedButton className={classes.button} key={i} fullWidth onTouchTap={() => callback(gcode.gcode)} primary label={title} />
           ))}
         </Paper>}
         {isSlicing && <div className={classes.overlay}>
