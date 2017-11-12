@@ -1,4 +1,5 @@
 import React from 'react';
+import * as THREE from 'three';
 import { placeOnGround, createScene, createGcodeGeometry } from './utils.js';
 import baseSettings from '../settings/default.yml';
 import printerSettings from '../settings/printer.yml';
@@ -7,7 +8,9 @@ import qualitySettings from '../settings/quality.yml';
 import PropTypes from 'proptypes';
 import injectSheet from 'react-jss';
 import { sliceGeometry } from '../slicer.js';
-import * as THREE from 'three';
+import RaisedButton from 'material-ui/RaisedButton';
+import Paper from 'material-ui/Paper';
+import Slider from 'material-ui/Slider';
 
 const styles = {
   container: {
@@ -18,13 +21,15 @@ const styles = {
   },
   controlBar: {
     position: 'absolute',
-    bottom: 0,
-    left: 0
+    bottom: '10px',
+    left: '10px'
   },
   sliceBar: {
     position: 'absolute',
-    top: 0,
-    right: 0
+    top: '10px',
+    right: '10px',
+    width: '300px',
+    padding: '10px 20px',
   },
   overlay: {
     position: 'absolute',
@@ -60,15 +65,12 @@ class Interface extends React.Component {
     defaultPrinter: PropTypes.string.isRequired,
     onCompleteActions: PropTypes.arrayOf(PropTypes.shape({ title: PropTypes.string, callback: PropTypes.func })).isRequired,
   };
-  state = {
-    controlMode: 'translate',
-    isSlicing: false,
-    sliced: false
-  };
-
   constructor(props) {
     super(props);
     this.state = {
+      controlMode: 'translate',
+      isSlicing: false,
+      sliced: false,
       printer: props.defaultPrinter
     };
   }
@@ -146,9 +148,9 @@ class Interface extends React.Component {
     render();
   };
 
-  updateDrawRange = (event) => {
+  updateDrawRange = (event, value) => {
     const { gcode, render } = this.state;
-    gcode.linePreview.geometry.setDrawRange(0, event.target.value);
+    gcode.linePreview.geometry.setDrawRange(0, value);
     render();
   };
 
@@ -164,36 +166,37 @@ class Interface extends React.Component {
 
   render() {
     const { width, height, classes, onCompleteActions } = this.props;
-    const { sliced, isSlicing, progress, gcode } = this.state;
+    const { sliced, isSlicing, progress, gcode, controlMode } = this.state;
 
     return (
       <div style={{ width, height }} className={classes.container}>
         <canvas className={classes.canvas} ref="canvas" width={width} height={height} />
         {!sliced && <div className={classes.controlBar}>
-          <button onClick={this.resetMesh}>Reset</button>
-          <button onClick={() => this.setState({ controlMode: 'translate' })}>Translate</button>
-          <button onClick={() => this.setState({ controlMode: 'rotate' })}>Rotate</button>
-          <button onClick={() => this.setState({ controlMode: 'scale' })}>Scale</button>
+          <RaisedButton onTouchTap={this.resetMesh} primary label="reset" />
+          <RaisedButton disabled={controlMode === 'translate'} onTouchTap={() => this.setState({ controlMode: 'translate' })} primary label="translate" />
+          <RaisedButton disabled={controlMode === 'rotate'} onTouchTap={() => this.setState({ controlMode: 'rotate' })} primary label="rotate" />
+          <RaisedButton disabled={controlMode === 'scale'} onTouchTap={() => this.setState({ controlMode: 'scale' })} primary label="scale" />
         </div>}
         {sliced && <div className={classes.controlBar}>
-          <input
-            type="range"
-            step="2"
-            min="1"
+          <Slider
+            axis="y"
+            style={{ height: '300px' }}
+            step={2}
+            min={1}
             max={gcode.linePreview.geometry.getAttribute('position').count}
             defaultValue={gcode.linePreview.geometry.getAttribute('position').count}
             onChange={this.updateDrawRange}
           />
         </div>}
-        {!sliced && <div className={classes.sliceBar}>
-          <button onClick={this.slice}>Slice</button>
-        </div>}
-        {sliced && <div className={classes.sliceBar}>
-          <button onClick={this.reset}>Slice Again</button>
+        {!sliced && <Paper className={classes.sliceBar}>
+          <RaisedButton fullWidth disabled={isSlicing} onTouchTap={this.slice} primary label="slice" />
+        </Paper>}
+        {sliced && <Paper className={classes.sliceBar}>
+          <RaisedButton fullWidth onTouchTap={this.reset} primary label="slice again" />
           {onCompleteActions.map(({ title, callback }, i) => (
-            <button key={i} onClick={() => callback(gcode.gcode)}>{title}</button>
+            <RaisedButton key={i} fullWidth onTouchTap={() => callback(gcode.gcode)} primary label={title} />
           ))}
-        </div>}
+        </Paper>}
         {isSlicing && <div className={classes.overlay}>
           <p>Slicing: {progress.percentage.toLocaleString(navigator.language, { style: 'percent' })}</p>
           <ul className={classes.sliceActions}>

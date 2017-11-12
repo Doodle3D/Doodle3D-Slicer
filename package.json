@@ -18,6 +18,7 @@
     "material-ui": "^0.19.4",
     "proptypes": "^1.1.0",
     "react": "^16.1.0",
+    "react-dom": "^16.1.0",
     "react-jss": "^7.2.0",
     "three": "^0.83.0"
   },

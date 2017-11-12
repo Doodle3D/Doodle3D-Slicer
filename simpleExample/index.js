@@ -4,6 +4,10 @@ import { Interface } from 'doodle3d-slicer';
 import fileURL from '!url-loader!./models/shape.json';
 import { render } from 'react-dom';
 import fileSaver from 'file-saver';
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import injectTapEventPlugin from 'react-tap-event-plugin';
+
+injectTapEventPlugin();
 
 document.body.style.margin = 0;
 document.body.style.padding = 0;
@@ -16,13 +20,13 @@ const downloadGCode = gcode => {
 const jsonLoader = new THREE.JSONLoader();
 jsonLoader.load(fileURL, geometry => {
   render((
-    <div>
+    <MuiThemeProvider>
       <Interface
         geometry={geometry}
         width={window.innerWidth}
         height={window.innerHeight}
         onCompleteActions={[{ title: 'Download', callback: downloadGCode }]}
       />
-    </div>
+    </MuiThemeProvider>
   ), document.getElementById('app'));
 });
