@@ -25,6 +25,18 @@ const styles = {
     position: 'absolute',
     top: 0,
     right: 0
+  },
+  overlay: {
+    position: 'absolute',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    color: 'white',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0
+  },
+  sliceActions: {
+    listStyleType: 'none'
   }
 };
 
@@ -50,6 +62,7 @@ class Interface extends React.Component {
   };
   state = {
     controlMode: 'translate',
+    isSlicing: false,
     sliced: false
   };
 
@@ -106,10 +119,17 @@ class Interface extends React.Component {
     const geometry = mesh.geometry.clone();
     mesh.updateMatrix();
 
+    this.setState({ isSlicing: true, progress: { actions: [], percentage: 0 } });
+
     const matrix = new THREE.Matrix4().makeTranslation(centerY, 0, centerX).multiply(mesh.matrix);
-    const gcode = await sliceGeometry(settings, geometry, matrix, false, true, (process) => {
-      console.log('process: ', process);
+    const gcode = await sliceGeometry(settings, geometry, matrix, false, true, ({ progress }) => {
+      this.setState({ progress: {
+        actions: [...this.state.progress.actions, progress.action],
+        percentage: progress.done / progress.total
+      } });
     });
+
+    this.setState({ isSlicing: false });
 
     // TODO
     // can't disable control ui still interacts with mouse input
@@ -142,7 +162,7 @@ class Interface extends React.Component {
 
   render() {
     const { width, height, classes, onCompleteActions } = this.props;
-    const { sliced, gcode } = this.state;
+    const { sliced, isSlicing, progress, gcode } = this.state;
 
     return (
       <div style={{ width, height }} className={classes.container}>
@@ -171,6 +191,12 @@ class Interface extends React.Component {
           {onCompleteActions.map(({ title, callback }, i) => (
             <button key={i} onClick={() => callback(gcode.gcode)}>{title}</button>
           ))}
+        </div>}
+        {isSlicing && <div className={classes.overlay}>
+          <p>Slicing: {progress.percentage.toLocaleString(navigator.language, { style: 'percent' })}</p>
+          <ul className={classes.sliceActions}>
+            {progress.actions.map((action, i) => <li key={i}>{action}</li>)}
+          </ul>
         </div>}
       </div>
     );
