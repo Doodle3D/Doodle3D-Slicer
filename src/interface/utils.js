@@ -3,9 +3,7 @@ import 'three/examples/js/controls/EditorControls';
 import 'three/examples/js/controls/TransformControls';
 
 export function placeOnGround(mesh) {
-  const boundingBox = new THREE.Box3();
-  const vertices = mesh.geometry.vertices.map(vertex => vertex.clone().applyMatrix4(mesh.matrix));
-  boundingBox.setFromPoints(vertices);
+  const boundingBox = new THREE.Box3().setFromObject(mesh);
 
   mesh.position.y -= boundingBox.min.y;
   mesh.updateMatrix();
