@@ -68,7 +68,19 @@ class Interface extends React.Component {
       placeOnGround(mesh);
       render();
     }
-  }
+  };
+
+  reset = () => {
+    const { control, mesh, render, gcode, scene } = this.state;
+    control.visible = true;
+    mesh.visible = true;
+
+    scene.remove(gcode.linePreview);
+    gcode.linePreview.geometry.dispose();
+
+    this.setState({ sliced: false, gcode: null });
+    render();
+  };
 
   slice = async () => {
     const { mesh, render, scene, control } = this.state;
@@ -86,20 +98,21 @@ class Interface extends React.Component {
     mesh.updateMatrix();
 
     const matrix = new THREE.Matrix4().makeTranslation(centerY, 0, centerX).multiply(mesh.matrix);
-    const { gcode, linePreview } = await sliceGeometry(settings, geometry, matrix, true, true, (process) => {
+    const gcode = await sliceGeometry(settings, geometry, matrix, true, true, (process) => {
       console.log('process: ', process);
     });
 
-    // can't disable control so remove it
-    control.dispose();
-    scene.remove(control, mesh);
+    // TODO
+    // can't disable control
+    control.visible = false;
+    mesh.visible = false;
 
-    linePreview.position.x = -centerY;
-    linePreview.position.z = -centerX;
-    scene.add(linePreview);
+    gcode.linePreview.position.x = -centerY;
+    gcode.linePreview.position.z = -centerX;
+    scene.add(gcode.linePreview);
 
+    this.setState({ sliced: true, gcode });
     render();
-    this.setState({ sliced: true });
   };
 
   componentWillUnmount() {
@@ -126,6 +139,10 @@ class Interface extends React.Component {
         </div>}
         {!sliced && <div className={classes.sliceBar}>
           <button onClick={this.slice}>Slice</button>
+        </div>}
+        {sliced && <div className={classes.sliceBar}>
+          <button onClick={this.reset}>Slice Again</button>
+          <button>Download</button>
         </div>}
       </div>
     );
