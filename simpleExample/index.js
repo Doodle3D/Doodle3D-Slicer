@@ -12,8 +12,12 @@ const downloadGCode = gcode => {
 
 const jsonLoader = new THREE.JSONLoader();
 jsonLoader.load(fileURL, geometry => {
-  render(<Interface
-    geometry={geometry}
-    onCompleteActions={[{ title: 'Download', callback: downloadGCode }]}
-  />, document.getElementById('app'));
+  render((
+    <div style={{ position: 'absolute', border: '1px solid black' }}>
+      <Interface
+        geometry={geometry}
+        onCompleteActions={[{ title: 'Download', callback: downloadGCode }]}
+      />
+    </div>
+  ), document.getElementById('app'));
 });
