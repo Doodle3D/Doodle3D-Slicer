@@ -12,7 +12,7 @@ export function sliceMesh(settings, mesh, sync = false, constructLinePreview = f
   return sliceGeometry(settings, geometry, matrix, sync, onProgress);
 }
 
-export async function sliceGeometry(settings, geometry, matrix, sync = false, constructLinePreview = false, onProgress) {
+export function sliceGeometry(settings, geometry, matrix, sync = false, constructLinePreview = false, onProgress) {
   if (!geometry) {
     throw new Error('Missing required geometry argument');
   } else if (geometry.isBufferGeometry) {
@@ -31,24 +31,18 @@ export async function sliceGeometry(settings, geometry, matrix, sync = false, co
     geometry.applyMatrix(matrix);
   }
 
-  let gcode;
   if (sync) {
-    gcode = sliceSync(settings, geometry, onProgress);
+    return sliceSync(settings, geometry, constructLinePreview, onProgress);
   } else {
-    gcode = await sliceAsync(settings, geometry, onProgress);
+    return sliceAsync(settings, geometry, constructLinePreview, onProgress);
   }
-
-  if (constructLinePreview) gcode.linePreview = createGcodeGeometry(gcode.gcode);
-
-  gcode.gcode = gcodeToString(gcode.gcode);
-  return gcode;
 }
 
-function sliceSync(settings, geometry, onProgress) {
-  return slice(settings, geometry, onProgress);
+function sliceSync(settings, geometry, constructLinePreview, onProgress) {
+  return slice(settings, geometry, constructLinePreview, onProgress);
 }
 
-function sliceAsync(settings, geometry, onProgress) {
+function sliceAsync(settings, geometry, constructLinePreview, onProgress) {
   return new Promise((resolve, reject) => {
     // create the slicer worker
     const slicerWorker = new SlicerWorker();
@@ -64,6 +58,20 @@ function sliceAsync(settings, geometry, onProgress) {
       switch (message) {
         case 'SLICE': {
           slicerWorker.terminate();
+
+          if (data.gcode.linePreview) {
+            const geometry = new THREE.BufferGeometry();
+
+            const { position, color } = data.gcode.linePreview;
+            geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(position), 3));
+            geometry.addAttribute('color', new THREE.BufferAttribute(new Float32Array(color), 3));
+
+            const material = new THREE.LineBasicMaterial({ vertexColors: THREE.VertexColors });
+            const linePreview = new THREE.LineSegments(geometry, material);
+
+            data.gcode.linePreview = linePreview;
+          }
+
           resolve(data.gcode);
           break;
         }
@@ -82,68 +90,9 @@ function sliceAsync(settings, geometry, onProgress) {
       message: 'SLICE',
       data: {
         settings,
-        geometry
+        geometry,
+        constructLinePreview
       }
     });
   });
-}
-
-function gcodeToString(gcode) {
-  const currentValues = {};
-  return gcode.reduce((string, command) => {
-    let first = true;
-    for (const action in command) {
-      const value = command[action];
-      const currentValue = currentValues[action];
-      if (first) {
-        string += action + value;
-        first = false;
-      } else if (currentValue !== value) {
-        string += ` ${action}${value}`;
-        currentValues[action] = value;
-      }
-    }
-    string += '\n';
-    return string;
-  }, '');
-}
-
-const MAX_SPEED = 100 * 60;
-function createGcodeGeometry(gcode) {
-  const geometry = new THREE.BufferGeometry();
-
-  const positions = [];
-  const colors = [];
-
-  let lastPoint
-  for (let i = 0; i < gcode.length; i ++) {
-    const { G, F, X, Y, Z } = gcode[i];
-
-    if (X || Y || Z) {
-      let color;
-      if (G === 0) {
-        color = new THREE.Color(0x00ff00);
-      } else if (G === 1) {
-        color = new THREE.Color().setHSL(F / MAX_SPEED, 0.5, 0.5);
-      }
-
-      if (G === 1) {
-        if (lastPoint) positions.push(lastPoint[0], lastPoint[1], lastPoint[2]);
-        positions.push(Y, Z, X);
-
-        colors.push(color.r, color.g, color.b);
-        colors.push(color.r, color.g, color.b);
-      }
-
-      lastPoint = [Y, Z, X];
-    }
-  }
-
-  geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
-  geometry.addAttribute('color', new THREE.BufferAttribute(new Float32Array(colors), 3));
-
-  const material = new THREE.LineBasicMaterial({ vertexColors: THREE.VertexColors });
-  const line = new THREE.LineSegments(geometry, material);
-
-  return line;
 }

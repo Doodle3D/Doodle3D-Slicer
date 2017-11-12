@@ -107,12 +107,12 @@ class Interface extends React.Component {
     mesh.updateMatrix();
 
     const matrix = new THREE.Matrix4().makeTranslation(centerY, 0, centerX).multiply(mesh.matrix);
-    const gcode = await sliceGeometry(settings, geometry, matrix, true, true, (process) => {
+    const gcode = await sliceGeometry(settings, geometry, matrix, false, true, (process) => {
       console.log('process: ', process);
     });
 
     // TODO
-    // can't disable control
+    // can't disable control ui still interacts with mouse input
     control.visible = false;
     mesh.visible = false;
 
