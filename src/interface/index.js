@@ -54,33 +54,6 @@ const styles = {
 };
 
 class Interface extends React.Component {
-  static defaultProps = {
-    width: 720,
-    height: 480,
-    printers: printerSettings,
-    defaultPrinter: 'ultimaker2',
-    quality: qualitySettings,
-    defaultQuality: 'medium',
-    materials: materialSettings,
-    defaultMaterial: 'pla',
-  };
-  static propTypes = {
-    geometry: (props, propName) => {
-      if (!(props[propName].isGeometry || props[propName].isBufferGeometry)) {
-        throw new Error('invalid prop, is not geometry');
-      }
-    },
-    width: PropTypes.number.isRequired,
-    height: PropTypes.number.isRequired,
-    classes: PropTypes.objectOf(PropTypes.string),
-    printers: PropTypes.object.isRequired,
-    defaultPrinter: PropTypes.string.isRequired,
-    quality: PropTypes.object.isRequired,
-    defaultQuality: PropTypes.string.isRequired,
-    materials: PropTypes.object.isRequired,
-    defaultMaterial: PropTypes.string.isRequired,
-    onCompleteActions: PropTypes.arrayOf(PropTypes.shape({ title: PropTypes.string, callback: PropTypes.func })).isRequired,
-  };
   constructor(props) {
     super(props);
     this.state = {
@@ -248,5 +221,32 @@ class Interface extends React.Component {
     );
   }
 }
+Interface.defaultProps = {
+  width: 720,
+  height: 480,
+  printers: printerSettings,
+  defaultPrinter: 'ultimaker2',
+  quality: qualitySettings,
+  defaultQuality: 'medium',
+  materials: materialSettings,
+  defaultMaterial: 'pla',
+};
+Interface.propTypes = {
+  geometry(props, propName) {
+    if (!(props[propName].isGeometry || props[propName].isBufferGeometry)) {
+      throw new Error('invalid prop, is not geometry');
+    }
+  },
+  width: PropTypes.number.isRequired,
+  height: PropTypes.number.isRequired,
+  classes: PropTypes.objectOf(PropTypes.string),
+  printers: PropTypes.object.isRequired,
+  defaultPrinter: PropTypes.string.isRequired,
+  quality: PropTypes.object.isRequired,
+  defaultQuality: PropTypes.string.isRequired,
+  materials: PropTypes.object.isRequired,
+  defaultMaterial: PropTypes.string.isRequired,
+  onCompleteActions: PropTypes.arrayOf(PropTypes.shape({ title: PropTypes.string, callback: PropTypes.func })).isRequired,
+};
 
 export default injectSheet(styles)(Interface);
