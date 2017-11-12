@@ -46,6 +46,7 @@ class Interface extends React.Component {
     classes: PropTypes.objectOf(PropTypes.string),
     printers: PropTypes.object.isRequired,
     defaultPrinter: PropTypes.string.isRequired,
+    onCompleteActions: PropTypes.arrayOf(PropTypes.shape({ title: PropTypes.string, callback: PropTypes.func })).isRequired,
   };
   state = {
     controlMode: 'translate',
@@ -126,8 +127,9 @@ class Interface extends React.Component {
   }
 
   render() {
-    const { width, height, classes } = this.props;
-    const { sliced } = this.state;
+    const { width, height, classes, onCompleteActions } = this.props;
+    const { sliced, gcode } = this.state;
+
     return (
       <div style={{ width, height }} className={classes.container}>
         <canvas className={classes.canvas} ref="canvas" width={width} height={height} />
@@ -142,7 +144,9 @@ class Interface extends React.Component {
         </div>}
         {sliced && <div className={classes.sliceBar}>
           <button onClick={this.reset}>Slice Again</button>
-          <button>Download</button>
+          {onCompleteActions.map(({ title, callback }, i) => (
+            <button key={i} onClick={() => callback(gcode.gcode)}>{title}</button>
+          ))}
         </div>}
       </div>
     );

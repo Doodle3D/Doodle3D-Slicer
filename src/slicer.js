@@ -96,7 +96,7 @@ function gcodeToString(gcode) {
       const value = command[action];
       const currentValue = currentValues[action];
       if (first) {
-        string = action + value;
+        string += action + value;
         first = false;
       } else if (currentValue !== value) {
         string += ` ${action}${value}`;
@@ -104,6 +104,7 @@ function gcodeToString(gcode) {
       }
     }
     string += '\n';
+    return string;
   }, '');
 }
 
