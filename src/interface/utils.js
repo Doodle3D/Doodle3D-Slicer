@@ -37,7 +37,6 @@ export function createScene(canvas, props, state) {
 
   const camera = new THREE.PerspectiveCamera(50, width / height, 1, 10000);
   camera.position.set(0, 400, 300);
-  camera.lookAt(new THREE.Vector3(0, 0, 0));
 
   const directionalLight = new THREE.DirectionalLight(0xd5d5d5);
   directionalLight.position.set(1, 1, 1);
@@ -51,6 +50,7 @@ export function createScene(canvas, props, state) {
   scene.add(mesh);
 
   const editorControls = new THREE.EditorControls(camera, canvas);
+  editorControls.focus(mesh);
 
   const control = new THREE.TransformControls(camera, canvas);
   control.setMode(controlMode);
