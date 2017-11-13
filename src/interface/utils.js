@@ -20,7 +20,7 @@ export function createScene(canvas, props, state) {
   const centerZ = (geometry.boundingBox.max.z + geometry.boundingBox.min.z) / 2;
   geometry.applyMatrix(new THREE.Matrix4().makeTranslation(-centerX, -centerY, -centerZ));
 
-  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setClearColor(0xffffff, 0);
 
   const scene = new THREE.Scene();
