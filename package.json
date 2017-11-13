@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@doodle3d/clipper-js": "^1.0.7",
+    "lodash": "^4.17.4",
     "material-ui": "^0.19.4",
     "proptypes": "^1.1.0",
     "react": "^16.1.0",

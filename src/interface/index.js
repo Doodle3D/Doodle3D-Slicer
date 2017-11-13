@@ -1,20 +1,15 @@
 import React from 'react';
 import * as THREE from 'three';
-import { placeOnGround, createScene, createGcodeGeometry } from './utils.js';
-import baseSettings from '../settings/default.yml';
-import printerSettings from '../settings/printer.yml';
-import materialSettings from '../settings/material.yml';
-import qualitySettings from '../settings/quality.yml';
 import PropTypes from 'proptypes';
+import { placeOnGround, createScene, createGcodeGeometry } from './utils.js';
 import injectSheet from 'react-jss';
 import { sliceGeometry } from '../slicer.js';
 import RaisedButton from 'material-ui/RaisedButton';
 import Paper from 'material-ui/Paper';
 import Slider from 'material-ui/Slider';
-import { Tabs, Tab } from 'material-ui/Tabs';
-import SelectField from 'material-ui/SelectField'
-import MenuItem from 'material-ui/MenuItem';
 import { grey50 } from 'material-ui/styles/colors';
+import Settings from './Settings.js';
+import baseSettings from '../settings/default.yml';
 
 const styles = {
   container: {
@@ -59,11 +54,9 @@ class Interface extends React.Component {
     this.state = {
       controlMode: 'translate',
       isSlicing: false,
-      sliced: false,
-      printer: props.defaultPrinter
+      sliced: false
     };
   }
-
 
   componentDidMount() {
     const { canvas } = this.refs;
@@ -97,14 +90,9 @@ class Interface extends React.Component {
   };
 
   slice = async () => {
-    const { mesh, render, scene, control, printer } = this.state;
-    const settings = {
-      ...baseSettings,
-      ...materialSettings.pla,
-      ...printerSettings[printer]
-    };
+    const { mesh, render, scene, control } = this.state;
 
-    const { dimensions } = settings;
+    const { dimensions } = baseSettings;
     const centerX = dimensions.x / 2;
     const centerY = dimensions.y / 2;
 
@@ -114,7 +102,7 @@ class Interface extends React.Component {
     this.setState({ isSlicing: true, progress: { actions: [], percentage: 0 } });
 
     const matrix = new THREE.Matrix4().makeTranslation(centerY, 0, centerX).multiply(mesh.matrix);
-    const gcode = await sliceGeometry(settings, geometry, matrix, false, true, ({ progress }) => {
+    const gcode = await sliceGeometry(baseSettings, geometry, matrix, false, true, ({ progress }) => {
       this.setState({ progress: {
         actions: [...this.state.progress.actions, progress.action],
         percentage: progress.done / progress.total
@@ -155,7 +143,7 @@ class Interface extends React.Component {
 
   render() {
     const { width, height, classes, onCompleteActions, printers, materials, quality } = this.props;
-    const { sliced, isSlicing, progress, gcode, controlMode, printer } = this.state;
+    const { sliced, isSlicing, progress, gcode, controlMode } = this.state;
 
     return (
       <div style={{ width, height }} className={classes.container}>
@@ -178,31 +166,7 @@ class Interface extends React.Component {
           />
         </div>}
         {!sliced && <Paper className={classes.sliceBar}>
-          <Tabs>
-            <Tab label="basic settings">
-              <div>
-                <SelectField name="printer" value={printer} floatingLabelText="Printer" fullWidth>
-                  {Object.entries(printers).map(([value, { title }]) => (
-                    <MenuItem key={value} value={value} primaryText={title} />
-                  ))}
-                </SelectField>
-                <SelectField value="medium" floatingLabelText="Quality" fullWidth>
-                  {Object.entries(quality).map(([value, { title }]) => (
-                    <MenuItem key={value} value={value} primaryText={title} />
-                  ))}
-                </SelectField>
-                <SelectField value="pla" floatingLabelText="Material" fullWidth>
-                  {Object.entries(materials).map(([value, { title }]) => (
-                    <MenuItem key={value} value={value} primaryText={title} />
-                  ))}
-                </SelectField>
-              </div>
-            </Tab>
-            <Tab label="advanced settings">
-              <div>
-              </div>
-            </Tab>
-          </Tabs>
+          <Settings printers={printers} />
           <RaisedButton className={classes.button} fullWidth disabled={isSlicing} onTouchTap={this.slice} primary label="slice" />
         </Paper>}
         {sliced && <Paper className={classes.sliceBar}>
@@ -223,13 +187,7 @@ class Interface extends React.Component {
 }
 Interface.defaultProps = {
   width: 720,
-  height: 480,
-  printers: printerSettings,
-  defaultPrinter: 'ultimaker2',
-  quality: qualitySettings,
-  defaultQuality: 'medium',
-  materials: materialSettings,
-  defaultMaterial: 'pla',
+  height: 480
 };
 Interface.propTypes = {
   geometry(props, propName) {
@@ -240,12 +198,6 @@ Interface.propTypes = {
   width: PropTypes.number.isRequired,
   height: PropTypes.number.isRequired,
   classes: PropTypes.objectOf(PropTypes.string),
-  printers: PropTypes.object.isRequired,
-  defaultPrinter: PropTypes.string.isRequired,
-  quality: PropTypes.object.isRequired,
-  defaultQuality: PropTypes.string.isRequired,
-  materials: PropTypes.object.isRequired,
-  defaultMaterial: PropTypes.string.isRequired,
   onCompleteActions: PropTypes.arrayOf(PropTypes.shape({ title: PropTypes.string, callback: PropTypes.func })).isRequired,
 };
 

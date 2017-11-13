@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import 'three/examples/js/controls/EditorControls';
 import 'three/examples/js/controls/TransformControls';
+import printerSettings from '../settings/printer.yml';
 
 export function placeOnGround(mesh) {
   const boundingBox = new THREE.Box3().setFromObject(mesh);
@@ -10,8 +11,8 @@ export function placeOnGround(mesh) {
 }
 
 export function createScene(canvas, props, state) {
-  const { width, height, printers, geometry } = props;
-  const { controlMode, printer } = state;
+  const { width, height, geometry } = props;
+  const { controlMode } = state;
 
   // center geometry
   geometry.computeBoundingBox();
@@ -68,7 +69,7 @@ export function createScene(canvas, props, state) {
   box.material.color.setHex(0x72bcd4);
   scene.add(box);
 
-  const { dimensions } = printers[printer];
+  const { dimensions } = printerSettings['ultimaker2'];
   box.scale.set(dimensions.y, dimensions.z, dimensions.x);
 
   render();
