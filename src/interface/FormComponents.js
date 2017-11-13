@@ -36,25 +36,25 @@ export const SelectField = (props, context) => (
   <MaterialUISelectField
     { ...props }
     value={context.state[props.name]}
-    onChange={(event, index, value) => props.onChange(props.name, value)}
+    onChange={(event, index, value) => context.onChange(props.name, value)}
   />
 );
-SelectField.contextTypes = { state: PropTypes.object };
+SelectField.contextTypes = { state: PropTypes.object, onChange: PropTypes.func };
 
 export const TextField = (props, context) => (
   <MaterialUITextField
     { ...props }
     value={_.get(context.state, props.name)}
-    onChange={(event, value) => props.onChange(props.name, value)}
+    onChange={(event, value) => context.onChange(props.name, value)}
   />
 );
-TextField.contextTypes = { state: PropTypes.object };
+TextField.contextTypes = { state: PropTypes.object, onChange: PropTypes.func };
 
 export const Checkbox = (props, context) => (
   <MaterialUICheckbox
     { ...props }
     checked={_.get(context.state, props.name)}
-    onCheck={(event, value) => props.onChange(props.name, value)}
+    onCheck={(event, value) => context.onChange(props.name, value)}
   />
 );
-Checkbox.contextTypes = { state: PropTypes.object };
+Checkbox.contextTypes = { state: PropTypes.object, onChange: PropTypes.func };
