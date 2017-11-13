@@ -18,8 +18,8 @@
     "lodash": "^4.17.4",
     "material-ui": "^0.19.4",
     "proptypes": "^1.1.0",
-    "react": "^16.1.0",
-    "react-dom": "^16.1.0",
+    "react": "^16.0.0",
+    "react-dom": "^16.0.0",
     "react-jss": "^7.2.0",
     "react-resize-detector": "^1.1.0",
     "three": "^0.83.0"
