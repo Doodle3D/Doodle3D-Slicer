@@ -69,7 +69,7 @@ class Interface extends React.Component {
       controlMode: 'translate',
       isSlicing: false,
       sliced: false,
-      printers: defaultPrinter,
+      printer: defaultPrinter,
       quality: defaultQuality,
       material: defaultMaterial,
       settings: _.merge(
