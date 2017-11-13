@@ -222,10 +222,6 @@ class Interface extends React.Component {
     );
   }
 }
-Interface.defaultProps = {
-  width: 720,
-  height: 480
-};
 Interface.propTypes = {
   geometry(props, propName) {
     if (!(props[propName].isGeometry || props[propName].isBufferGeometry)) {
@@ -253,6 +249,8 @@ Interface.defaultProps = {
   defaultQuality: 'medium',
   material: materialSettings,
   defaultMaterial: 'pla',
+  width: 720,
+  height: 480,
   pixelRatio: 1
 };
 
