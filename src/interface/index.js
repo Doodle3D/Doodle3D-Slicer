@@ -69,6 +69,9 @@ class Interface extends React.Component {
       controlMode: 'translate',
       isSlicing: false,
       sliced: false,
+      printer: printers[defaultPrinter],
+      quality: quality[defaultQuality],
+      material: material[defaultMaterial],
       settings: _.merge(
         {},
         defaultSettings,
@@ -150,7 +153,7 @@ class Interface extends React.Component {
   };
 
   onChangeSettings = (settings) => {
-    this.setState({ settings });
+    this.setState(settings);
   };
 
   updateDrawRange = (event, value) => {
@@ -187,7 +190,7 @@ class Interface extends React.Component {
 
   render() {
     const { width, height, classes, onCompleteActions, defaultPrinter, defaultQuality, defaultMaterial } = this.props;
-    const { sliced, isSlicing, progress, gcode, controlMode, settings } = this.state;
+    const { sliced, isSlicing, progress, gcode, controlMode, settings, printer, quality, material } = this.state;
 
     return (
       <div className={classes.container}>
@@ -228,7 +231,7 @@ class Interface extends React.Component {
         {sliced && <div className={classes.sliceBar}>
           <RaisedButton className={classes.button} fullWidth onTouchTap={this.reset} primary label="slice again" />
           {onCompleteActions.map(({ title, callback }, i) => (
-            <RaisedButton className={classes.button} key={i} fullWidth onTouchTap={() => callback(gcode.gcode, settings)} primary label={title} />
+            <RaisedButton className={classes.button} key={i} fullWidth onTouchTap={() => callback({ gcode, settings, printer, quality, material })} primary label={title} />
           ))}
         </div>}
         {isSlicing && <div className={classes.overlay}>

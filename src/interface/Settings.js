@@ -42,7 +42,7 @@ class Settings extends React.Component {
         state = _.set(_.cloneDeep(this.state), fieldName, value);
         break;
     }
-    if (onChange) onChange(state.settings);
+    if (onChange) onChange(state);
     if (state) this.setState(state);
   };
 
