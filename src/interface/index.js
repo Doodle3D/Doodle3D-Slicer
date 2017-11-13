@@ -15,18 +15,6 @@ import printerSettings from '../settings/printer.yml';
 import materialSettings from '../settings/material.yml';
 import qualitySettings from '../settings/quality.yml';
 
-const DEFAULT_PRINTER = 'ultimaker2';
-const DEFAULT_MATERIAL = 'pla';
-const DEFAULT_QUALITY = 'medium';
-
-const INITIAL_SETTINGS = _.merge(
-  {},
-  baseSettings,
-  printerSettings[DEFAULT_PRINTER],
-  qualitySettings[DEFAULT_MATERIAL],
-  materialSettings[DEFAULT_MATERIAL]
-);
-
 const styles = {
   container: {
     position: 'relative',
@@ -67,11 +55,18 @@ const styles = {
 class Interface extends React.Component {
   constructor(props) {
     super(props);
+    const { defaultPrinter, defaultQuality, defaultMaterial, printers, quality, material, defaultSettings } = props;
     this.state = {
       controlMode: 'translate',
       isSlicing: false,
       sliced: false,
-      settings: INITIAL_SETTINGS
+      settings: _.merge(
+        {},
+        defaultSettings,
+        printers[defaultPrinter],
+        quality[defaultQuality],
+        material[defaultMaterial]
+      )
     };
   }
 
@@ -168,7 +163,7 @@ class Interface extends React.Component {
   }
 
   render() {
-    const { width, height, classes, onCompleteActions } = this.props;
+    const { width, height, classes, onCompleteActions, defaultPrinter, defaultQuality, defaultMaterial } = this.props;
     const { sliced, isSlicing, progress, gcode, controlMode, settings } = this.state;
 
     return (
@@ -194,12 +189,12 @@ class Interface extends React.Component {
         {!sliced && <Paper className={classes.sliceBar}>
           <Settings
             printers={printerSettings}
-            defaultPrinter={DEFAULT_PRINTER}
+            defaultPrinter={defaultPrinter}
             quality={qualitySettings}
-            defaultQuality={DEFAULT_QUALITY}
+            defaultQuality={defaultQuality}
             material={materialSettings}
-            defaultMaterial={DEFAULT_MATERIAL}
-            initalSettings={INITIAL_SETTINGS}
+            defaultMaterial={defaultMaterial}
+            initalSettings={settings}
             onChange={this.onChangeSettings}
           />
           <RaisedButton className={classes.button} fullWidth disabled={isSlicing} onTouchTap={this.slice} primary label="slice" />
@@ -234,6 +229,22 @@ Interface.propTypes = {
   height: PropTypes.number.isRequired,
   classes: PropTypes.objectOf(PropTypes.string),
   onCompleteActions: PropTypes.arrayOf(PropTypes.shape({ title: PropTypes.string, callback: PropTypes.func })).isRequired,
+  defaultSettings: PropTypes.object.isRequired,
+  printers: PropTypes.object.isRequired,
+  defaultPrinter: PropTypes.string.isRequired,
+  quality: PropTypes.object.isRequired,
+  defaultQuality: PropTypes.string.isRequired,
+  material: PropTypes.object.isRequired,
+  defaultMaterial: PropTypes.string.isRequired
+};
+Interface.defaultProps = {
+  defaultSettings: baseSettings,
+  printers: printerSettings,
+  defaultPrinter: 'ultimaker2',
+  quality: qualitySettings,
+  defaultQuality: 'medium',
+  material: materialSettings,
+  defaultMaterial: 'pla'
 };
 
 export default injectSheet(styles)(Interface);
