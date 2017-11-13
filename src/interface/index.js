@@ -36,7 +36,7 @@ const styles = {
   },
   sliceBar: {
     width: '240px',
-    padding: '0 10px',
+    padding: '10px',
     overflowY: 'auto',
     backgroundColor: 'white',
     borderLeft: `1px solid ${grey300}`
