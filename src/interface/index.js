@@ -49,6 +49,9 @@ const styles = {
   },
   button: {
     margin: '5px 0'
+  },
+  controlButton: {
+    marginRight: '2px'
   }
 };
 
@@ -170,10 +173,10 @@ class Interface extends React.Component {
       <div style={{ width, height }} className={classes.container}>
         <canvas className={classes.canvas} ref="canvas" width={width} height={height} />
         {!sliced && <div className={classes.controlBar}>
-          <RaisedButton onTouchTap={this.resetMesh} primary label="reset" />
-          <RaisedButton disabled={controlMode === 'translate'} onTouchTap={() => this.setState({ controlMode: 'translate' })} primary label="translate" />
-          <RaisedButton disabled={controlMode === 'rotate'} onTouchTap={() => this.setState({ controlMode: 'rotate' })} primary label="rotate" />
-          <RaisedButton disabled={controlMode === 'scale'} onTouchTap={() => this.setState({ controlMode: 'scale' })} primary label="scale" />
+          <RaisedButton className={classes.controlButton} onTouchTap={this.resetMesh} primary label="reset" />
+          <RaisedButton className={classes.controlButton} disabled={controlMode === 'translate'} onTouchTap={() => this.setState({ controlMode: 'translate' })} primary label="translate" />
+          <RaisedButton className={classes.controlButton} disabled={controlMode === 'rotate'} onTouchTap={() => this.setState({ controlMode: 'rotate' })} primary label="rotate" />
+          <RaisedButton className={classes.controlButton} disabled={controlMode === 'scale'} onTouchTap={() => this.setState({ controlMode: 'scale' })} primary label="scale" />
         </div>}
         {sliced && <div className={classes.controlBar}>
           <Slider
