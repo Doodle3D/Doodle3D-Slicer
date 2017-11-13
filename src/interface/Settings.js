@@ -21,7 +21,7 @@ class Settings extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      settings: props.initalSettings,
+      settings: props.initialSettings,
       printers: props.defaultPrinter,
       quality: props.defaultQuality,
       material: props.defaultMaterial
@@ -157,7 +157,7 @@ Settings.propTypes = {
   defaultQuality: PropTypes.string.isRequired,
   material: PropTypes.object.isRequired,
   defaultMaterial: PropTypes.string.isRequired,
-  initalSettings: PropTypes.object.isRequired
+  initialSettings: PropTypes.object.isRequired
 };
 
 export default injectSheet(styles)(Settings);

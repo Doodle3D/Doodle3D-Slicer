@@ -194,7 +194,7 @@ class Interface extends React.Component {
             defaultQuality={defaultQuality}
             material={materialSettings}
             defaultMaterial={defaultMaterial}
-            initalSettings={settings}
+            initialSettings={settings}
             onChange={this.onChangeSettings}
           />
           <RaisedButton className={classes.button} fullWidth disabled={isSlicing} onTouchTap={this.slice} primary label="slice" />
