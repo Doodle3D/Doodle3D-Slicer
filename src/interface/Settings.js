@@ -1,10 +1,6 @@
 import React from 'react';
 import PropTypes from 'proptypes';
 import _ from 'lodash';
-import baseSettings from '../settings/default.yml';
-import printerSettings from '../settings/printer.yml';
-import materialSettings from '../settings/material.yml';
-import qualitySettings from '../settings/quality.yml';
 import { Tabs, Tab } from 'material-ui/Tabs';
 import MenuItem from 'material-ui/MenuItem';
 import injectSheet from 'react-jss';
@@ -21,52 +17,37 @@ const styles = {
   }
 };
 
-const DEFAULT_PRINTER = 'ultimaker2';
-const DEFAULT_MATERIAL = 'pla';
-const DEFAULT_QUALITY = 'medium';
-
-const DEFAULT_SETTINGS = {
-  'printer': printerSettings,
-  'quality': qualitySettings,
-  'material': materialSettings
-};
-
 class Settings extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      settings: {
-        ...baseSettings,
-        ...printerSettings[DEFAULT_PRINTER],
-        ...qualitySettings[DEFAULT_MATERIAL],
-        ...materialSettings[DEFAULT_MATERIAL],
-        title: null
-      },
-      printer: DEFAULT_PRINTER,
-      quality: DEFAULT_QUALITY,
-      material: DEFAULT_MATERIAL
+      settings: props.initalSettings,
+      printers: props.defaultPrinter,
+      quality: props.defaultQuality,
+      material: props.defaultMaterial
     };
   }
 
   changeSettings = (fieldName, value) => {
+    const { onChange } = this.props;
+
+    let state;
     switch (fieldName) {
-      case 'printer':
+      case 'printers':
       case 'quality':
       case 'material':
-        this.setState({
+        state = {
           [fieldName]: value,
-          settings: {
-            ...this.state.settings,
-            ...DEFAULT_SETTINGS[fieldName][value],
-            title: null
-          }
-        });
+          settings: _.merge({}, this.state.settings, this.props[fieldName][value])
+        };
         break;
 
       default:
-        this.setState(_.set(this.state, fieldName, value));
+        state = _.set(_.cloneDeep(this.state), fieldName, value);
         break;
     }
+    if (onChange) onChange(state.settings);
+    if (state) this.setState(state);
   };
 
   getChildContext() {
@@ -74,24 +55,24 @@ class Settings extends React.Component {
   }
 
   render() {
-    const { classes } = this.props;
+    const { classes, printers, quality, material } = this.props;
 
     return (
       <Tabs>
         <Tab label="basic settings">
           <div className={classes.content}>
-            <SelectField name="printer" floatingLabelText="Printer" fullWidth onChange={this.changeSettings}>
-              {Object.entries(printerSettings).map(([value, { title }]) => (
+            <SelectField name="printers" floatingLabelText="Printer" fullWidth onChange={this.changeSettings}>
+              {Object.entries(printers).map(([value, { title }]) => (
                 <MenuItem key={value} value={value} primaryText={title} />
               ))}
             </SelectField>
             <SelectField name="quality" floatingLabelText="Quality" fullWidth onChange={this.changeSettings}>
-              {Object.entries(qualitySettings).map(([value, { title }]) => (
+              {Object.entries(quality).map(([value, { title }]) => (
                 <MenuItem key={value} value={value} primaryText={title} />
               ))}
             </SelectField>
             <SelectField name="material" floatingLabelText="Material" fullWidth onChange={this.changeSettings}>
-              {Object.entries(materialSettings).map(([value, { title }]) => (
+              {Object.entries(material).map(([value, { title }]) => (
                 <MenuItem key={value} value={value} primaryText={title} />
               ))}
             </SelectField>
@@ -169,7 +150,14 @@ Settings.childContextTypes = {
 };
 Settings.propTypes = {
   classes: PropTypes.objectOf(PropTypes.string),
-  onChange: PropTypes.func
+  onChange: PropTypes.func,
+  printers: PropTypes.object.isRequired,
+  defaultPrinter: PropTypes.string.isRequired,
+  quality: PropTypes.object.isRequired,
+  defaultQuality: PropTypes.string.isRequired,
+  material: PropTypes.object.isRequired,
+  defaultMaterial: PropTypes.string.isRequired,
+  initalSettings: PropTypes.object.isRequired
 };
 
 export default injectSheet(styles)(Settings);

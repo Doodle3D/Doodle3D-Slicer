@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import React from 'react';
 import * as THREE from 'three';
 import PropTypes from 'proptypes';
@@ -10,6 +11,21 @@ import Slider from 'material-ui/Slider';
 import { grey50 } from 'material-ui/styles/colors';
 import Settings from './Settings.js';
 import baseSettings from '../settings/default.yml';
+import printerSettings from '../settings/printer.yml';
+import materialSettings from '../settings/material.yml';
+import qualitySettings from '../settings/quality.yml';
+
+const DEFAULT_PRINTER = 'ultimaker2';
+const DEFAULT_MATERIAL = 'pla';
+const DEFAULT_QUALITY = 'medium';
+
+const INITIAL_SETTINGS = _.merge(
+  {},
+  baseSettings,
+  printerSettings[DEFAULT_PRINTER],
+  qualitySettings[DEFAULT_MATERIAL],
+  materialSettings[DEFAULT_MATERIAL]
+);
 
 const styles = {
   container: {
@@ -54,7 +70,8 @@ class Interface extends React.Component {
     this.state = {
       controlMode: 'translate',
       isSlicing: false,
-      sliced: false
+      sliced: false,
+      settings: INITIAL_SETTINGS
     };
   }
 
@@ -90,9 +107,9 @@ class Interface extends React.Component {
   };
 
   slice = async () => {
-    const { mesh, render, scene, control } = this.state;
+    const { mesh, render, scene, control, settings } = this.state;
 
-    const { dimensions } = baseSettings;
+    const { dimensions } = settings;
     const centerX = dimensions.x / 2;
     const centerY = dimensions.y / 2;
 
@@ -102,7 +119,7 @@ class Interface extends React.Component {
     this.setState({ isSlicing: true, progress: { actions: [], percentage: 0 } });
 
     const matrix = new THREE.Matrix4().makeTranslation(centerY, 0, centerX).multiply(mesh.matrix);
-    const gcode = await sliceGeometry(baseSettings, geometry, matrix, false, true, ({ progress }) => {
+    const gcode = await sliceGeometry(settings, geometry, matrix, false, true, ({ progress }) => {
       this.setState({ progress: {
         actions: [...this.state.progress.actions, progress.action],
         percentage: progress.done / progress.total
@@ -125,6 +142,10 @@ class Interface extends React.Component {
     render();
   };
 
+  onChangeSettings = (settings) => {
+    this.setState({ settings });
+  };
+
   updateDrawRange = (event, value) => {
     const { gcode, render } = this.state;
     gcode.linePreview.geometry.setDrawRange(0, value);
@@ -137,12 +158,17 @@ class Interface extends React.Component {
   }
 
   componentWillUpdate(nextProps, nextState) {
-    const { control } = this.state;
+    const { control, box, render } = this.state;
     if (control && nextState.controlMode !== this.state.controlMode) control.setMode(nextState.controlMode);
+    if (box && nextState.settings.dimensions !== this.state.settings.dimensions) {
+      const { dimensions } = nextState.settings;
+      box.scale.set(dimensions.y, dimensions.z, dimensions.x);
+      render();
+    }
   }
 
   render() {
-    const { width, height, classes, onCompleteActions, printers, materials, quality } = this.props;
+    const { width, height, classes, onCompleteActions } = this.props;
     const { sliced, isSlicing, progress, gcode, controlMode } = this.state;
 
     return (
@@ -166,7 +192,16 @@ class Interface extends React.Component {
           />
         </div>}
         {!sliced && <Paper className={classes.sliceBar}>
-          <Settings printers={printers} />
+          <Settings
+            printers={printerSettings}
+            defaultPrinter={DEFAULT_PRINTER}
+            quality={qualitySettings}
+            defaultQuality={DEFAULT_QUALITY}
+            material={materialSettings}
+            defaultMaterial={DEFAULT_MATERIAL}
+            initalSettings={INITIAL_SETTINGS}
+            onChange={this.onChangeSettings}
+          />
           <RaisedButton className={classes.button} fullWidth disabled={isSlicing} onTouchTap={this.slice} primary label="slice" />
         </Paper>}
         {sliced && <Paper className={classes.sliceBar}>
