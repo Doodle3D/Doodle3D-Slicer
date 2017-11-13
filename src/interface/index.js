@@ -169,7 +169,7 @@ class Interface extends React.Component {
 
   render() {
     const { width, height, classes, onCompleteActions } = this.props;
-    const { sliced, isSlicing, progress, gcode, controlMode } = this.state;
+    const { sliced, isSlicing, progress, gcode, controlMode, settings } = this.state;
 
     return (
       <div style={{ width, height }} className={classes.container}>
@@ -207,7 +207,7 @@ class Interface extends React.Component {
         {sliced && <Paper className={classes.sliceBar}>
           <RaisedButton className={classes.button} fullWidth onTouchTap={this.reset} primary label="slice again" />
           {onCompleteActions.map(({ title, callback }, i) => (
-            <RaisedButton className={classes.button} key={i} fullWidth onTouchTap={() => callback(gcode.gcode)} primary label={title} />
+            <RaisedButton className={classes.button} key={i} fullWidth onTouchTap={() => callback(gcode.gcode, settings)} primary label={title} />
           ))}
         </Paper>}
         {isSlicing && <div className={classes.overlay}>
