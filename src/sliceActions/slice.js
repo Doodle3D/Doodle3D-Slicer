@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import calculateLayersIntersections from './calculateLayersIntersections.js';
 import createLines from './createLines.js';
 import generateInfills from './generateInfills.js';
@@ -13,7 +14,7 @@ import detectOpenClosed from './detectOpenClosed.js';
 import applyPrecision from './applyPrecision.js';
 // import removePrecision from './removePrecision.js';
 
-export default function(settings, geometry, onProgress) {
+export default function(settings, geometry, constructLinePreview, onProgress) {
   const totalStages = 12;
   let current = -1;
   const updateProgress = (action) => {
@@ -72,5 +73,67 @@ export default function(settings, geometry, onProgress) {
 
   updateProgress('Finished');
 
+  if (constructLinePreview) gcode.linePreview = createGcodeGeometry(gcode.gcode);
+  gcode.gcode = gcodeToString(gcode.gcode);
   return gcode;
+}
+
+function gcodeToString(gcode) {
+  const currentValues = {};
+  return gcode.reduce((string, command) => {
+    let first = true;
+    for (const action in command) {
+      const value = command[action];
+      const currentValue = currentValues[action];
+      if (first) {
+        string += action + value;
+        first = false;
+      } else if (currentValue !== value) {
+        string += ` ${action}${value}`;
+        currentValues[action] = value;
+      }
+    }
+    string += '\n';
+    return string;
+  }, '');
+}
+
+const MAX_SPEED = 100 * 60;
+function createGcodeGeometry(gcode) {
+  const positions = [];
+  const colors = [];
+
+  let lastPoint
+  for (let i = 0; i < gcode.length; i ++) {
+    const { G, F, X, Y, Z } = gcode[i];
+
+    if (X || Y || Z) {
+      let color;
+      if (G === 0) {
+        color = new THREE.Color(0x00ff00);
+      } else if (G === 1) {
+        color = new THREE.Color().setHSL(F / MAX_SPEED, 0.5, 0.5);
+      }
+
+      if (G === 1) {
+        if (lastPoint) positions.push(lastPoint[0], lastPoint[1], lastPoint[2]);
+        positions.push(Y, Z, X);
+
+        colors.push(color.r, color.g, color.b);
+        colors.push(color.r, color.g, color.b);
+      }
+
+      lastPoint = [Y, Z, X];
+    }
+  }
+
+  const geometry = new THREE.BufferGeometry();
+
+  geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+  geometry.addAttribute('color', new THREE.BufferAttribute(new Float32Array(colors), 3));
+
+  const material = new THREE.LineBasicMaterial({ vertexColors: THREE.VertexColors });
+  const linePreview = new THREE.LineSegments(geometry, material);
+
+  return linePreview;
 }

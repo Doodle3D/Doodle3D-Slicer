@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import slice from './sliceActions/slice.js';
 import SlicerWorker from './slicer.worker.js';
 
-export function sliceMesh(settings, mesh, sync = false, onProgress) {
-  if (typeof mesh === 'undefined' || !mesh.isMesh) {
+export function sliceMesh(settings, mesh, sync = false, constructLinePreview = false, onProgress) {
+  if (!mesh || !mesh.isMesh) {
     throw new Error('Provided mesh is not intance of THREE.Mesh');
   }
 
@@ -12,8 +12,8 @@ export function sliceMesh(settings, mesh, sync = false, onProgress) {
   return sliceGeometry(settings, geometry, matrix, sync, onProgress);
 }
 
-export function sliceGeometry(settings, geometry, matrix, sync = false, onProgress) {
-  if (typeof geometry === 'undefined') {
+export function sliceGeometry(settings, geometry, matrix, sync = false, constructLinePreview = false, onProgress) {
+  if (!geometry) {
     throw new Error('Missing required geometry argument');
   } else if (geometry.isBufferGeometry) {
     geometry = new THREE.Geometry().fromBufferGeometry(geometry);
@@ -27,22 +27,22 @@ export function sliceGeometry(settings, geometry, matrix, sync = false, onProgre
     throw new Error('Geometry does not contain any data');
   }
 
-  if (matrix) {
+  if (matrix && matrix.isMatrix4) {
     geometry.applyMatrix(matrix);
   }
 
   if (sync) {
-    return sliceSync(settings, geometry, onProgress);
+    return sliceSync(settings, geometry, constructLinePreview, onProgress);
   } else {
-    return sliceAsync(settings, geometry, onProgress);
+    return sliceAsync(settings, geometry, constructLinePreview, onProgress);
   }
 }
 
-function sliceSync(settings, geometry, onProgress) {
-  return slice(settings, geometry, onProgress);
+function sliceSync(settings, geometry, constructLinePreview, onProgress) {
+  return slice(settings, geometry, constructLinePreview, onProgress);
 }
 
-function sliceAsync(settings, geometry, onProgress) {
+function sliceAsync(settings, geometry, constructLinePreview, onProgress) {
   return new Promise((resolve, reject) => {
     // create the slicer worker
     const slicerWorker = new SlicerWorker();
@@ -58,6 +58,20 @@ function sliceAsync(settings, geometry, onProgress) {
       switch (message) {
         case 'SLICE': {
           slicerWorker.terminate();
+
+          if (data.gcode.linePreview) {
+            const geometry = new THREE.BufferGeometry();
+
+            const { position, color } = data.gcode.linePreview;
+            geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(position), 3));
+            geometry.addAttribute('color', new THREE.BufferAttribute(new Float32Array(color), 3));
+
+            const material = new THREE.LineBasicMaterial({ vertexColors: THREE.VertexColors });
+            const linePreview = new THREE.LineSegments(geometry, material);
+
+            data.gcode.linePreview = linePreview;
+          }
+
           resolve(data.gcode);
           break;
         }
@@ -76,7 +90,8 @@ function sliceAsync(settings, geometry, onProgress) {
       message: 'SLICE',
       data: {
         settings,
-        geometry
+        geometry,
+        constructLinePreview
       }
     });
   });

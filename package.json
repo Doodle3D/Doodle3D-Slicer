@@ -15,12 +15,29 @@
   },
   "dependencies": {
     "@doodle3d/clipper-js": "^1.0.7",
+    "lodash": "^4.17.4",
+    "material-ui": "^0.19.4",
+    "proptypes": "^1.1.0",
+    "react": "^16.1.0",
+    "react-dom": "^16.1.0",
+    "react-jss": "^7.2.0",
+    "react-resize-detector": "^1.1.0",
     "three": "^0.83.0"
   },
   "devDependencies": {
-    "babel-cli": "^6.24.1",
-    "babel-plugin-transform-object-rest-spread": "^6.23.0",
-    "babel-preset-latest": "^6.24.1"
+    "babel-plugin-inline-import": "^2.0.6",
+    "babel-preset-stage-0": "^6.24.1",
+    "babel-plugin-syntax-dynamic-import": "^6.18.0",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-es2015-classes": "^6.24.1",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-react": "^6.24.1",
+    "babel-cli": "6.24.1",
+    "babel-core": "6.24.1",
+    "babel-loader": "7.0.0",
+    "babel-plugin-add-module-exports": "0.2.1",
+    "babel-preset-es2015": "6.24.1"
   },
   "repository": {
     "type": "git",
