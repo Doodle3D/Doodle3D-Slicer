@@ -10,7 +10,7 @@ export function placeOnGround(mesh) {
 }
 
 export function createScene(canvas, props, state) {
-  const { width, height, geometry, pixelRatio } = props;
+  const { geometry, pixelRatio } = props;
   const { controlMode, settings } = state;
 
   // center geometry
@@ -77,8 +77,6 @@ export function createScene(canvas, props, state) {
 
   const { dimensions } = settings;
   box.scale.set(dimensions.y, dimensions.z, dimensions.x);
-
-  setSize(width, height, pixelRatio);
 
   return { control, editorControls, scene, mesh, camera, renderer, render, box, setSize };
 }

@@ -10,10 +10,6 @@ import { grey500 } from 'material-ui/styles/colors';
 const styles = {
   textFieldRow: {
     display: 'flex'
-  },
-  content: {
-    maxHeight: '500px',
-    overflowY: 'auto'
   }
 };
 
@@ -59,8 +55,8 @@ class Settings extends React.Component {
 
     return (
       <Tabs>
-        <Tab label="basic settings">
-          <div className={classes.content}>
+        <Tab label="basic">
+          <div>
             <SelectField name="printers" floatingLabelText="Printer" fullWidth>
               {Object.entries(printers).map(([value, { title }]) => (
                 <MenuItem key={value} value={value} primaryText={title} />
@@ -78,8 +74,8 @@ class Settings extends React.Component {
             </SelectField>
           </div>
         </Tab>
-        <Tab label="advanced settings">
-          <div className={classes.content}>
+        <Tab label="advanced">
+          <div>
             <SettingsGroup name="Printer dimensions">
               <div className={classes.textFieldRow}>
                 <TextField name="settings.dimensions.x" fullWidth floatingLabelText="X" type="number" />

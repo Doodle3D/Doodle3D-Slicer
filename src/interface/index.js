@@ -6,34 +6,40 @@ import { placeOnGround, createScene, createGcodeGeometry } from './utils.js';
 import injectSheet from 'react-jss';
 import { sliceGeometry } from '../slicer.js';
 import RaisedButton from 'material-ui/RaisedButton';
-import Paper from 'material-ui/Paper';
 import Slider from 'material-ui/Slider';
-import { grey50 } from 'material-ui/styles/colors';
+import { grey100, grey300 } from 'material-ui/styles/colors';
 import Settings from './Settings.js';
 import baseSettings from '../settings/default.yml';
 import printerSettings from '../settings/printer.yml';
 import materialSettings from '../settings/material.yml';
 import qualitySettings from '../settings/quality.yml';
+import ReactResizeDetector from 'react-resize-detector';
 
 const styles = {
   container: {
     position: 'relative',
-    backgroundColor: grey50
-  },
-  canvas: {
-    position: 'absolute',
+    display: 'flex',
+    height: '100%',
+    backgroundColor: grey100,
+    overflow: 'hidden'
   },
   controlBar: {
     position: 'absolute',
     bottom: '10px',
     left: '10px'
   },
+  d3View: {
+    flexGrow: 1
+  },
+  canvas: {
+    position: 'absolute'
+  },
   sliceBar: {
-    position: 'absolute',
-    top: '10px',
-    right: '10px',
-    width: '380px',
-    padding: '10px 20px',
+    width: '240px',
+    padding: '0 10px',
+    overflowY: 'auto',
+    backgroundColor: 'white',
+    borderLeft: `1px solid ${grey300}`
   },
   overlay: {
     position: 'absolute',
@@ -164,24 +170,34 @@ class Interface extends React.Component {
       render();
     }
     if (setSize && nextProps.width !== this.props.width || nextProps.height !== this.props.height || nextProps.pixelRatio !== this.props.pixelRatio) {
-      console.log('update pixel ratio');
       setSize(nextProps.width, nextProps.height, nextProps.pixelRatio);
     }
   }
+
+  onResize = (width, height) => {
+    window.requestAnimationFrame(() => {
+      const { setSize } = this.state;
+      const { pixelRatio } = this.props;
+      setSize(width, height, pixelRatio);
+    });
+  };
 
   render() {
     const { width, height, classes, onCompleteActions, defaultPrinter, defaultQuality, defaultMaterial } = this.props;
     const { sliced, isSlicing, progress, gcode, controlMode, settings } = this.state;
 
     return (
-      <div style={{ width, height }} className={classes.container}>
-        <canvas className={classes.canvas} ref="canvas" width={width} height={height} />
-        {!sliced && <div className={classes.controlBar}>
+      <div className={classes.container}>
+        <div className={classes.d3View}>
+          <ReactResizeDetector handleWidth handleHeight onResize={this.onResize} />
+          <canvas className={classes.canvas} ref="canvas" width={width} height={height} />
+          {!sliced && <div className={classes.controlBar}>
           <RaisedButton className={classes.controlButton} onTouchTap={this.resetMesh} primary label="reset" />
           <RaisedButton className={classes.controlButton} disabled={controlMode === 'translate'} onTouchTap={() => this.setState({ controlMode: 'translate' })} primary label="translate" />
           <RaisedButton className={classes.controlButton} disabled={controlMode === 'rotate'} onTouchTap={() => this.setState({ controlMode: 'rotate' })} primary label="rotate" />
           <RaisedButton className={classes.controlButton} disabled={controlMode === 'scale'} onTouchTap={() => this.setState({ controlMode: 'scale' })} primary label="scale" />
-        </div>}
+          </div>}
+        </div>
         {sliced && <div className={classes.controlBar}>
           <Slider
             axis="y"
@@ -193,7 +209,7 @@ class Interface extends React.Component {
             onChange={this.updateDrawRange}
           />
         </div>}
-        {!sliced && <Paper className={classes.sliceBar}>
+        {!sliced && <div className={classes.sliceBar}>
           <Settings
             printers={printerSettings}
             defaultPrinter={defaultPrinter}
@@ -205,13 +221,13 @@ class Interface extends React.Component {
             onChange={this.onChangeSettings}
           />
           <RaisedButton className={classes.button} fullWidth disabled={isSlicing} onTouchTap={this.slice} primary label="slice" />
-        </Paper>}
-        {sliced && <Paper className={classes.sliceBar}>
+        </div>}
+        {sliced && <div className={classes.sliceBar}>
           <RaisedButton className={classes.button} fullWidth onTouchTap={this.reset} primary label="slice again" />
           {onCompleteActions.map(({ title, callback }, i) => (
             <RaisedButton className={classes.button} key={i} fullWidth onTouchTap={() => callback(gcode.gcode, settings)} primary label={title} />
           ))}
-        </Paper>}
+        </div>}
         {isSlicing && <div className={classes.overlay}>
           <p>Slicing: {progress.percentage.toLocaleString(navigator.language, { style: 'percent' })}</p>
           <ul className={classes.sliceActions}>
@@ -228,8 +244,6 @@ Interface.propTypes = {
       throw new Error('invalid prop, is not geometry');
     }
   },
-  width: PropTypes.number.isRequired,
-  height: PropTypes.number.isRequired,
   classes: PropTypes.objectOf(PropTypes.string),
   onCompleteActions: PropTypes.arrayOf(PropTypes.shape({ title: PropTypes.string, callback: PropTypes.func })).isRequired,
   defaultSettings: PropTypes.object.isRequired,
@@ -249,8 +263,6 @@ Interface.defaultProps = {
   defaultQuality: 'medium',
   material: materialSettings,
   defaultMaterial: 'pla',
-  width: 720,
-  height: 480,
   pixelRatio: 1
 };
 

@@ -11,6 +11,9 @@ injectTapEventPlugin();
 
 document.body.style.margin = 0;
 document.body.style.padding = 0;
+document.body.style.height = '100%';
+document.documentElement.style.height = '100%'
+document.getElementById('app').style.height = '100%';
 
 const downloadGCode = gcode => {
   const file = new File([gcode], 'gcode.gcode', { type: 'text/plain' });
@@ -23,8 +26,6 @@ jsonLoader.load(fileURL, geometry => {
     <MuiThemeProvider>
       <Interface
         geometry={geometry}
-        width={window.innerWidth}
-        height={window.innerHeight}
         onCompleteActions={[{ title: 'Download', callback: downloadGCode }]}
       />
     </MuiThemeProvider>
