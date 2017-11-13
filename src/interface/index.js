@@ -156,12 +156,16 @@ class Interface extends React.Component {
   }
 
   componentWillUpdate(nextProps, nextState) {
-    const { control, box, render } = this.state;
+    const { control, box, render, setSize } = this.state;
     if (control && nextState.controlMode !== this.state.controlMode) control.setMode(nextState.controlMode);
     if (box && nextState.settings.dimensions !== this.state.settings.dimensions) {
       const { dimensions } = nextState.settings;
       box.scale.set(dimensions.y, dimensions.z, dimensions.x);
       render();
+    }
+    if (setSize && nextProps.width !== this.props.width || nextProps.height !== this.props.height || nextProps.pixelRatio !== this.props.pixelRatio) {
+      console.log('update pixel ratio');
+      setSize(nextProps.width, nextProps.height, nextProps.pixelRatio);
     }
   }
 
@@ -238,7 +242,8 @@ Interface.propTypes = {
   quality: PropTypes.object.isRequired,
   defaultQuality: PropTypes.string.isRequired,
   material: PropTypes.object.isRequired,
-  defaultMaterial: PropTypes.string.isRequired
+  defaultMaterial: PropTypes.string.isRequired,
+  pixelRatio: PropTypes.number.isRequired
 };
 Interface.defaultProps = {
   defaultSettings: baseSettings,
@@ -247,7 +252,8 @@ Interface.defaultProps = {
   quality: qualitySettings,
   defaultQuality: 'medium',
   material: materialSettings,
-  defaultMaterial: 'pla'
+  defaultMaterial: 'pla',
+  pixelRatio: 1
 };
 
 export default injectSheet(styles)(Interface);

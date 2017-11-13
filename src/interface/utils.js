@@ -10,7 +10,7 @@ export function placeOnGround(mesh) {
 }
 
 export function createScene(canvas, props, state) {
-  const { width, height, geometry } = props;
+  const { width, height, geometry, pixelRatio } = props;
   const { controlMode, settings } = state;
 
   // center geometry
@@ -22,12 +22,19 @@ export function createScene(canvas, props, state) {
 
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
   renderer.setClearColor(0xffffff, 0);
-  renderer.setSize(width, height);
 
   const scene = new THREE.Scene();
 
-  const camera = new THREE.PerspectiveCamera(50, width / height, 1, 10000);
+  const camera = new THREE.PerspectiveCamera(50, 1, 1, 10000);
   camera.position.set(0, 400, 300);
+
+  const setSize = (width, height, pixelRatio = 1) => {
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(pixelRatio);
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+    render();
+  };
 
   const directionalLight = new THREE.DirectionalLight(0xd5d5d5);
   directionalLight.position.set(1, 1, 1);
@@ -71,7 +78,7 @@ export function createScene(canvas, props, state) {
   const { dimensions } = settings;
   box.scale.set(dimensions.y, dimensions.z, dimensions.x);
 
-  render();
+  setSize(width, height, pixelRatio);
 
-  return { control, editorControls, scene, mesh, camera, renderer, render, box };
+  return { control, editorControls, scene, mesh, camera, renderer, render, box, setSize };
 }
