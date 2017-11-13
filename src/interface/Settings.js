@@ -12,8 +12,8 @@ const styles = {
     display: 'flex'
   },
   content: {
-    maxHeight: '300px',
-    overflowY: 'scroll'
+    maxHeight: '500px',
+    overflowY: 'auto'
   }
 };
 
