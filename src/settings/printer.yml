@@ -150,9 +150,17 @@ ultimaker:
 ultimaker2:
   title: Ultimaker 2
   heatedBed: true
+  dimensions:
+    x: 223
+    y: 223
+    z: 205
 ultimaker2_plus:
   title: Ultimaker 2+
   heatedBed: true
+  dimensions:
+    x: 223
+    y: 223
+    z: 305
 ultimaker2go:
   title: Ultimaker 2 Go
   dimensions:

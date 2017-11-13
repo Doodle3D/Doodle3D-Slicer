@@ -1,19 +1,25 @@
 {
   "env": {
-    // transpile to common node & browser compatible js, keeping modules
     "module": {
       "presets": [
-        ["latest", {
+        ["env", {
+          "targets": { "node": "6" },
           "modules": false
-        }]
+        }],
+        "stage-0",
+        "react"
       ]
     },
-    // transpile to common node & browser compatible js, using commonjs
     "main": {
-      "presets": ["latest"]
+      "presets": ["env", "stage-0", "react"]
     }
   },
   "plugins": [
-    "babel-plugin-transform-object-rest-spread"
+    "babel-plugin-transform-regenerator",
+    "babel-plugin-transform-object-rest-spread",
+    "babel-plugin-inline-import",
+    "babel-plugin-transform-class-properties",
+    "babel-plugin-transform-es2015-classes",
+    "babel-plugin-syntax-dynamic-import"
   ]
-} 
+}

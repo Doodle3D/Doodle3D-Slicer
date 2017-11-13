@@ -1,4 +1,5 @@
 import { sliceGeometry, sliceMesh } from './slicer.js';
+import Interface from './interface/index.js';
 import baseSettings from './settings/default.yml';
 import printerSettings from './settings/printer.yml';
 import materialSettings from './settings/material.yml';
@@ -14,5 +15,6 @@ const defaultSettings = {
 export {
   sliceGeometry,
   sliceMesh,
+  Interface,
   defaultSettings
 };
