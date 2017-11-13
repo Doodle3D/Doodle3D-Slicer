@@ -29,7 +29,7 @@ class Settings extends React.Component {
 
     let state;
     switch (fieldName) {
-      case 'printer':
+      case 'printers':
       case 'quality':
       case 'material':
         state = {
@@ -57,7 +57,7 @@ class Settings extends React.Component {
       <Tabs>
         <Tab label="basic">
           <div>
-            <SelectField name="printer" floatingLabelText="Printer" fullWidth>
+            <SelectField name="printers" floatingLabelText="Printer" fullWidth>
               {Object.entries(printers).map(([value, { title }]) => (
                 <MenuItem key={value} value={value} primaryText={title} />
               ))}
