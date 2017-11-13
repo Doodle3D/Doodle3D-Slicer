@@ -43,7 +43,7 @@ export function createScene(canvas, props, state) {
   const light = new THREE.AmbientLight(0x808080);
   scene.add(light);
 
-  const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color: 0x2194ce }));
+  const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color: 0x2194ce, side: THREE.DoubleSide }));
   placeOnGround(mesh);
   scene.add(mesh);
 
