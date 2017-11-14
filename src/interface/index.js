@@ -175,9 +175,6 @@ class Interface extends React.Component {
       box.scale.set(dimensions.y, dimensions.z, dimensions.x);
       render();
     }
-    if (setSize && nextProps.width !== this.props.width || nextProps.height !== this.props.height || nextProps.pixelRatio !== this.props.pixelRatio) {
-      setSize(nextProps.width, nextProps.height, nextProps.pixelRatio);
-    }
   }
 
   onResize = (width, height) => {
@@ -189,14 +186,14 @@ class Interface extends React.Component {
   };
 
   render() {
-    const { width, height, classes, onCompleteActions, defaultPrinter, defaultQuality, defaultMaterial } = this.props;
+    const { classes, onCompleteActions, defaultPrinter, defaultQuality, defaultMaterial } = this.props;
     const { sliced, isSlicing, progress, gcode, controlMode, settings, printers, quality, material } = this.state;
 
     return (
       <div className={classes.container}>
         <div className={classes.d3View}>
           <ReactResizeDetector handleWidth handleHeight onResize={this.onResize} />
-          <canvas className={classes.canvas} ref="canvas" width={width} height={height} />
+          <canvas className={classes.canvas} ref="canvas" />
           {!sliced && <div className={classes.controlBar}>
           <RaisedButton className={classes.controlButton} onTouchTap={this.resetMesh} primary label="reset" />
           <RaisedButton className={classes.controlButton} disabled={controlMode === 'translate'} onTouchTap={() => this.setState({ controlMode: 'translate' })} primary label="translate" />
