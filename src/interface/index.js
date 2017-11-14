@@ -48,10 +48,12 @@ const styles = {
     top: 0,
     right: 0,
     bottom: 0,
-    left: 0
+    left: 0,
+    padding: '20px'
   },
   sliceActions: {
-    listStyleType: 'none'
+    listStyleType: 'none',
+    paddingLeft: 0
   },
   button: {
     margin: '5px 0'
