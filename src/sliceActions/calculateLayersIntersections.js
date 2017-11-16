@@ -25,7 +25,7 @@ export default function calculateLayersIntersections(lines, settings) {
 
         layerIntersectionIndexes[layerIndex].push(lineIndex);
 
-        const y = layerIndex * layerHeight + zOffset;
+        const y = layerIndex * layerHeight;
 
         let x, z;
         if (line.start.y === line.end.y) {
