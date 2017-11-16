@@ -36,7 +36,7 @@ SettingsGroup.propTypes = {
 export const SelectField = (props, context) => (
   <MaterialUISelectField
     { ...props }
-    value={context.state[props.name]}
+    value={_.get(context.state, props.name)}
     onChange={(event, index, value) => context.onChange(props.name, value)}
   />
 );
