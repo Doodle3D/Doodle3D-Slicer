@@ -12,7 +12,8 @@ export default function slicesToGCode(slices, settings) {
     travelSpeed,
     retraction,
     travel,
-    combing
+    combing,
+    zOffset
   } = settings;
 
   const filamentSurfaceArea = Math.pow((filamentThickness / 2), 2) * Math.PI;
@@ -29,7 +30,7 @@ export default function slicesToGCode(slices, settings) {
   let isFirstLayer = true;
   for (let layer = 0; layer < slices.length; layer ++) {
     const slice = slices[layer];
-    const z = layer * layerHeight;
+    const z = layer * layerHeight + zOffset;
 
     if (layer === 1) {
       gcode.turnFanOn();

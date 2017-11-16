@@ -2,11 +2,12 @@ import * as THREE from 'three';
 
 export default function calculateLayersIntersections(lines, settings) {
   const {
+    dimensions: { z: dimensionsZ },
     layerHeight,
-    dimensions: { z: dimensionsZ }
+    zOffset
   } = settings;
 
-  const numLayers = Math.floor(dimensionsZ / layerHeight);
+  const numLayers = Math.floor((dimensionsZ - zOffset) / layerHeight);
 
   const layerIntersectionIndexes = Array.from(Array(numLayers)).map(() => []);
   const layerIntersectionPoints = Array.from(Array(numLayers)).map(() => []);
@@ -24,7 +25,7 @@ export default function calculateLayersIntersections(lines, settings) {
 
         layerIntersectionIndexes[layerIndex].push(lineIndex);
 
-        const y = layerIndex * layerHeight;
+        const y = layerIndex * layerHeight + zOffset;
 
         let x, z;
         if (line.start.y === line.end.y) {
