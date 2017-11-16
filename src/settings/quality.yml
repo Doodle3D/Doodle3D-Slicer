@@ -1,11 +1,54 @@
 low:
   title: "Low"
+  thickness:
+    top: 0.30
+    bottom: 0.30
+    shell: 0.4
   layerHeight: .2
-  fill:
-    gridSize: 15.0
+  innerShell:
+    speed: 80.0
+  outerShell:
+    speed: 70.0
+  outerInfill:
+    speed: 80.0
+  firstLayer:
+    speed: 70.0
+  innerInfill:
+    speed: 80.0
+    gridSize: 25.0
 medium:
   title: "Medium"
   layerHeight: .15
+  thickness:
+    top: 0.45
+    bottom: 0.45
+    shell: 0.8
+  innerShell:
+    speed: 50.0
+  outerShell:
+    speed: 40.0
+  outerInfill:
+    speed: 50.0
+  firstLayer:
+    speed: 40.0
+  innerInfill:
+    speed: 80.0
+    gridSize: 25.0
 high:
   title: "High"
+  thickness:
+    top: 0.60
+    bottom: 0.60
+    shell: 1.2
   layerHeight: .1
+  innerShell:
+    speed: 40.0
+  outerShell:
+    speed: 30.0
+  outerInfill:
+    speed: 40.0
+  firstLayer:
+    speed: 30.0
+  innerInfill:
+    speed: 70.0
+    gridSize: 10.0

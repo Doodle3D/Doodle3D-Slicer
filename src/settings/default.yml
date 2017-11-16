@@ -11,8 +11,8 @@ bedTemperature: 70
 layerHeight: 0.15
 combing: true
 thickness:
-  top: 1.2
-  bottom: 1.2
+  top: 0.45
+  bottom: 0.45
   shell: 0.8
 retraction:
   enabled: true
@@ -39,7 +39,7 @@ outerShell:
 innerInfill:
   flowRate: 1.0
   speed: 80.0
-  gridSize: 5.0
+  gridSize: 15.0
 outerInfill:
   flowRate: 1.0
   speed: 50.0
