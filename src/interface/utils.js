@@ -15,10 +15,8 @@ export function createScene(canvas, props, state) {
 
   // center geometry
   geometry.computeBoundingBox();
-  const centerX = (geometry.boundingBox.max.x + geometry.boundingBox.min.x) / 2;
-  const centerY = (geometry.boundingBox.max.y + geometry.boundingBox.min.y) / 2;
-  const centerZ = (geometry.boundingBox.max.z + geometry.boundingBox.min.z) / 2;
-  geometry.applyMatrix(new THREE.Matrix4().makeTranslation(-centerX, -centerY, -centerZ));
+  const center = geometry.boundingBox.getCenter();
+  geometry.applyMatrix(new THREE.Matrix4().makeTranslation(-center.x, -center.y, -center.z));
 
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setClearColor(0xffffff, 0);
