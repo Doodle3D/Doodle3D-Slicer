@@ -26,7 +26,7 @@ module.exports = {
   },
   resolve: {
     alias: {
-      'doodle3d-slicer': path.resolve(__dirname, '../src/index.js'),
+      'doodle3d-slicer': path.resolve(__dirname, 'src/'),
       'clipper-lib': '@doodle3d/clipper-lib',
       'clipper-js': '@doodle3d/clipper-js'
     }

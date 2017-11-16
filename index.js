@@ -15,7 +15,7 @@ document.body.style.height = '100%';
 document.documentElement.style.height = '100%'
 document.getElementById('app').style.height = '100%';
 
-const downloadGCode = gcode => {
+const downloadGCode = ({ gcode: { gcode } }) => {
   const file = new File([gcode], 'gcode.gcode', { type: 'text/plain' });
   fileSaver.saveAs(file);
 };
