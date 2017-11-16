@@ -27,6 +27,7 @@ class Settings extends React.Component {
     initialSettings: PropTypes.object.isRequired
   };
   constructor(props) {
+    super();
     this.state = {
       settings: props.initialSettings,
       printers: props.defaultPrinter,
