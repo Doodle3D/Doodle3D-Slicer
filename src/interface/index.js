@@ -226,10 +226,10 @@ class Interface extends React.Component {
           <ReactResizeDetector handleWidth handleHeight onResize={this.onResize} />
           <canvas className={classes.canvas} ref="canvas" />
           {!sliced && <div className={classes.controlBar}>
-          <RaisedButton className={classes.controlButton} onTouchTap={this.resetMesh} primary label="reset" />
-          <RaisedButton className={classes.controlButton} disabled={controlMode === 'translate'} onTouchTap={() => this.setState({ controlMode: 'translate' })} primary label="translate" />
-          <RaisedButton className={classes.controlButton} disabled={controlMode === 'rotate'} onTouchTap={() => this.setState({ controlMode: 'rotate' })} primary label="rotate" />
-          <RaisedButton className={classes.controlButton} disabled={controlMode === 'scale'} onTouchTap={() => this.setState({ controlMode: 'scale' })} primary label="scale" />
+          <RaisedButton className={classes.controlButton} onTouchTap={this.resetMesh} label="reset" />
+          <RaisedButton className={classes.controlButton} disabled={controlMode === 'translate'} onTouchTap={() => this.setState({ controlMode: 'translate' })} label="translate" />
+          <RaisedButton className={classes.controlButton} disabled={controlMode === 'rotate'} onTouchTap={() => this.setState({ controlMode: 'rotate' })} label="rotate" />
+          <RaisedButton className={classes.controlButton} disabled={controlMode === 'scale'} onTouchTap={() => this.setState({ controlMode: 'scale' })} label="scale" />
           </div>}
         </div>
         {sliced && <div className={classes.controlBar}>
