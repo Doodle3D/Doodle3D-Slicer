@@ -26,12 +26,14 @@ class Settings extends React.Component {
     defaultMaterial: PropTypes.string.isRequired,
     initialSettings: PropTypes.object.isRequired
   };
-  state = {
-    settings: props.initialSettings,
-    printers: props.defaultPrinter,
-    quality: props.defaultQuality,
-    material: props.defaultMaterial
-  };
+  constructor(props) {
+    this.state = {
+      settings: props.initialSettings,
+      printers: props.defaultPrinter,
+      quality: props.defaultQuality,
+      material: props.defaultMaterial
+    };
+  }
 
   changeSettings = (fieldName, value) => {
     const { onChange } = this.props;
