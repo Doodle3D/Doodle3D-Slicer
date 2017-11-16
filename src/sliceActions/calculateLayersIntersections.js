@@ -17,15 +17,15 @@ export default function calculateLayersIntersections(lines, settings) {
 
     if (isFlat) continue;
 
-    const min = Math.ceil(Math.min(line.start.y, line.end.y) / layerHeight);
-    const max = Math.floor(Math.max(line.start.y, line.end.y) / layerHeight);
+    const min = Math.ceil((Math.min(line.start.y, line.end.y) - zOffset) / layerHeight);
+    const max = Math.floor((Math.max(line.start.y, line.end.y) - zOffset) / layerHeight);
 
     for (let layerIndex = min; layerIndex <= max; layerIndex ++) {
       if (layerIndex >= 0 && layerIndex < numLayers) {
 
         layerIntersectionIndexes[layerIndex].push(lineIndex);
 
-        const y = layerIndex * layerHeight;
+        const y = layerIndex * layerHeight + zOffset;
 
         let x, z;
         if (line.start.y === line.end.y) {
