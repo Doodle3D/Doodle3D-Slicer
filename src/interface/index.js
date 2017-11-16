@@ -64,6 +64,35 @@ const styles = {
 };
 
 class Interface extends React.Component {
+  static propTypes = {
+    geometry(props, propName) {
+      if (!(props[propName].isGeometry || props[propName].isBufferGeometry)) {
+        throw new Error('invalid prop, is not geometry');
+      }
+    },
+    classes: PropTypes.objectOf(PropTypes.string),
+    onCompleteActions: PropTypes.arrayOf(PropTypes.shape({ title: PropTypes.string, callback: PropTypes.func })).isRequired,
+    defaultSettings: PropTypes.object.isRequired,
+    printers: PropTypes.object.isRequired,
+    defaultPrinter: PropTypes.string.isRequired,
+    quality: PropTypes.object.isRequired,
+    defaultQuality: PropTypes.string.isRequired,
+    material: PropTypes.object.isRequired,
+    defaultMaterial: PropTypes.string.isRequired,
+    pixelRatio: PropTypes.number.isRequired
+  };
+
+  static defaultProps = {
+    defaultSettings: baseSettings,
+    printers: printerSettings,
+    defaultPrinter: 'ultimaker2',
+    quality: qualitySettings,
+    defaultQuality: 'medium',
+    material: materialSettings,
+    defaultMaterial: 'pla',
+    pixelRatio: 1
+  };
+
   constructor(props) {
     super(props);
     const { defaultPrinter, defaultQuality, defaultMaterial, printers, quality, material, defaultSettings } = props;
@@ -87,7 +116,7 @@ class Interface extends React.Component {
   componentDidMount() {
     const { canvas } = this.refs;
     const scene = createScene(canvas, this.props, this.state);
-    this.setState(scene);
+    this.setState({ ...scene });
   }
 
   resetMesh = () => {
@@ -243,32 +272,5 @@ class Interface extends React.Component {
     );
   }
 }
-Interface.propTypes = {
-  geometry(props, propName) {
-    if (!(props[propName].isGeometry || props[propName].isBufferGeometry)) {
-      throw new Error('invalid prop, is not geometry');
-    }
-  },
-  classes: PropTypes.objectOf(PropTypes.string),
-  onCompleteActions: PropTypes.arrayOf(PropTypes.shape({ title: PropTypes.string, callback: PropTypes.func })).isRequired,
-  defaultSettings: PropTypes.object.isRequired,
-  printers: PropTypes.object.isRequired,
-  defaultPrinter: PropTypes.string.isRequired,
-  quality: PropTypes.object.isRequired,
-  defaultQuality: PropTypes.string.isRequired,
-  material: PropTypes.object.isRequired,
-  defaultMaterial: PropTypes.string.isRequired,
-  pixelRatio: PropTypes.number.isRequired
-};
-Interface.defaultProps = {
-  defaultSettings: baseSettings,
-  printers: printerSettings,
-  defaultPrinter: 'ultimaker2',
-  quality: qualitySettings,
-  defaultQuality: 'medium',
-  material: materialSettings,
-  defaultMaterial: 'pla',
-  pixelRatio: 1
-};
 
 export default injectSheet(styles)(Interface);

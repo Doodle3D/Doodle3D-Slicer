@@ -14,15 +14,24 @@ const styles = {
 };
 
 class Settings extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      settings: props.initialSettings,
-      printers: props.defaultPrinter,
-      quality: props.defaultQuality,
-      material: props.defaultMaterial
-    };
-  }
+  static childContextTypes = { state: PropTypes.object, onChange: PropTypes.func };
+  static propTypes = {
+    classes: PropTypes.objectOf(PropTypes.string),
+    onChange: PropTypes.func,
+    printers: PropTypes.object.isRequired,
+    defaultPrinter: PropTypes.string.isRequired,
+    quality: PropTypes.object.isRequired,
+    defaultQuality: PropTypes.string.isRequired,
+    material: PropTypes.object.isRequired,
+    defaultMaterial: PropTypes.string.isRequired,
+    initialSettings: PropTypes.object.isRequired
+  };
+  state = {
+    settings: props.initialSettings,
+    printers: props.defaultPrinter,
+    quality: props.defaultQuality,
+    material: props.defaultMaterial
+  };
 
   changeSettings = (fieldName, value) => {
     const { onChange } = this.props;
@@ -141,17 +150,5 @@ class Settings extends React.Component {
     );
   }
 }
-Settings.childContextTypes = { state: PropTypes.object, onChange: PropTypes.func };
-Settings.propTypes = {
-  classes: PropTypes.objectOf(PropTypes.string),
-  onChange: PropTypes.func,
-  printers: PropTypes.object.isRequired,
-  defaultPrinter: PropTypes.string.isRequired,
-  quality: PropTypes.object.isRequired,
-  defaultQuality: PropTypes.string.isRequired,
-  material: PropTypes.object.isRequired,
-  defaultMaterial: PropTypes.string.isRequired,
-  initialSettings: PropTypes.object.isRequired
-};
 
 export default injectSheet(styles)(Settings);
