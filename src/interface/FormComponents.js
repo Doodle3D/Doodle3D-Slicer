@@ -13,6 +13,7 @@ const styles = {
     backgroundColor: grey100,
     marginTop: '20px',
     '& legend': {
+      fontFamily: 'sans-serif',
       border: `1px solid ${grey300}`,
       backgroundColor: 'white',
       padding: '3px 13px',

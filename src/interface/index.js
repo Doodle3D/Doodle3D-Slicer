@@ -49,7 +49,8 @@ const styles = {
     right: 0,
     bottom: 0,
     left: 0,
-    padding: '20px'
+    padding: '20px',
+    fontFamily: 'monospace'
   },
   sliceActions: {
     listStyleType: 'none',
