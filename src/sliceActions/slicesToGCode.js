@@ -29,7 +29,7 @@ export default function slicesToGCode(slices, settings) {
   let isFirstLayer = true;
   for (let layer = 0; layer < slices.length; layer ++) {
     const slice = slices[layer];
-    const z = layer * layerHeight + 0.2;
+    const z = layer * layerHeight;
 
     if (layer === 1) {
       gcode.turnFanOn();
