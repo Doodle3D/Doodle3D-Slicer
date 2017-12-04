@@ -99,31 +99,25 @@ function gcodeToString(gcode) {
 }
 
 const MAX_SPEED = 100 * 60;
+const COLOR = new THREE.Color();
 function createGcodeGeometry(gcode) {
   const positions = [];
   const colors = [];
 
-  let lastPoint
+  let lastPoint = [0, 0, 0];
   for (let i = 0; i < gcode.length; i ++) {
     const { G, F, X, Y, Z } = gcode[i];
 
     if (X || Y || Z) {
-      let color;
-      if (G === 0) {
-        color = new THREE.Color(0x00ff00);
-      } else if (G === 1) {
-        color = new THREE.Color().setHSL(F / MAX_SPEED, 0.5, 0.5);
-      }
-
       if (G === 1) {
-        if (lastPoint) positions.push(lastPoint[0], lastPoint[1], lastPoint[2]);
+        positions.push(lastPoint.Y, lastPoint.Z, lastPoint.X);
         positions.push(Y, Z, X);
 
+        const color = (G === 0) ? COLOR.setHex(0x00ff00) : COLOR.setHSL(F / MAX_SPEED, 0.5, 0.5);
         colors.push(color.r, color.g, color.b);
         colors.push(color.r, color.g, color.b);
       }
-
-      lastPoint = [Y, Z, X];
+      lastPoint = { X, Y, Z };
     }
   }
 
