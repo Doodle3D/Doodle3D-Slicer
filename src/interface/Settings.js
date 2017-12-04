@@ -12,8 +12,7 @@ const styles = {
     display: 'flex'
   },
   text: {
-    fontWeight: 'bold',
-    color: grey800
+    fontWeight: 'bold'
   },
   container: {
     width: '100%',

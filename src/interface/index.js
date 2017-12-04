@@ -7,7 +7,7 @@ import injectSheet from 'react-jss';
 import RaisedButton from 'material-ui/RaisedButton';
 import Slider from 'material-ui/Slider';
 import LinearProgress from 'material-ui/LinearProgress';
-import { grey100, grey300, red500 } from 'material-ui/styles/colors';
+import { grey50, grey300, grey800, red500 } from 'material-ui/styles/colors';
 import { Tabs, Tab } from 'material-ui/Tabs';
 import Settings from './Settings.js';
 import baseSettings from '../settings/default.yml';
@@ -23,7 +23,8 @@ const styles = {
     position: 'relative',
     display: 'flex',
     height: '100%',
-    backgroundColor: grey100,
+    backgroundColor: grey50,
+    color: grey800,
     overflow: 'hidden',
     fontFamily: 'roboto, sans-serif'
   },
@@ -67,6 +68,9 @@ const styles = {
   },
   error: {
     color: red500
+  },
+  title: {
+    position: 'absolute'
   }
 };
 
@@ -277,6 +281,7 @@ class Interface extends React.Component {
       return (
         <div className={classes.container}>
           <ReactResizeDetector handleWidth handleHeight onResize={this.onResizeContainer} />
+          <h1 className={classes.title}>Print</h1>
           {d3Panel}
           {settingsPanel}
         </div>
