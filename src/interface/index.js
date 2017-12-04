@@ -5,6 +5,7 @@ import PropTypes from 'proptypes';
 import { placeOnGround, createScene, fetchProgress, slice, TabTemplate } from './utils.js';
 import injectSheet from 'react-jss';
 import RaisedButton from 'material-ui/RaisedButton';
+import FlatButton from 'material-ui/FlatButton';
 import Slider from 'material-ui/Slider';
 import LinearProgress from 'material-ui/LinearProgress';
 import { grey50, grey300, grey800, red500 } from 'material-ui/styles/colors';
@@ -89,7 +90,8 @@ class Interface extends React.Component {
     defaultQuality: PropTypes.string.isRequired,
     material: PropTypes.object.isRequired,
     defaultMaterial: PropTypes.string.isRequired,
-    pixelRatio: PropTypes.number.isRequired
+    pixelRatio: PropTypes.number.isRequired,
+    onCancel: PropTypes.func
   };
 
   static defaultProps = {
@@ -249,6 +251,11 @@ class Interface extends React.Component {
           {isSlicing && <p>{progress.action}</p>}
           {isSlicing && <LinearProgress mode="determinate" value={percentage} />}
           <div className={classes.sliceButtons}>
+            {onCancel && <RaisedButton
+              label="Cancel"
+              className={`${classes.button}`}
+              onTouchTap={onCancel}
+            />}
             <RaisedButton
               label="Print"
               primary
