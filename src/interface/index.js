@@ -295,7 +295,7 @@ class Interface extends React.Component {
             <Tab label="Settings">
               {settingsPanel}
             </Tab>
-            <Tab label="Preview">
+            <Tab label="Edit Model">
               {d3Panel}
             </Tab>
           </Tabs>
