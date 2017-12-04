@@ -2,12 +2,13 @@ import _ from 'lodash';
 import React from 'react';
 import * as THREE from 'three';
 import PropTypes from 'proptypes';
-import { placeOnGround, createScene, fetchProgress, slice } from './utils.js';
+import { placeOnGround, createScene, fetchProgress, slice, TabTemplate } from './utils.js';
 import injectSheet from 'react-jss';
 import RaisedButton from 'material-ui/RaisedButton';
 import Slider from 'material-ui/Slider';
 import LinearProgress from 'material-ui/LinearProgress';
 import { grey100, grey300, red500 } from 'material-ui/styles/colors';
+import { Tabs, Tab } from 'material-ui/Tabs';
 import Settings from './Settings.js';
 import baseSettings from '../settings/default.yml';
 import printerSettings from '../settings/printer.yml';
@@ -38,7 +39,7 @@ const styles = {
   canvas: {
     position: 'absolute'
   },
-  sliceBar: {
+  settingsBar: {
     display: 'flex',
     flexDirection: 'column',
     maxWidth: '380px',
@@ -104,10 +105,7 @@ class Interface extends React.Component {
     const { defaultPrinter, defaultQuality, defaultMaterial, printers, quality, material, defaultSettings } = props;
     this.state = {
       controlMode: 'translate',
-      showFullScreen: {
-        active: false,
-        settings: true
-      },
+      showFullScreen: false,
       isSlicing: false,
       error: null,
       printers: defaultPrinter,
@@ -206,6 +204,12 @@ class Interface extends React.Component {
     if (changed) render();
   }
 
+  componentDidUpdate() {
+    const { updateCanvas } = this.state;
+    const { canvas } = this.refs;
+    if (updateCanvas && canvas) updateCanvas(canvas);
+  }
+
   onResize3dView = (width, height) => {
     window.requestAnimationFrame(() => {
       const { setSize } = this.state;
@@ -215,86 +219,89 @@ class Interface extends React.Component {
   };
 
   onResizeContainer = (width) => {
-    this.setState({
-      showFullScreen: {
-        active: width > MAX_FULLSCREEN_WIDTH,
-        settings: this.state.showFullScreen.settings
-      }
-    });
+    this.setState({ showFullScreen: width > MAX_FULLSCREEN_WIDTH });
   };
 
   render() {
     const { classes, onCompleteActions, defaultPrinter, defaultQuality, defaultMaterial } = this.props;
     const { isSlicing, progress, gcode, settings, printers, quality, material, showFullScreen, error } = this.state;
 
-    const showSettings = showFullScreen.active || showFullScreen.settings;
-    const showPreview = showFullScreen.active || !showFullScreen.settings;
-
     const percentage = progress ? (progress.uploading + progress.slicing) / 2.0 * 100.0 : 0.0;
 
-    const toggleFullScreen = () => {
-      this.setState({
-        showFullScreen: {
-          ...this.state.showFullScreen,
-          settings: !this.state.showFullScreen.settings
-        }
-      });
-    };
-
-    return (
-      <div className={classes.container}>
-        <ReactResizeDetector handleWidth handleHeight onResize={this.onResizeContainer} />
-        {<div style={{ display: showPreview ? 'inherit' : 'none' }} className={classes.d3View}>
-          <ReactResizeDetector handleWidth handleHeight onResize={this.onResize3dView} />
-          <canvas className={classes.canvas} ref="canvas" />
-          {!showFullScreen.active && <div className={classes.buttonContainer}>
-            <RaisedButton fullWidth label="Edit settings" onTouchTap={toggleFullScreen}/>
-          </div>}
-          {!isSlicing && <div className={classes.controlBar}>
-            <RaisedButton className={classes.controlButton} onTouchTap={this.resetMesh} label="reset" />
-            <RaisedButton className={classes.controlButton} onTouchTap={this.scaleUp} label="scale down" />
-            <RaisedButton className={classes.controlButton} onTouchTap={this.scaleDown} label="scale up" />
-            <RaisedButton className={classes.controlButton} onTouchTap={this.rotateX} label="rotate x" />
-            <RaisedButton className={classes.controlButton} onTouchTap={this.rotateY} label="rotate y" />
-            <RaisedButton className={classes.controlButton} onTouchTap={this.rotateZ} label="rotate z" />
-          </div>}
-        </div>}
-        <div
-          className={classes.sliceBar}
-          style={{
-            display: showSettings ? 'inherit' : 'none',
-            ...showPreview ? {} : { maxWidth: 'inherit', width: '100%' }
-          }}
-        >
-          {!showFullScreen.active && <RaisedButton label="Edit model" onTouchTap={toggleFullScreen}/>}
-          <Settings
-            disabled={isSlicing}
-            printers={printerSettings}
-            defaultPrinter={defaultPrinter}
-            quality={qualitySettings}
-            defaultQuality={defaultQuality}
-            material={materialSettings}
-            defaultMaterial={defaultMaterial}
-            initialSettings={settings}
-            onChange={this.onChangeSettings}
-          />
-          <div className={classes.sliceActions}>
-            {error && <p className={classes.error}>{error}</p>}
-            {isSlicing && <p>{progress.action}</p>}
-            {isSlicing && <LinearProgress mode="determinate" value={percentage} />}
-            <div className={classes.sliceButtons}>
-              <RaisedButton
-                label="Print"
-                primary
-                className={`${classes.button}`}
-                onTouchTap={this.slice}
-                disabled={isSlicing}
-              />
-            </div>
+    const settingsPanel = (
+      <div className={classes.settingsBar} style={{ ...(showFullScreen ? {} : { maxWidth: 'inherit', width: '100%', height: '100%' }) }}>
+        <Settings
+          disabled={isSlicing}
+          printers={printerSettings}
+          defaultPrinter={defaultPrinter}
+          quality={qualitySettings}
+          defaultQuality={defaultQuality}
+          material={materialSettings}
+          defaultMaterial={defaultMaterial}
+          initialSettings={settings}
+          onChange={this.onChangeSettings}
+        />
+        <div className={classes.sliceActions}>
+          {error && <p className={classes.error}>{error}</p>}
+          {isSlicing && <p>{progress.action}</p>}
+          {isSlicing && <LinearProgress mode="determinate" value={percentage} />}
+          <div className={classes.sliceButtons}>
+            <RaisedButton
+              label="Print"
+              primary
+              className={`${classes.button}`}
+              onTouchTap={this.slice}
+              disabled={isSlicing}
+            />
           </div>
         </div>
       </div>
     );
+
+    const d3Panel = (
+      <div className={classes.d3View}>
+        <ReactResizeDetector handleWidth handleHeight onResize={this.onResize3dView} />
+        <canvas className={classes.canvas} ref="canvas" />
+        {!isSlicing && <div className={classes.controlBar}>
+          <RaisedButton className={classes.controlButton} onTouchTap={this.resetMesh} label="reset" />
+          <RaisedButton className={classes.controlButton} onTouchTap={this.scaleUp} label="scale down" />
+          <RaisedButton className={classes.controlButton} onTouchTap={this.scaleDown} label="scale up" />
+          <RaisedButton className={classes.controlButton} onTouchTap={this.rotateX} label="rotate x" />
+          <RaisedButton className={classes.controlButton} onTouchTap={this.rotateY} label="rotate y" />
+          <RaisedButton className={classes.controlButton} onTouchTap={this.rotateZ} label="rotate z" />
+        </div>}
+      </div>
+    );
+
+    if (showFullScreen) {
+      return (
+        <div className={classes.container}>
+          <ReactResizeDetector handleWidth handleHeight onResize={this.onResizeContainer} />
+          {d3Panel}
+          {settingsPanel}
+        </div>
+      );
+    } else {
+      return (
+        <div className={classes.container}>
+          <ReactResizeDetector handleWidth handleHeight onResize={this.onResizeContainer} />
+          <Tabs
+            style={{ width: '100%', display: 'flex', flexDirection: 'column' }}
+            tabItemContainerStyle={{ flexShrink: 0 }}
+            contentContainerStyle={{ flexGrow: 1, display: 'flex' }}
+            tabTemplateStyle={{ display: 'flex' }}
+            tabTemplate={TabTemplate}
+          >
+            <Tab label="Settings">
+              {settingsPanel}
+            </Tab>
+            <Tab label="Preview">
+              {d3Panel}
+            </Tab>
+          </Tabs>
+        </div>
+      );
+    }
   }
 }
 

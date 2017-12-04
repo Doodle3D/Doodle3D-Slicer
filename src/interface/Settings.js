@@ -5,7 +5,7 @@ import { Tabs, Tab } from 'material-ui/Tabs';
 import MenuItem from 'material-ui/MenuItem';
 import injectSheet from 'react-jss';
 import { SelectField, TextField, Checkbox } from './FormComponents.js';
-import { grey900 } from 'material-ui/styles/colors';
+import { grey800, cyan500 } from 'material-ui/styles/colors';
 
 const styles = {
   textFieldRow: {
@@ -13,7 +13,7 @@ const styles = {
   },
   text: {
     fontWeight: 'bold',
-    color: grey900
+    color: grey800
   },
   container: {
     width: '100%',
@@ -91,8 +91,8 @@ class Settings extends React.Component {
           ))}
         </SelectField>
         <h3 className={classes.text}>Printer Setup</h3>
-        <Tabs>
-          <Tab label="basic">
+        <Tabs inkBarStyle={{ backgroundColor: cyan500 }}>
+          <Tab buttonStyle={{ color: grey800, backgroundColor: 'white' }} label="Basic">
             <div>
               <SelectField name="quality" floatingLabelText="Quality" fullWidth>
                 {Object.entries(quality).map(([value, { title }]) => (
@@ -101,7 +101,7 @@ class Settings extends React.Component {
               </SelectField>
             </div>
           </Tab>
-          <Tab label="advanced">
+          <Tab buttonStyle={{ color: grey800, backgroundColor: 'white' }} label="Advanced">
             <div>
               <p className={classes.text}>Printer dimensions</p>
               <div className={classes.textFieldRow}>

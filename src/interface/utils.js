@@ -4,6 +4,8 @@ import printerSettings from '../settings/printer.yml';
 import materialSettings from '../settings/material.yml';
 import qualitySettings from '../settings/quality.yml';
 import { sliceGeometry } from '../slicer.js';
+import React from 'react';
+import PropTypes from 'prop-types';
 
 export function placeOnGround(mesh) {
   const boundingBox = new THREE.Box3().setFromObject(mesh);
@@ -44,11 +46,7 @@ export function createScene(canvas, props, state) {
   box.scale.set(dimensions.y, dimensions.z, dimensions.x);
   box.updateMatrix();
 
-  const editorControls = new THREE.EditorControls(camera, canvas);
-  editorControls.focus(mesh);
-
   const render = () => renderer.render(scene, camera);
-  editorControls.addEventListener('change', render);
 
   const setSize = (width, height, pixelRatio = 1) => {
     renderer.setSize(width, height);
@@ -58,10 +56,21 @@ export function createScene(canvas, props, state) {
     render();
   };
 
+  let editorControls;
   let renderer;
   const updateCanvas = (canvas) => {
-    renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-    renderer.setClearColor(0xffffff, 0);
+    if (!renderer || renderer.domElement !== canvas) {
+      if (renderer) renderer.dispose();
+      renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+      renderer.setClearColor(0xffffff, 0);
+    }
+    if (!editorControls || editorControls.domElement !== canvas) {
+      if (editorControls) editorControls.dispose();
+      editorControls = new THREE.EditorControls(camera, canvas);
+      editorControls.focus(mesh);
+      editorControls.addEventListener('change', render);
+    }
+
     render();
   };
   updateCanvas(canvas);
@@ -143,3 +152,30 @@ export async function slice(mesh, settings, printers, quality, material, updateP
   const popup = window.open(`${CONNECT_URL}?uuid=${id}`, '_blank');
   if (!popup) throw new Error('popup was blocked by browser');
 }
+
+const styles = {
+  width: '100%',
+  position: 'relative',
+  textAlign: 'initial',
+};
+
+export const TabTemplate = ({children, selected, style}) => {
+  const templateStyle = Object.assign({}, styles, style);
+  if (!selected) {
+    templateStyle.height = 0;
+    templateStyle.width = 0;
+    templateStyle.overflow = 'hidden';
+  }
+
+  return (
+    <div style={templateStyle}>
+      {children}
+    </div>
+  );
+};
+
+TabTemplate.propTypes = {
+  children: PropTypes.node,
+  selected: PropTypes.bool,
+  style: PropTypes.object,
+};
