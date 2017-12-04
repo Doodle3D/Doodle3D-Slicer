@@ -82,7 +82,6 @@ class Interface extends React.Component {
       }
     },
     classes: PropTypes.objectOf(PropTypes.string),
-    onCompleteActions: PropTypes.arrayOf(PropTypes.shape({ title: PropTypes.string, callback: PropTypes.func })).isRequired,
     defaultSettings: PropTypes.object.isRequired,
     printers: PropTypes.object.isRequired,
     defaultPrinter: PropTypes.string.isRequired,
@@ -227,8 +226,8 @@ class Interface extends React.Component {
   };
 
   render() {
-    const { classes, onCompleteActions, defaultPrinter, defaultQuality, defaultMaterial } = this.props;
-    const { isSlicing, progress, gcode, settings, printers, quality, material, showFullScreen, error } = this.state;
+    const { classes, defaultPrinter, defaultQuality, defaultMaterial, onCancel } = this.props;
+    const { isSlicing, progress, settings, printers, quality, material, showFullScreen, error } = this.state;
 
     const percentage = progress ? (progress.uploading + progress.slicing) / 2.0 * 100.0 : 0.0;
 

@@ -24,10 +24,7 @@ const jsonLoader = new THREE.JSONLoader();
 jsonLoader.load(fileURL, geometry => {
   render((
     <MuiThemeProvider>
-      <Interface
-        geometry={geometry}
-        onCompleteActions={[{ title: 'Download', callback: downloadGCode }]}
-      />
+      <Interface geometry={geometry}/>
     </MuiThemeProvider>
   ), document.getElementById('app'));
 });
