@@ -85,24 +85,25 @@ class Interface extends React.Component {
     classes: PropTypes.objectOf(PropTypes.string),
     defaultSettings: PropTypes.object.isRequired,
     printers: PropTypes.object.isRequired,
-    defaultPrinter: PropTypes.string.isRequired,
+    defaultPrinter: PropTypes.string,
     quality: PropTypes.object.isRequired,
     defaultQuality: PropTypes.string.isRequired,
     material: PropTypes.object.isRequired,
     defaultMaterial: PropTypes.string.isRequired,
     pixelRatio: PropTypes.number.isRequired,
-    onCancel: PropTypes.func
+    onCancel: PropTypes.func,
+    name: PropTypes.string.isRequired
   };
 
   static defaultProps = {
     defaultSettings: baseSettings,
     printers: printerSettings,
-    defaultPrinter: 'ultimaker2',
     quality: qualitySettings,
     defaultQuality: 'medium',
     material: materialSettings,
     defaultMaterial: 'pla',
-    pixelRatio: 1
+    pixelRatio: 1,
+    name: 'Doodle3D'
   };
 
   constructor(props) {
@@ -177,13 +178,14 @@ class Interface extends React.Component {
 
   slice = async () => {
     const { mesh, settings, isSlicing, printers, quality, material } = this.state;
+    const { name } = this.props;
 
     if (isSlicing) return;
 
     this.setState({ isSlicing: true, progress: { action: '', slicing: 0, uploading: 0 }, error: null });
 
     try {
-      await slice(mesh, settings, printers, quality, material, progress => {
+      await slice(name, mesh, settings, printers, quality, material, progress => {
         this.setState({ progress: { ...this.state.progress, ...progress } });
       });
     } catch (error) {

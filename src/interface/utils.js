@@ -105,7 +105,7 @@ export function fetchProgress(url, { method = 'get', headers = {}, body = {} } =
 const GCODE_SERVER_URL = 'https://gcodeserver.doodle3d.com';
 const CONNECT_URL = 'http://connect.doodle3d.com/';
 
-export async function slice(mesh, settings, printers, quality, material, updateProgress) {
+export async function slice(name, mesh, settings, printers, quality, material, updateProgress) {
   const { dimensions } = settings;
   const centerX = dimensions.x / 2;
   const centerY = dimensions.y / 2;
@@ -114,7 +114,7 @@ export async function slice(mesh, settings, printers, quality, material, updateP
   mesh.updateMatrix();
 
   const matrix = new THREE.Matrix4().makeTranslation(centerY, 0, centerX).multiply(mesh.matrix);
-  const gcode = await sliceGeometry(settings, geometry, matrix, false, false, ({ progress }) => {
+  const { gcode } = await sliceGeometry(settings, geometry, matrix, false, false, ({ progress }) => {
     updateProgress({
       action: progress.action,
       slicing: progress.done / progress.total

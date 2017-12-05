@@ -30,7 +30,7 @@ class Settings extends React.Component {
     classes: PropTypes.objectOf(PropTypes.string),
     onChange: PropTypes.func,
     printers: PropTypes.object.isRequired,
-    defaultPrinter: PropTypes.string.isRequired,
+    defaultPrinter: PropTypes.string,
     quality: PropTypes.object.isRequired,
     defaultQuality: PropTypes.string.isRequired,
     material: PropTypes.object.isRequired,

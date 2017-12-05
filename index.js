@@ -24,7 +24,7 @@ const jsonLoader = new THREE.JSONLoader();
 jsonLoader.load(fileURL, geometry => {
   render((
     <MuiThemeProvider>
-      <Interface geometry={geometry}/>
+      <Interface geometry={geometry} name="Doodle3D"/>
     </MuiThemeProvider>
   ), document.getElementById('app'));
 });
