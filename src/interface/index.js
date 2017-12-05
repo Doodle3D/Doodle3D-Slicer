@@ -160,10 +160,10 @@ class Interface extends React.Component {
     }
   };
 
-  rotateX = () => this.rotate(new THREE.Vector3(0, 0, 1));
-  rotateY = () => this.rotate(new THREE.Vector3(1, 0, 0));
-  rotateZ = () => this.rotate(new THREE.Vector3(0, 1, 0));
-  rotate = (axis, angle = Math.PI / 2.0) => {
+  rotateX = () => this.rotate(new THREE.Vector3(0, 0, 1), Math.PI / 2.0);
+  rotateY = () => this.rotate(new THREE.Vector3(1, 0, 0), Math.PI / 2.0);
+  rotateZ = () => this.rotate(new THREE.Vector3(0, 1, 0), Math.PI / 2.0);
+  rotate = (axis, angle) => {
     const { mesh, render } = this.state;
     if (mesh) {
       const quaternion = new THREE.Quaternion();
