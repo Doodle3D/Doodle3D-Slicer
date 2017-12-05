@@ -28,14 +28,19 @@ export function createScene(canvas, props, state) {
   const camera = new THREE.PerspectiveCamera(50, 1, 1, 10000);
   camera.position.set(0, 400, 300);
 
-  const directionalLight = new THREE.DirectionalLight(0xd5d5d5);
-  directionalLight.position.set(1, 1, 1);
-  scene.add(directionalLight);
+  const directionalLightA = new THREE.DirectionalLight(0xa2a2a2);
+  directionalLightA.position.set(1, 1, 1);
+  scene.add(directionalLightA);
 
-  const light = new THREE.AmbientLight(0x808080);
+  const directionalLightB = new THREE.DirectionalLight(0xa2a2a2);
+  directionalLightB.position.set(-1, 1, -1);
+  scene.add(directionalLightB);
+
+  const light = new THREE.AmbientLight(0x656565);
   scene.add(light);
 
-  const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color: 0x2194ce, side: THREE.DoubleSide }));
+  const material = new THREE.MeshPhongMaterial({ color: 0x2194ce, side: THREE.DoubleSide, specular: 0xaaaaaa, shininess: 10 });
+  const mesh = new THREE.Mesh(geometry, material);
   placeOnGround(mesh);
   scene.add(mesh);
 
