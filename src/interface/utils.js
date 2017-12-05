@@ -39,7 +39,7 @@ export function createScene(canvas, props, state) {
   const light = new THREE.AmbientLight(0x656565);
   scene.add(light);
 
-  const material = new THREE.MeshPhongMaterial({ color: 0x2194ce, side: THREE.DoubleSide, specular: 0xaaaaaa, shininess: 10 });
+  const material = new THREE.MeshPhongMaterial({ color: 0x2194ce, side: THREE.DoubleSide, specular: 0xc5c5c5, shininess: 5 });
   const mesh = new THREE.Mesh(geometry, material);
   placeOnGround(mesh);
   scene.add(mesh);
