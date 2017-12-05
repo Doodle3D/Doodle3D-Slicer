@@ -80,7 +80,9 @@ export function createScene(canvas, props, state) {
   };
   updateCanvas(canvas);
 
-  return { editorControls, scene, mesh, camera, renderer, render, box, setSize, updateCanvas };
+  const focus = () => editorControls.focus(mesh);
+
+  return { editorControls, scene, mesh, camera, renderer, render, box, setSize, updateCanvas, focus };
 }
 
 export function fetchProgress(url, { method = 'get', headers = {}, body = {} } = {}, onProgress) {
