@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import { Vector2 } from 'three/src/math/Vector2.js';
 
 export default function calculateLayersIntersections(lines, settings) {
   const {
@@ -38,7 +38,7 @@ export default function calculateLayersIntersections(lines, settings) {
           z = line.end.z * alpha + line.start.z * alpha1;
         }
 
-        layerIntersectionPoints[layerIndex][lineIndex] = new THREE.Vector2(z, x);
+        layerIntersectionPoints[layerIndex][lineIndex] = new Vector2(z, x);
       }
     }
   }

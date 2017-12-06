@@ -1,8 +1,8 @@
 import 'core-js'; // polyfills
 import slice from './sliceActions/slice.js';
-import * as THREE from 'three';
+import { JSONLoader } from 'three/src/loaders/JSONLoader.js';
 
-const loader = new THREE.JSONLoader();
+const loader = new JSONLoader();
 
 const onProgress = progress => {
   self.postMessage({

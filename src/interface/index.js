@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import React from 'react';
-import * as THREE from 'three';
+import { Quaternion } from 'three/src/math/Quaternion.js';
+import { Vector3 } from 'three/src/math/Vector3.js';
 import PropTypes from 'proptypes';
 import { placeOnGround, createScene, fetchProgress, slice, TabTemplate } from './utils.js';
 import injectSheet from 'react-jss';
@@ -161,16 +162,13 @@ class Interface extends React.Component {
     }
   };
 
-  rotateX = () => this.rotate(new THREE.Vector3(0, 0, 1), Math.PI / 2.0);
-  rotateY = () => this.rotate(new THREE.Vector3(1, 0, 0), Math.PI / 2.0);
-  rotateZ = () => this.rotate(new THREE.Vector3(0, 1, 0), Math.PI / 2.0);
+  rotateX = () => this.rotate(new Vector3(0, 0, 1), Math.PI / 2.0);
+  rotateY = () => this.rotate(new Vector3(1, 0, 0), Math.PI / 2.0);
+  rotateZ = () => this.rotate(new Vector3(0, 1, 0), Math.PI / 2.0);
   rotate = (axis, angle) => {
     const { mesh, render } = this.state;
     if (mesh) {
-      const quaternion = new THREE.Quaternion();
-      quaternion.setFromAxisAngle(axis, angle);
-      mesh.quaternion.premultiply(quaternion);
-      mesh.updateMatrix();
+      mesh.rotateOnWorldAxis(axis, angle);
       placeOnGround(mesh);
       render();
     }

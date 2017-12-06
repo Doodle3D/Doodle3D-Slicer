@@ -1,5 +1,5 @@
 import React from 'react';
-import * as THREE from 'three';
+import { JSONLoader } from 'three/src/loaders/JSONLoader.js';
 import { Interface } from 'doodle3d-slicer';
 import fileURL from '!url-loader!./models/shape.json';
 import { render } from 'react-dom';
@@ -20,7 +20,7 @@ const downloadGCode = ({ gcode: { gcode } }) => {
   fileSaver.saveAs(file);
 };
 
-const jsonLoader = new THREE.JSONLoader();
+const jsonLoader = new JSONLoader();
 jsonLoader.load(fileURL, geometry => {
   render((
     <MuiThemeProvider>

@@ -1,4 +1,9 @@
-import * as THREE from 'three';
+import { Color } from 'three/src/math/Color.js';
+import { BufferGeometry } from 'three/src/core/BufferGeometry.js';
+import { BufferAttribute } from 'three/src/core/BufferAttribute.js';
+import { LineBasicMaterial } from 'three/src/materials/LineBasicMaterial.js';
+import { VertexColors } from 'three/src/constants.js';
+import { LineSegments } from 'three/src/objects/LineSegments.js';
 import calculateLayersIntersections from './calculateLayersIntersections.js';
 import createLines from './createLines.js';
 import generateInfills from './generateInfills.js';
@@ -99,7 +104,7 @@ function gcodeToString(gcode) {
 }
 
 const MAX_SPEED = 100 * 60;
-const COLOR = new THREE.Color();
+const COLOR = new Color();
 function createGcodeGeometry(gcode) {
   const positions = [];
   const colors = [];
@@ -121,13 +126,13 @@ function createGcodeGeometry(gcode) {
     }
   }
 
-  const geometry = new THREE.BufferGeometry();
+  const geometry = new BufferGeometry();
 
-  geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
-  geometry.addAttribute('color', new THREE.BufferAttribute(new Float32Array(colors), 3));
+  geometry.addAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
+  geometry.addAttribute('color', new BufferAttribute(new Float32Array(colors), 3));
 
-  const material = new THREE.LineBasicMaterial({ vertexColors: THREE.VertexColors });
-  const linePreview = new THREE.LineSegments(geometry, material);
+  const material = new LineBasicMaterial({ vertexColors: VertexColors });
+  const linePreview = new LineSegments(geometry, material);
 
   return linePreview;
 }

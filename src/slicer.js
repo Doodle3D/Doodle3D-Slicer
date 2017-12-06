@@ -1,4 +1,9 @@
-import * as THREE from 'three';
+import { Geometry } from 'three/src/core/Geometry.js';
+import { BufferGeometry } from 'three/src/core/BufferGeometry.js';
+import { VertexColors } from 'three/src/constants.js';
+import { BufferAttribute } from 'three/src/core/BufferAttribute.js';
+import { LineBasicMaterial } from 'three/src/materials/LineBasicMaterial.js';
+import { LineSegments } from 'three/src/objects/LineSegments.js';
 import slice from './sliceActions/slice.js';
 import SlicerWorker from './slicer.worker.js';
 
@@ -16,7 +21,7 @@ export function sliceGeometry(settings, geometry, matrix, sync = false, construc
   if (!geometry) {
     throw new Error('Missing required geometry argument');
   } else if (geometry.isBufferGeometry) {
-    geometry = new THREE.Geometry().fromBufferGeometry(geometry);
+    geometry = new Geometry().fromBufferGeometry(geometry);
   } else if (geometry.isGeometry) {
     geometry = geometry.clone();
   } else {
@@ -60,14 +65,14 @@ function sliceAsync(settings, geometry, constructLinePreview, onProgress) {
           slicerWorker.terminate();
 
           if (data.gcode.linePreview) {
-            const geometry = new THREE.BufferGeometry();
+            const geometry = new BufferGeometry();
 
             const { position, color } = data.gcode.linePreview;
-            geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(position), 3));
-            geometry.addAttribute('color', new THREE.BufferAttribute(new Float32Array(color), 3));
+            geometry.addAttribute('position', new BufferAttribute(new Float32Array(position), 3));
+            geometry.addAttribute('color', new BufferAttribute(new Float32Array(color), 3));
 
-            const material = new THREE.LineBasicMaterial({ vertexColors: THREE.VertexColors });
-            const linePreview = new THREE.LineSegments(geometry, material);
+            const material = new LineBasicMaterial({ vertexColors: VertexColors });
+            const linePreview = new LineSegments(geometry, material);
 
             data.gcode.linePreview = linePreview;
           }

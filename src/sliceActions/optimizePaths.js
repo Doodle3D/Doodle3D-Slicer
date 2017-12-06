@@ -1,8 +1,8 @@
-import * as THREE from 'three';
+import { Vector2 } from 'three/src/math/Vector2.js';
 import Shape from 'clipper-js';
 
 export default function optimizePaths(slices, settings) {
-  const start = new THREE.Vector2(0, 0);
+  const start = new Vector2(0, 0);
 
   for (let layer = 0; layer < slices.length; layer ++) {
     const slice = slices[layer];
@@ -102,7 +102,7 @@ function optimizeShape(shape, start) {
 
       if (shape.closed) {
         for (let j = 0; j < path.length; j += 1) {
-          const point = new THREE.Vector2().copy(path[j]);
+          const point = new Vector2().copy(path[j]);
           const length = point.sub(start).length();
           if (minLength === false || length < minLength) {
             minPath = path;
@@ -112,7 +112,7 @@ function optimizeShape(shape, start) {
           }
         }
       } else {
-        const startPoint = new THREE.Vector2().copy(path[0]);
+        const startPoint = new Vector2().copy(path[0]);
         const lengthToStart = startPoint.sub(start).length();
         if (minLength === false || lengthToStart < minLength) {
           minPath = path;
@@ -121,7 +121,7 @@ function optimizeShape(shape, start) {
           pathIndex = i;
         }
 
-        const endPoint = new THREE.Vector2().copy(path[path.length - 1]);
+        const endPoint = new Vector2().copy(path[path.length - 1]);
         const lengthToEnd = endPoint.sub(start).length();
         if (lengthToEnd < minLength) {
           minPath = path;

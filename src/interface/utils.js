@@ -1,4 +1,16 @@
 import * as THREE from 'three';
+import { Box3 } from 'three/src/math/Box3.js';
+import { Matrix4 } from 'three/src/math/Matrix4.js';
+import { Scene } from 'three/src/scenes/Scene.js';
+import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera.js';
+import { AmbientLight } from 'three/src/lights/AmbientLight.js';
+import { DirectionalLight } from 'three/src/lights/DirectionalLight.js';
+import { MeshPhongMaterial } from 'three/src/materials/MeshPhongMaterial.js';
+import { BoxGeometry } from 'three/src/geometries/BoxGeometry.js';
+import { Mesh } from 'three/src/objects/Mesh.js';
+import { BoxHelper } from 'three/src/helpers/BoxHelper.js';
+import { WebGLRenderer } from 'three/src/renderers/WebGLRenderer.js';
+import { DoubleSide } from 'three/src/constants.js';
 import 'three/examples/js/controls/EditorControls';
 import printerSettings from '../settings/printer.yml';
 import materialSettings from '../settings/material.yml';
@@ -8,7 +20,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 export function placeOnGround(mesh) {
-  const boundingBox = new THREE.Box3().setFromObject(mesh);
+  const boundingBox = new Box3().setFromObject(mesh);
 
   mesh.position.y -= boundingBox.min.y;
   mesh.updateMatrix();
@@ -21,30 +33,30 @@ export function createScene(canvas, props, state) {
   // center geometry
   geometry.computeBoundingBox();
   const center = geometry.boundingBox.getCenter();
-  geometry.applyMatrix(new THREE.Matrix4().makeTranslation(-center.x, -center.y, -center.z));
+  geometry.applyMatrix(new Matrix4().makeTranslation(-center.x, -center.y, -center.z));
 
-  const scene = new THREE.Scene();
+  const scene = new Scene();
 
-  const camera = new THREE.PerspectiveCamera(50, 1, 1, 10000);
+  const camera = new PerspectiveCamera(50, 1, 1, 10000);
   camera.position.set(0, 400, 300);
 
-  const directionalLightA = new THREE.DirectionalLight(0xa2a2a2);
+  const directionalLightA = new DirectionalLight(0xa2a2a2);
   directionalLightA.position.set(1, 1, 1);
   scene.add(directionalLightA);
 
-  const directionalLightB = new THREE.DirectionalLight(0xa2a2a2);
+  const directionalLightB = new DirectionalLight(0xa2a2a2);
   directionalLightB.position.set(-1, 1, -1);
   scene.add(directionalLightB);
 
-  const light = new THREE.AmbientLight(0x656565);
+  const light = new AmbientLight(0x656565);
   scene.add(light);
 
-  const material = new THREE.MeshPhongMaterial({ color: 0x2194ce, side: THREE.DoubleSide, specular: 0xc5c5c5, shininess: 5 });
-  const mesh = new THREE.Mesh(geometry, material);
+  const material = new MeshPhongMaterial({ color: 0x2194ce, side: DoubleSide, specular: 0xc5c5c5, shininess: 5 });
+  const mesh = new Mesh(geometry, material);
   placeOnGround(mesh);
   scene.add(mesh);
 
-  const box = new THREE.BoxHelper(new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1).applyMatrix(new THREE.Matrix4().makeTranslation(0, 0.5, 0))), 0x72bcd4);
+  const box = new BoxHelper(new Mesh(new BoxGeometry(1, 1, 1).applyMatrix(new Matrix4().makeTranslation(0, 0.5, 0))), 0x72bcd4);
   scene.add(box);
 
   const { dimensions } = settings;
@@ -66,7 +78,7 @@ export function createScene(canvas, props, state) {
   const updateCanvas = (canvas) => {
     if (!renderer || renderer.domElement !== canvas) {
       if (renderer) renderer.dispose();
-      renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+      renderer = new WebGLRenderer({ canvas, alpha: true, antialias: true });
       renderer.setClearColor(0xffffff, 0);
     }
     if (!editorControls || editorControls.domElement !== canvas) {
@@ -106,6 +118,8 @@ const GCODE_SERVER_URL = 'https://gcodeserver.doodle3d.com';
 const CONNECT_URL = 'http://connect.doodle3d.com/';
 
 export async function slice(name, mesh, settings, printers, quality, material, updateProgress) {
+  if (!printers) throw new Error('Please select a printer');
+
   const { dimensions } = settings;
   const centerX = dimensions.x / 2;
   const centerY = dimensions.y / 2;
@@ -113,7 +127,7 @@ export async function slice(name, mesh, settings, printers, quality, material, u
   const geometry = mesh.geometry.clone();
   mesh.updateMatrix();
 
-  const matrix = new THREE.Matrix4().makeTranslation(centerY, 0, centerX).multiply(mesh.matrix);
+  const matrix = new Matrix4().makeTranslation(centerY, 0, centerX).multiply(mesh.matrix);
   const { gcode } = await sliceGeometry(settings, geometry, matrix, false, false, ({ progress }) => {
     updateProgress({
       action: progress.action,

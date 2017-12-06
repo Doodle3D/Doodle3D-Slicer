@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import { Vector2 } from 'three/src/math/Vector2.js';
 import Shape from 'clipper-js';
 
 export default function intersectionsToShapes(layerIntersectionIndexes, layerIntersectionPoints, lines, settings) {
@@ -48,8 +48,8 @@ export default function intersectionsToShapes(layerIntersectionIndexes, layerInt
           if (typeof intersectionPoints[index] !== 'undefined') {
             const faceNormal = faceNormals[Math.floor(i / 2)];
 
-            const a = new THREE.Vector2(intersection.x, intersection.y);
-            const b = new THREE.Vector2(intersectionPoints[index].x, intersectionPoints[index].y);
+            const a = new Vector2(intersection.x, intersection.y);
+            const b = new Vector2(intersectionPoints[index].x, intersectionPoints[index].y);
 
             // can't calculate normal between points if distance is smaller as 0.0001
             if ((faceNormal.x === 0 && faceNormal.y === 0) || a.distanceTo(b) < 0.0001) {
@@ -64,7 +64,7 @@ export default function intersectionsToShapes(layerIntersectionIndexes, layerInt
               index = -1;
             } else {
               // make sure the path goes the right direction
-              // THREE.Vector2.normal is not yet implimented
+              // Vector2.normal is not yet implimented
               // const normal = a.sub(b).normal().normalize();
               const normal = a.sub(b);
               normal.set(-normal.y, normal.x).normalize();
@@ -111,7 +111,7 @@ export default function intersectionsToShapes(layerIntersectionIndexes, layerInt
         if (openShape) {
           lineShapesOpen.push(shape);
         } else {
-          lineShapesClosed.push(shape);          
+          lineShapesClosed.push(shape);
         }
       } else {
         fillShapes.push(shape);

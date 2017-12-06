@@ -23,9 +23,10 @@
     "react-dom": "^16.0.0",
     "react-jss": "^7.2.0",
     "react-resize-detector": "^1.1.0",
-    "three": "^0.83.0"
+    "three": "^0.88.0"
   },
   "devDependencies": {
+    "raw-loader": "^0.5.1",
     "babel-plugin-inline-import": "^2.0.6",
     "babel-preset-stage-0": "^6.24.1",
     "babel-plugin-syntax-dynamic-import": "^6.18.0",

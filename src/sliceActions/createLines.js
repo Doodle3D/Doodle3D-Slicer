@@ -1,11 +1,12 @@
-import * as THREE from 'three';
+import { Line3 } from 'three/src/math/Line3.js';
+import { Vector2 } from 'three/src/math/Vector2.js';
 
 function addLine(geometry, lineLookup, lines, a, b, isFlat) {
   const index = lines.length;
   lineLookup[`${a}_${b}`] = index;
 
   lines.push({
-    line: new THREE.Line3(geometry.vertices[a], geometry.vertices[b]),
+    line: new Line3(geometry.vertices[a], geometry.vertices[b]),
     connects: [],
     normals: [],
     isFlat
@@ -38,7 +39,7 @@ export default function createLines(geometry, settings) {
     lines[lineIndexB].connects.push(lineIndexC, lineIndexA);
     lines[lineIndexC].connects.push(lineIndexA, lineIndexB);
 
-    const normal = new THREE.Vector2(face.normal.z, face.normal.x).normalize();
+    const normal = new Vector2(face.normal.z, face.normal.x).normalize();
     lines[lineIndexA].normals.push(normal);
     lines[lineIndexB].normals.push(normal);
     lines[lineIndexC].normals.push(normal);

@@ -46,6 +46,9 @@ module.exports = {
       }, {
         test: /\.worker\.js$/,
         use: ['worker-loader', babelLoader]
+      }, {
+        test: /\.glsl$/,
+        use: ['raw-loader']
       }
     ]
   },
