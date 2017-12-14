@@ -6,14 +6,22 @@ import { render } from 'react-dom';
 import fileSaver from 'file-saver';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import injectTapEventPlugin from 'react-tap-event-plugin';
+import jss from 'jss';
+import preset from 'jss-preset-default';
+import normalize from 'normalize-jss';
 
 injectTapEventPlugin();
 
-document.body.style.margin = 0;
-document.body.style.padding = 0;
-document.body.style.height = '100%';
-document.documentElement.style.height = '100%'
-document.getElementById('app').style.height = '100%';
+jss.setup(preset());
+jss.createStyleSheet(normalize).attach();
+jss.createStyleSheet({
+  '@global': {
+    '*': { margin: 0, padding: 0 },
+    '#app, body, html': { height: '100%', fontFamily: 'sans-serif' },
+    body: { overflow: 'auto' },
+    html: { overflow: 'hidden' }
+  }
+}).attach();
 
 const downloadGCode = ({ gcode: { gcode } }) => {
   const file = new File([gcode], 'gcode.gcode', { type: 'text/plain' });
