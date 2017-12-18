@@ -1,120 +1,136 @@
-import { Vector2 } from 'three/src/math/Vector2.js';
-import Shape from 'clipper-js';
+import { subtract, normal, normalize, dot, distanceTo, clone } from './helpers/VectorUtils.js';
 
-export default function intersectionsToShapes(layerIntersectionIndexes, layerIntersectionPoints, lines, settings) {
+export default function intersectionsToShapes(intersectionLayers, faces, open, settings) {
   const layers = [];
 
-  for (let layer = 1; layer < layerIntersectionIndexes.length; layer ++) {
-    const intersectionIndexes = layerIntersectionIndexes[layer];
-    const intersectionPoints = layerIntersectionPoints[layer];
-
-    if (intersectionIndexes.length === 0) continue;
-
+  for (let layer = 1; layer < intersectionLayers.length; layer ++) {
     const fillShapes = [];
     const lineShapesOpen = [];
     const lineShapesClosed = [];
-    for (let i = 0; i < intersectionIndexes.length; i ++) {
-      let index = intersectionIndexes[i];
 
-      if (typeof intersectionPoints[index] === 'undefined') continue;
+    const { points, faceIndexes } = intersectionLayers[layer];
 
-      const shape = [];
+    if (faceIndexes.length === 0) continue;
 
-      const firstPoints = [index];
-      const { openGeometry } = lines[index];
-      let isFirstPoint = true;
-      let openShape = true;
+    const shapes = {};
 
-      while (index !== -1) {
-        const intersection = intersectionPoints[index];
-        // uppercase X and Y because clipper vector
-        shape.push(intersection);
+    for (let i = 0; i < faceIndexes.length; i ++) {
+      const { lineIndexes, objectIndex, flatNormal } = faces[faceIndexes[i]];
 
-        delete intersectionPoints[index];
+      const a = points[lineIndexes[0]];
+      const b = points[lineIndexes[1]];
+      const c = points[lineIndexes[2]];
 
-        const connects = lines[index].connects;
-        const faceNormals = lines[index].normals;
+      const lineSegment = [];
+      if (a && b) {
+        lineSegment.push(a, b);
+      } else if (b && c) {
+        lineSegment.push(b, c);
+      } else if (c && a) {
+        lineSegment.push(c, a);
+      } else {
+        continue;
+      }
 
-        for (let i = 0; i < connects.length; i ++) {
-          index = connects[i];
+      const segmentNormal = normalize(normal(subtract(lineSegment[1], lineSegment[0])));
+      if (dot(segmentNormal, flatNormal) < 0) lineSegment.reverse();
 
-          if (firstPoints.includes(index) && shape.length > 2) {
-            openShape = false;
-            index = -1;
-            break;
+      if (!shapes[objectIndex]) shapes[objectIndex] = { lineSegments: [] };
+      const shape = shapes[objectIndex];
+
+      shape.lineSegments.push(lineSegment)
+    }
+
+    for (const objectIndex in shapes) {
+      const shape = shapes[objectIndex];
+      const openShape = open[objectIndex];
+
+      const lines = [shape.lineSegments.pop()];
+
+      loop: while (shape.lineSegments.length !== 0) {
+        for (let i = 0; i < lines.length; i ++) {
+          const line = lines[i];
+
+          const lastPoint = line[line.length - 1];
+
+          let closestSegmentEnd;
+          let endHit = false;
+          const distanceEnd = new WeakMap();
+          for (let i = 0; i < shape.lineSegments.length; i ++) {
+            const lineSegment = shape.lineSegments[i];
+            if (lastPoint === lineSegment[0]) {
+              closestSegmentEnd = lineSegment;
+              endHit = true;
+              break;
+            }
+            const distance = distanceTo(lastPoint, lineSegment[0]);
+            distanceEnd.set(lineSegment, distance);
           }
 
-          // Check if index has an intersection or is already used
-          if (typeof intersectionPoints[index] !== 'undefined') {
-            const faceNormal = faceNormals[Math.floor(i / 2)];
+          if (!endHit) {
+            closestSegmentEnd = shape.lineSegments.sort((a, b) => {
+              const distanceA = distanceEnd.get(a);
+              const distanceB = distanceEnd.get(b);
+              if (distanceA === distanceB) return distanceTo(a[0], a[1]) - distanceTo(b[0], b[1]);
+              return distanceA - distanceB;
+            })[0];
 
-            const a = new Vector2(intersection.x, intersection.y);
-            const b = new Vector2(intersectionPoints[index].x, intersectionPoints[index].y);
+            if (distanceTo(closestSegmentEnd[0], lastPoint) < .001) endHit = true;
+          }
 
-            // can't calculate normal between points if distance is smaller as 0.0001
-            if ((faceNormal.x === 0 && faceNormal.y === 0) || a.distanceTo(b) < 0.0001) {
-              if (isFirstPoint) {
-                firstPoints.push(index);
-              }
+          if (endHit) {
+            shape.lineSegments.splice(shape.lineSegments.indexOf(closestSegmentEnd), 1);
+            line.splice(line.length, 0, closestSegmentEnd[1]);
+            continue loop;
+          }
 
-              delete intersectionPoints[index];
+          const firstPoint = line[0];
 
-              connects.push(...lines[index].connects);
-              faceNormals.push(...lines[index].normals);
-              index = -1;
-            } else {
-              // make sure the path goes the right direction
-              // Vector2.normal is not yet implimented
-              // const normal = a.sub(b).normal().normalize();
-              const normal = a.sub(b);
-              normal.set(-normal.y, normal.x).normalize();
-
-              if (normal.dot(faceNormal) > 0) {
-                break;
-              } else {
-                index = -1;
-              }
+          let closestSegmentStart;
+          let hitStart = false;
+          const distanceStart = new WeakMap();
+          for (let i = 0; i < shape.lineSegments.length; i ++) {
+            const lineSegment = shape.lineSegments[i];
+            if (firstPoint === lineSegment[1]) {
+              closestSegmentStart = lineSegment;
+              hitStart = true;
+              break;
             }
-          } else {
-            index = -1;
+            const distance = distanceTo(firstPoint, lineSegment[1]);
+            distanceStart.set(lineSegment, distance);
+          }
+
+          if (!hitStart) {
+            closestSegmentStart = shape.lineSegments.sort((a, b) => {
+              const distanceA = distanceStart.get(a);
+              const distanceB = distanceStart.get(b);
+              if (distanceA === distanceB) return distanceTo(a[0], a[1]) - distanceTo(b[0], b[1]);
+              return distanceA - distanceB;
+            })[0];
+
+            if (distanceTo(closestSegmentStart[1], firstPoint) < .001) hitStart = true;
+          }
+
+          if (hitStart) {
+            shape.lineSegments.splice(shape.lineSegments.indexOf(closestSegmentStart), 1);
+            line.splice(0, 0, closestSegmentStart[0]);
+            continue loop;
           }
         }
-        isFirstPoint = false;
+        lines.push(shape.lineSegments.pop());
       }
 
       if (openShape) {
-        index = firstPoints[0];
-
-        while (index !== -1) {
-          if (!firstPoints.includes(index)) {
-            const intersection = intersectionPoints[index];
-            shape.unshift(intersection);
-
-            delete intersectionPoints[index];
+        for (const line of lines) {
+          const closed = distanceTo(line[0], line[line.length - 1]) < .001;
+          if (closed) {
+            lineShapesClosed.push(line);
+          } else {
+            lineShapesOpen.push(line);
           }
-
-          const connects = lines[index].connects;
-
-          for (let i = 0; i < connects.length; i ++) {
-            index = connects[i];
-
-            if (typeof intersectionPoints[index] !== 'undefined') {
-              break;
-            } else {
-              index = -1;
-            }
-          }
-        }
-      }
-
-      if (openGeometry) {
-        if (openShape) {
-          lineShapesOpen.push(shape);
-        } else {
-          lineShapesClosed.push(shape);
         }
       } else {
-        fillShapes.push(shape);
+        fillShapes.push(...lines);
       }
     }
 

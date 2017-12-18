@@ -78,11 +78,10 @@ const styles = {
 
 class Interface extends React.Component {
   static propTypes = {
-    geometry(props, propName) {
-      if (!(props[propName].isGeometry || props[propName].isBufferGeometry)) {
-        throw new Error('invalid prop, is not geometry');
-      }
-    },
+    sketch: PropTypes.shape({
+      data: PropTypes.string,
+      appVersion: PropTypes.string
+    }),
     classes: PropTypes.objectOf(PropTypes.string),
     defaultSettings: PropTypes.object.isRequired,
     printers: PropTypes.object.isRequired,
@@ -130,6 +129,7 @@ class Interface extends React.Component {
 
   componentDidMount() {
     const { canvas } = this.refs;
+
     const scene = createScene(canvas, this.props, this.state);
     this.setState({ ...scene });
   }
@@ -176,21 +176,22 @@ class Interface extends React.Component {
 
   slice = async () => {
     const { mesh, settings, isSlicing, printers, quality, material } = this.state;
-    const { name } = this.props;
+    const { name, sketch } = this.props;
 
     if (isSlicing) return;
 
     this.setState({ isSlicing: true, progress: { action: '', slicing: 0, uploading: 0 }, error: null });
 
     try {
-      await slice(name, mesh, settings, printers, quality, material, progress => {
+      await slice(name, sketch, mesh.matrix, settings, printers, quality, material, progress => {
         this.setState({ progress: { ...this.state.progress, ...progress } });
       });
     } catch (error) {
       this.setState({ error: error.message });
+      throw error;
+    } finally {
+      this.setState({ isSlicing: false });
     }
-
-    this.setState({ isSlicing: false });
   };
 
   onChangeSettings = (settings) => {

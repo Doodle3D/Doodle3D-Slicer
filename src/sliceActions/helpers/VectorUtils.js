@@ -10,18 +10,23 @@ export const scale = (a, factor) => ({
   x: a.x * factor,
   y: a.y * factor
 });
+export const devide = (a, factor) => ({
+  x: a.x / factor,
+  y: a.y / factor
+});
 export const normal = (a) => ({
   x: -a.y,
   y: a.x
 });
 export const dot = (a, b) => a.x * b.x + a.y * b.y;
-export const length = (a) => Math.sqrt(a.x * a.x + a.y * a.y);
+export const length = (v) => Math.sqrt(v.x * v.x + v.y * v.y);
 export const distanceTo = (a, b) => length(subtract(a, b));
-export const normalize = (a) => {
-  const l = length(a);
+export const normalize = (v) => {
+  const l = length(v);
 
   return {
-    x: a.x / l,
-    y: a.y / l
+    x: v.x / l,
+    y: v.y / l
   };
 }
+export const clone = (v) => ({ x: v.x, y: v.y });

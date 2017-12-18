@@ -15,9 +15,12 @@ import 'three/examples/js/controls/EditorControls';
 import printerSettings from '../settings/printer.yml';
 import materialSettings from '../settings/material.yml';
 import qualitySettings from '../settings/quality.yml';
-import { sliceGeometry } from '../slicer.js';
+import { sliceAsync } from '../slicer.js';
 import React from 'react';
 import PropTypes from 'prop-types';
+import fileSaver from 'file-saver';
+import { generateExportMesh } from 'doodle3d-core/utils/exportUtils.js';
+import ShapesManager from 'doodle3d-core/d3/ShapesManager.js';
 
 export function placeOnGround(mesh) {
   const boundingBox = new Box3().setFromObject(mesh);
@@ -27,8 +30,9 @@ export function placeOnGround(mesh) {
 }
 
 export function createScene(canvas, props, state) {
-  const { geometry, pixelRatio } = props;
-  const { controlMode, settings } = state;
+  const { sketch, pixelRatio } = props;
+  const { settings } = state;
+  const { geometry } = generateExportMesh(sketch, { offsetSingleWalls: false, matrix: new THREE.Matrix4() });
 
   // center geometry
   geometry.computeBoundingBox();
@@ -117,23 +121,23 @@ export function fetchProgress(url, { method = 'get', headers = {}, body = {} } =
 const GCODE_SERVER_URL = 'https://gcodeserver.doodle3d.com';
 const CONNECT_URL = 'http://connect.doodle3d.com/';
 
-export async function slice(name, mesh, settings, printers, quality, material, updateProgress) {
+export async function slice(name, sketch, matrix, settings, printers, quality, material, updateProgress) {
   if (!printers) throw new Error('Please select a printer');
 
   const { dimensions } = settings;
   const centerX = dimensions.x / 2;
   const centerY = dimensions.y / 2;
 
-  const geometry = mesh.geometry.clone();
-  mesh.updateMatrix();
-
-  const matrix = new Matrix4().makeTranslation(centerY, 0, centerX).multiply(mesh.matrix);
-  const { gcode } = await sliceGeometry(settings, geometry, matrix, false, false, ({ progress }) => {
+  matrix = new Matrix4().makeTranslation(centerY, 0, centerX).multiply(matrix);
+  const { gcode } = await sliceAsync(settings, sketch, matrix, false, ({ progress }) => {
     updateProgress({
       action: progress.action,
       slicing: progress.done / progress.total
     });
   });
+
+  // const blob = new File([gcode], `${name}.gcode`, { type: 'text/plain;charset=utf-8' });
+  // fileSaver.saveAs(blob);
 
   // upload G-code file to AWS S3
   const { data: { reservation, id } } = await fetch(`${GCODE_SERVER_URL}/upload`, { method: 'POST' })
@@ -174,19 +178,18 @@ export async function slice(name, mesh, settings, printers, quality, material, u
   if (!popup) throw new Error('popup was blocked by browser');
 }
 
-const styles = {
-  width: '100%',
-  position: 'relative',
-  textAlign: 'initial',
-};
-
-export const TabTemplate = ({children, selected, style}) => {
-  const templateStyle = Object.assign({}, styles, style);
-  if (!selected) {
-    templateStyle.height = 0;
-    templateStyle.width = 0;
-    templateStyle.overflow = 'hidden';
-  }
+export const TabTemplate = ({ children, selected, style }) => {
+  const templateStyle = {
+    width: '100%',
+    position: 'relative',
+    textAlign: 'initial',
+    ...style,
+    ...(selected ? {} : {
+      height: 0,
+      width: 0,
+      overflow: 'hidden'
+    })
+  };
 
   return (
     <div style={templateStyle}>

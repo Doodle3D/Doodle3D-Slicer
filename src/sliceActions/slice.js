@@ -1,3 +1,4 @@
+import 'babel-polyfill'
 import { Color } from 'three/src/math/Color.js';
 import { BufferGeometry } from 'three/src/core/BufferGeometry.js';
 import { BufferAttribute } from 'three/src/core/BufferAttribute.js';
@@ -15,11 +16,11 @@ import addBrim from './addBrim.js';
 import optimizePaths from './optimizePaths.js';
 import shapesToSlices from './shapesToSlices.js';
 import slicesToGCode from './slicesToGCode.js';
-import detectOpenClosed from './detectOpenClosed.js';
+import generateGeometry from './generateGeometry.js';
 import applyPrecision from './applyPrecision.js';
-// import removePrecision from './removePrecision.js';
+// // import removePrecision from './removePrecision.js';
 
-export default function(settings, geometry, constructLinePreview, onProgress) {
+export default function(settings, sketch, matrix, constructLinePreview, onProgress) {
   const totalStages = 12;
   let current = -1;
   const updateProgress = (action) => {
@@ -35,23 +36,17 @@ export default function(settings, geometry, constructLinePreview, onProgress) {
     }
   };
 
-  geometry.computeFaceNormals();
+  updateProgress('Generating geometry');
+  const { geometry, open } = generateGeometry(sketch, matrix);
 
-  // get unique lines from geometry;
   updateProgress('Constructing unique lines from geometry');
-  const lines = createLines(geometry, settings);
-
-  updateProgress('Detecting open vs closed shapes');
-  detectOpenClosed(lines);
+  const { lines, faces } = createLines(geometry, settings);
 
   updateProgress('Calculating layer intersections');
-  const {
-    layerIntersectionIndexes,
-    layerIntersectionPoints
-  } = calculateLayersIntersections(lines, settings);
+  const layers = calculateLayersIntersections(lines, settings);
 
   updateProgress('Constructing shapes from intersections');
-  const shapes = intersectionsToShapes(layerIntersectionIndexes, layerIntersectionPoints, lines, settings);
+  const shapes = intersectionsToShapes(layers, faces, open, settings);
 
   applyPrecision(shapes);
 
@@ -91,7 +86,7 @@ function gcodeToString(gcode) {
       const value = command[action];
       const currentValue = currentValues[action];
       if (first) {
-        string += action + value;
+        string += `${action}${value}`;
         first = false;
       } else if (currentValue !== value) {
         string += ` ${action}${value}`;

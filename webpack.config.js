@@ -2,6 +2,8 @@ const path = require('path');
 // const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const HTMLWebpackPlugin = require('html-webpack-plugin');
 
+const devMode = true;
+
 const babelLoader = {
   loader: 'babel-loader',
   options: {
@@ -28,7 +30,9 @@ module.exports = {
     alias: {
       'doodle3d-slicer': path.resolve(__dirname, 'src/'),
       'clipper-lib': '@doodle3d/clipper-lib',
-      'clipper-js': '@doodle3d/clipper-js'
+      'clipper-js': '@doodle3d/clipper-js',
+      'doodle3d-core': `@doodle3d/doodle3d-core/${devMode ? 'module' : 'lib'}`,
+      'cal': '@doodle3d/cal'
     }
   },
   module: {
@@ -46,6 +50,9 @@ module.exports = {
       }, {
         test: /\.worker\.js$/,
         use: ['worker-loader', babelLoader]
+      }, {
+        test: /\.(png|jpg|gif)$/,
+        use: ['url-loader?name=images/[name].[ext]']
       }, {
         test: /\.glsl$/,
         use: ['raw-loader']
