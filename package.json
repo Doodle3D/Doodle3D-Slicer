@@ -1,6 +1,6 @@
 {
   "name": "@doodle3d/doodle3d-slicer",
-  "version": "0.0.13",
+  "version": "0.0.18",
   "description": "JavaScript gcode slicer, Intended to use with the Doodle3D WiFi-Box # Usage",
   "main": "lib/index.js",
   "module": "module/index.js",
