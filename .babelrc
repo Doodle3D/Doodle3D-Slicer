@@ -17,10 +17,10 @@
     }
   },
   "plugins": [
-    "transform-object-rest-spread",
-    "transform-class-properties",
-    "transform-runtime",
-    "transform-es2015-classes",
-    "transform-class-properties"
+    "babel-plugin-transform-object-rest-spread",
+    "babel-plugin-transform-class-properties",
+    "babel-plugin-transform-runtime",
+    "babel-plugin-transform-es2015-classes",
+    "babel-plugin-transform-class-properties"
   ]
 }
