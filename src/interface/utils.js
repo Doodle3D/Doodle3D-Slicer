@@ -126,7 +126,7 @@ export async function slice(name, mesh, settings, printers, quality, material, u
   const centerY = dimensions.y / 2;
 
   const matrix = new Matrix4().makeTranslation(centerY, 0, centerX).multiply(mesh.matrix);
-  const { gcode } = sliceGeometry(settings, mesh.geometry, mesh.material, matrix, true, false, ({ progress }) => {
+  const { gcode } = await sliceGeometry(settings, mesh.geometry, mesh.material, matrix, false, false, ({ progress }) => {
     updateProgress({
       action: progress.action,
       slicing: progress.done / progress.total
