@@ -103,6 +103,8 @@ class Settings extends React.Component {
           </Tab>
           <Tab buttonStyle={{ color: grey800, backgroundColor: 'white' }} label="Advanced">
             <div>
+              <p>Layer</p>
+              <TextField name="settings.layerHeight" fullWidth floatingLabelText="Height" type="number" />
               <p>Printer dimensions</p>
               <div className={classes.textFieldRow}>
                 <TextField name="settings.dimensions.x" fullWidth floatingLabelText="X" type="number" />
