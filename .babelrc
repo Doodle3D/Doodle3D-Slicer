@@ -9,18 +9,17 @@
           },
           "modules": false
         }],
+        "stage-0",
         "react"
       ]
     },
     "main": {
-      "presets": ["env", "react"]
+      "presets": ["env", "stage-0", "react"]
     }
   },
   "plugins": [
-    "babel-plugin-transform-object-rest-spread",
-    "babel-plugin-transform-class-properties",
-    "babel-plugin-transform-runtime",
-    "babel-plugin-transform-es2015-classes",
-    "babel-plugin-transform-class-properties"
+    "transform-object-rest-spread",
+    "transform-runtime",
+    "transform-es2015-classes"
   ]
 }
