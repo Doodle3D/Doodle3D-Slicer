@@ -11,13 +11,14 @@ const styles = {
   textFieldRow: {
     display: 'flex'
   },
-  text: {
-    fontWeight: 'bold'
-  },
   container: {
     width: '100%',
     flexGrow: 1,
-    overflowY: 'auto'
+    overflowY: 'auto',
+    '& p, h3': {
+      fontWeight: 'bold',
+      margin: '30px 0 0 0'
+    }
   }
 };
 
@@ -89,7 +90,7 @@ class Settings extends React.Component {
             <MenuItem key={value} value={value} primaryText={title} />
           ))}
         </SelectField>
-        <h3 className={classes.text}>Printer Setup</h3>
+        <h3>Printer Setup</h3>
         <Tabs inkBarStyle={{ backgroundColor: cyan500 }}>
           <Tab buttonStyle={{ color: grey800, backgroundColor: 'white' }} label="Basic">
             <div>
@@ -102,50 +103,50 @@ class Settings extends React.Component {
           </Tab>
           <Tab buttonStyle={{ color: grey800, backgroundColor: 'white' }} label="Advanced">
             <div>
-              <p className={classes.text}>Printer dimensions</p>
+              <p>Printer dimensions</p>
               <div className={classes.textFieldRow}>
                 <TextField name="settings.dimensions.x" fullWidth floatingLabelText="X" type="number" />
                 <TextField name="settings.dimensions.y" fullWidth floatingLabelText="Y" type="number" />
                 <TextField name="settings.dimensions.z" fullWidth floatingLabelText="Z" type="number" />
               </div>
-              <p className={classes.text}>Nozzle</p>
+              <p>Nozzle</p>
               <TextField name="settings.nozzleDiameter" fullWidth floatingLabelText="Diameter" type="number" />
-              <p className={classes.text}>Bed</p>
+              <p>Bed</p>
               <TextField name="settings.bedTemperature" fullWidth floatingLabelText="Temperature" type="number" />
               <Checkbox name="settings.heatedBed" label="Heated" />
-              <p className={classes.text}>Material</p>
+              <p>Material</p>
               <TextField name="settings.filamentThickness" fullWidth floatingLabelText="Thickness" type="number" />
               <TextField name="settings.temperature" fullWidth floatingLabelText="Temperature" type="number" />
-              <p className={classes.text}>Thickness</p>
+              <p>Thickness</p>
               <TextField name="settings.thickness.top" fullWidth floatingLabelText="top" type="number" />
               <TextField name="settings.thickness.bottom" fullWidth floatingLabelText="bottom" type="number" />
               <TextField name="settings.thickness.shell" fullWidth floatingLabelText="shell" type="number" />
-              <p className={classes.text}>Retraction</p>
+              <p>Retraction</p>
               <Checkbox name="settings.retraction.enabled" label="Enabled" />
               <TextField name="settings.retraction.amount" fullWidth floatingLabelText="Amount" type="number" />
               <TextField name="settings.retraction.speed" fullWidth floatingLabelText="Speed" type="number" />
               <TextField name="settings.retraction.minDistance" fullWidth floatingLabelText="Min distance" type="number" />
-              <p className={classes.text}>Travel</p>
+              <p>Travel</p>
               <TextField name="settings.travel.speed" fullWidth floatingLabelText="Speed" type="number" />
               <Checkbox name="settings.combing" label="Combing" />
-              <p className={classes.text}>Inner shell</p>
+              <p>Inner shell</p>
               <TextField name="settings.innerShell.speed" fullWidth floatingLabelText="Speed" type="number" />
               <TextField name="settings.innerShell.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
-              <p className={classes.text}>Outer shell</p>
+              <p>Outer shell</p>
               <TextField name="settings.outerShell.speed" fullWidth floatingLabelText="Speed" type="number" />
               <TextField name="settings.outerShell.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
-              <p className={classes.text}>Inner infill</p>
+              <p>Inner infill</p>
               <TextField name="settings.innerInfill.gridSize" fullWidth floatingLabelText="Grid size" type="number" />
               <TextField name="settings.innerInfill.speed" fullWidth floatingLabelText="Speed" type="number" />
               <TextField name="settings.innerInfill.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
-              <p className={classes.text}>Outer infill</p>
+              <p>Outer infill</p>
               <TextField name="settings.outerInfill.speed" fullWidth floatingLabelText="Speed" type="number" />
               <TextField name="settings.outerInfill.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
-              <p className={classes.text}>Brim</p>
+              <p>Brim</p>
               <TextField name="settings.brim.offset" fullWidth floatingLabelText="Offset" type="number" />
               <TextField name="settings.brim.speed" fullWidth floatingLabelText="Speed" type="number" />
               <TextField name="settings.brim.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
-              <p className={classes.text}>First layer</p>
+              <p>First layer</p>
               <TextField name="settings.firstLayer.speed" fullWidth floatingLabelText="Speed" type="number" />
               <TextField name="settings.firstLayer.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
             </div>
