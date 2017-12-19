@@ -14,7 +14,8 @@ const babelLoader = {
     plugins: [
       require('babel-plugin-transform-object-rest-spread'),
       require('babel-plugin-transform-class-properties'),
-      require('babel-plugin-transform-runtime')
+      require('babel-plugin-transform-runtime'),
+      require('babel-plugin-transform-es2015-classes')
     ],
     babelrc: false
   }
