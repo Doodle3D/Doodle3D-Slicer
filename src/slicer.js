@@ -2,23 +2,63 @@ import { VertexColors } from 'three/src/constants.js';
 import { BufferAttribute } from 'three/src/core/BufferAttribute.js';
 import { LineBasicMaterial } from 'three/src/materials/LineBasicMaterial.js';
 import { LineSegments } from 'three/src/objects/LineSegments.js';
-import _slice from './sliceActions/slice.js';
+import slice from './sliceActions/slice.js';
 import SlicerWorker from './slicer.worker.js';
-import sketchDataToJSON from 'doodle3d-core/shape/sketchDataToJSON';
+import { FrontSide, DoubleSide } from 'three/src/constants.js';
+import { BufferGeometry } from 'three/src/core/BufferGeometry.js'
 
-export function slice(settings, sketch, matrix, sync = false, constructLinePreview = false, onProgress) {
-  if (sync) {
-    return sliceSync(settings, sketch, matrix, constructLinePreview, onProgress);
+export function sliceMesh(settings, mesh, sync = false, constructLinePreview = false, onProgress) {
+  if (!mesh || !mesh.isMesh) {
+    throw new Error('Provided mesh is not intance of THREE.Mesh');
+  }
+
+  mesh.updateMatrix();
+  const { geometry, matrix, material } = mesh;
+  return sliceGeometry(settings, geometry, material, matrix, sync, constructLinePreview, onProgress);
+}
+
+export function sliceGeometry(settings, geometry, materials, matrix, sync = false, constructLinePreview = false, onProgress) {
+  if (!geometry) {
+    throw new Error('Missing required geometry argument');
+  } else if (geometry.isBufferGeometry) {
+    geometry = new Geometry().fromBufferGeometry(geometry);
+  } else if (geometry.isGeometry) {
+    geometry = geometry.clone();
   } else {
-    return sliceAsync(settings, sketch, matrix, constructLinePreview, onProgress);
+    throw new Error('Geometry is not an instance of BufferGeometry or Geometry');
+  }
+
+  if (geometry.faces.length === 0) {
+    throw new Error('Geometry does not contain any data');
+  }
+
+  if (matrix && matrix.isMatrix4) {
+    geometry.applyMatrix(matrix);
+  }
+
+  const openObjectIndexes = materials instanceof Array ? materials.map(({ side }) => {
+    switch (side) {
+      case FrontSide:
+        return false;
+      case DoubleSide:
+        return true;
+      default:
+        return false;
+    }
+  }) : [false];
+
+  if (sync) {
+    return sliceSync(settings, geometry, openObjectIndexes, constructLinePreview, onProgress);
+  } else {
+    return sliceAsync(settings, geometry, openObjectIndexes, constructLinePreview, onProgress);
   }
 }
 
-export function sliceSync(settings, sketch, matrix, constructLinePreview, onProgress) {
-  return _slice(settings, sketch, matrix, constructLinePreview, onProgress);
+function sliceSync(settings, geometry, openObjectIndexes, constructLinePreview, onProgress) {
+  return slice(settings, geometry, openObjectIndexes, constructLinePreview, onProgress);
 }
 
-export function sliceAsync(settings, sketch, matrix, constructLinePreview, onProgress) {
+function sliceAsync(settings, geometry, openObjectIndexes, constructLinePreview, onProgress) {
   return new Promise((resolve, reject) => {
     // create the slicer worker
     const slicerWorker = new SlicerWorker();
@@ -61,11 +101,10 @@ export function sliceAsync(settings, sketch, matrix, constructLinePreview, onPro
     });
 
     // send geometry and settings to worker to start the slicing progress
-    matrix = matrix.toArray();
-    sketch = sketchDataToJSON(sketch);
+    geometry = geometry.toJSON();
     slicerWorker.postMessage({
       message: 'SLICE',
-      data: { settings, sketch, matrix, constructLinePreview }
+      data: { settings, geometry, openObjectIndexes, constructLinePreview }
     });
   });
 }

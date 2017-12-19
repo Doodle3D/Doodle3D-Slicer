@@ -1,4 +1,3 @@
-import 'babel-polyfill'
 import { Color } from 'three/src/math/Color.js';
 import { BufferGeometry } from 'three/src/core/BufferGeometry.js';
 import { BufferAttribute } from 'three/src/core/BufferAttribute.js';
@@ -16,12 +15,11 @@ import addBrim from './addBrim.js';
 import optimizePaths from './optimizePaths.js';
 import shapesToSlices from './shapesToSlices.js';
 import slicesToGCode from './slicesToGCode.js';
-import generateGeometry from './generateGeometry.js';
 import applyPrecision from './applyPrecision.js';
 // // import removePrecision from './removePrecision.js';
 
-export default function(settings, sketch, matrix, constructLinePreview, onProgress) {
-  const totalStages = 12;
+export default function(settings, geometry, openObjectIndexes, constructLinePreview, onProgress) {
+  const totalStages = 11;
   let current = -1;
   const updateProgress = (action) => {
     current ++;
@@ -36,9 +34,6 @@ export default function(settings, sketch, matrix, constructLinePreview, onProgre
     }
   };
 
-  updateProgress('Generating geometry');
-  const { geometry, open } = generateGeometry(sketch, matrix);
-
   updateProgress('Constructing unique lines from geometry');
   const { lines, faces } = createLines(geometry, settings);
 
@@ -46,7 +41,7 @@ export default function(settings, sketch, matrix, constructLinePreview, onProgre
   const layers = calculateLayersIntersections(lines, settings);
 
   updateProgress('Constructing shapes from intersections');
-  const shapes = intersectionsToShapes(layers, faces, open, settings);
+  const shapes = intersectionsToShapes(layers, faces, openObjectIndexes, settings);
 
   applyPrecision(shapes);
 

@@ -15,12 +15,10 @@ import 'three/examples/js/controls/EditorControls';
 import printerSettings from '../settings/printer.yml';
 import materialSettings from '../settings/material.yml';
 import qualitySettings from '../settings/quality.yml';
-import { sliceAsync } from '../slicer.js';
+import { sliceGeometry } from '../slicer.js';
 import React from 'react';
 import PropTypes from 'prop-types';
 import fileSaver from 'file-saver';
-import { generateExportMesh } from 'doodle3d-core/utils/exportUtils.js';
-import ShapesManager from 'doodle3d-core/d3/ShapesManager.js';
 
 export function placeOnGround(mesh) {
   const boundingBox = new Box3().setFromObject(mesh);
@@ -30,9 +28,8 @@ export function placeOnGround(mesh) {
 }
 
 export function createScene(canvas, props, state) {
-  const { sketch, pixelRatio } = props;
+  const { pixelRatio, mesh: { geometry } } = props;
   const { settings } = state;
-  const { geometry } = generateExportMesh(sketch, { offsetSingleWalls: false, matrix: new THREE.Matrix4() });
 
   // center geometry
   geometry.computeBoundingBox();
@@ -121,15 +118,15 @@ export function fetchProgress(url, { method = 'get', headers = {}, body = {} } =
 const GCODE_SERVER_URL = 'https://gcodeserver.doodle3d.com';
 const CONNECT_URL = 'http://connect.doodle3d.com/';
 
-export async function slice(name, sketch, matrix, settings, printers, quality, material, updateProgress) {
+export async function slice(name, mesh, settings, printers, quality, material, updateProgress) {
   if (!printers) throw new Error('Please select a printer');
 
   const { dimensions } = settings;
   const centerX = dimensions.x / 2;
   const centerY = dimensions.y / 2;
 
-  matrix = new Matrix4().makeTranslation(centerY, 0, centerX).multiply(matrix);
-  const { gcode } = await sliceAsync(settings, sketch, matrix, false, ({ progress }) => {
+  const matrix = new Matrix4().makeTranslation(centerY, 0, centerX).multiply(mesh.matrix);
+  const { gcode } = sliceGeometry(settings, mesh.geometry, mesh.material, matrix, true, false, ({ progress }) => {
     updateProgress({
       action: progress.action,
       slicing: progress.done / progress.total

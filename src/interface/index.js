@@ -2,6 +2,7 @@ import _ from 'lodash';
 import React from 'react';
 import { Quaternion } from 'three/src/math/Quaternion.js';
 import { Vector3 } from 'three/src/math/Vector3.js';
+import { Mesh } from 'three/src/objects/Mesh.js';
 import PropTypes from 'proptypes';
 import { placeOnGround, createScene, fetchProgress, slice, TabTemplate } from './utils.js';
 import injectSheet from 'react-jss';
@@ -78,10 +79,7 @@ const styles = {
 
 class Interface extends React.Component {
   static propTypes = {
-    sketch: PropTypes.shape({
-      data: PropTypes.string,
-      appVersion: PropTypes.string
-    }),
+    mesh: PropTypes.shape({ isMesh: PropTypes.oneOf([true]) }).isRequired,
     classes: PropTypes.objectOf(PropTypes.string),
     defaultSettings: PropTypes.object.isRequired,
     printers: PropTypes.object.isRequired,
@@ -110,7 +108,6 @@ class Interface extends React.Component {
     super(props);
     const { defaultPrinter, defaultQuality, defaultMaterial, printers, quality, material, defaultSettings } = props;
     this.state = {
-      controlMode: 'translate',
       showFullScreen: false,
       isSlicing: false,
       error: null,
@@ -135,7 +132,10 @@ class Interface extends React.Component {
   }
 
   componentWillUnmount() {
-    if (this.state.editorControls) this.state.editorControls.dispose();
+    const { editorControls, mesh: { material }, renderer } = this.state;
+    editorControls.dispose();
+    material.dispose();
+    renderer.dispose();
   }
 
   resetMesh = () => {
@@ -175,15 +175,18 @@ class Interface extends React.Component {
   };
 
   slice = async () => {
-    const { mesh, settings, isSlicing, printers, quality, material } = this.state;
-    const { name, sketch } = this.props;
+    const { settings, isSlicing, printers, quality, mesh: { matrix }, material } = this.state;
+    const { name, mesh } = this.props;
 
     if (isSlicing) return;
 
     this.setState({ isSlicing: true, progress: { action: '', slicing: 0, uploading: 0 }, error: null });
 
+    const exportMesh = new Mesh(mesh.geometry, mesh.material);
+    exportMesh.applyMatrix(matrix);
+
     try {
-      await slice(name, sketch, mesh.matrix, settings, printers, quality, material, progress => {
+      await slice(name, exportMesh, settings, printers, quality, material, progress => {
         this.setState({ progress: { ...this.state.progress, ...progress } });
       });
     } catch (error) {
@@ -220,7 +223,7 @@ class Interface extends React.Component {
     window.requestAnimationFrame(() => {
       const { setSize } = this.state;
       const { pixelRatio } = this.props;
-      setSize(width, height, pixelRatio);
+      if (setSize) setSize(width, height, pixelRatio);
     });
   };
 
@@ -233,9 +236,10 @@ class Interface extends React.Component {
     const { isSlicing, progress, settings, printers, quality, material, showFullScreen, error } = this.state;
 
     const percentage = progress ? (progress.uploading + progress.slicing) / 2.0 * 100.0 : 0.0;
+    const style = { ...(showFullScreen ? {} : { maxWidth: 'inherit', width: '100%', height: '100%' }) };
 
     const settingsPanel = (
-      <div className={classes.settingsBar} style={{ ...(showFullScreen ? {} : { maxWidth: 'inherit', width: '100%', height: '100%' }) }}>
+      <div className={classes.settingsBar} style={style}>
         <Settings
           disabled={isSlicing}
           printers={printerSettings}

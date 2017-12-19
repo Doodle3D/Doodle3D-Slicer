@@ -1,7 +1,7 @@
+import 'core-js'; // polyfills
 import slice from './sliceActions/slice.js';
 import { Matrix4 } from 'three/src/math/Matrix4.js';
-import JSONToSketchData from 'doodle3d-core/shape/JSONToSketchData';
-import createSceneData from 'doodle3d-core/d3/createSceneData.js';
+import { JSONLoader } from 'three/src/loaders/JSONLoader.js';
 
 const onProgress = progress => {
   self.postMessage({
@@ -10,17 +10,18 @@ const onProgress = progress => {
   });
 }
 
+const loader = new JSONLoader();
+
 self.addEventListener('message', async (event) => {
   const { message, data } = event.data;
   switch (message) {
     case 'SLICE': {
+      const { settings, geometry: JSONGeometry, constructLinePreview, openObjectIndexes } = data;
+      const { geometry } = loader.parse(JSONGeometry.data);
+
+      const gcode = slice(settings, geometry, openObjectIndexes, constructLinePreview, onProgress);
+
       const buffers = [];
-      const { settings, sketch: sketchData, matrix: matrixArray, constructLinePreview } = data;
-      const sketch = createSceneData(await JSONToSketchData(sketchData));
-      const matrix = new Matrix4().fromArray(matrixArray);
-
-      const gcode = slice(settings, sketch, matrix, constructLinePreview, onProgress);
-
       if (gcode.linePreview) {
         const position = gcode.linePreview.geometry.getAttribute('position').array;
         const color = gcode.linePreview.geometry.getAttribute('color').array;

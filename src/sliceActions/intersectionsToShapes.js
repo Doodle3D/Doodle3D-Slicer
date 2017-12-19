@@ -1,9 +1,9 @@
 import { subtract, normal, normalize, dot, distanceTo, clone } from './helpers/VectorUtils.js';
 
-export default function intersectionsToShapes(intersectionLayers, faces, open, settings) {
+export default function intersectionsToShapes(intersectionLayers, faces, openObjectIndexes, settings) {
   const layers = [];
 
-  for (let layer = 1; layer < intersectionLayers.length; layer ++) {
+  for (let layer = 0; layer < intersectionLayers.length; layer ++) {
     const fillShapes = [];
     const lineShapesOpen = [];
     const lineShapesClosed = [];
@@ -43,7 +43,7 @@ export default function intersectionsToShapes(intersectionLayers, faces, open, s
 
     for (const objectIndex in shapes) {
       const shape = shapes[objectIndex];
-      const openShape = open[objectIndex];
+      const openShape = openObjectIndexes[objectIndex];
 
       const lines = [shape.lineSegments.pop()];
 
