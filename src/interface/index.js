@@ -139,7 +139,8 @@ class Interface extends React.Component {
   }
 
   resetMesh = () => {
-    const { mesh, render } = this.state;
+    const { mesh, render, isSlicing } = this.state;
+    if (isSlicing) return;
     if (mesh) {
       mesh.position.set(0, 0, 0);
       mesh.scale.set(1, 1, 1);
@@ -153,7 +154,8 @@ class Interface extends React.Component {
   scaleUp = () => this.scaleMesh(0.9);
   scaleDown = () => this.scaleMesh(1.0 / 0.9);
   scaleMesh = (factor) => {
-    const { mesh, render } = this.state;
+    const { mesh, render, isSlicing } = this.state;
+    if (isSlicing) return;
     if (mesh) {
       mesh.scale.multiplyScalar(factor);
       mesh.updateMatrix();
@@ -166,7 +168,8 @@ class Interface extends React.Component {
   rotateY = () => this.rotate(new Vector3(1, 0, 0), Math.PI / 2.0);
   rotateZ = () => this.rotate(new Vector3(0, 1, 0), Math.PI / 2.0);
   rotate = (axis, angle) => {
-    const { mesh, render } = this.state;
+    const { mesh, render, isSlicing } = this.state;
+    if (isSlicing) return;
     if (mesh) {
       mesh.rotateOnWorldAxis(axis, angle);
       placeOnGround(mesh);
@@ -277,14 +280,14 @@ class Interface extends React.Component {
       <div className={classes.d3View}>
         <ReactResizeDetector handleWidth handleHeight onResize={this.onResize3dView} />
         <canvas className={classes.canvas} ref="canvas" />
-        {!isSlicing && <div className={classes.controlBar}>
-          <RaisedButton className={classes.controlButton} onTouchTap={this.resetMesh} label="reset" />
-          <RaisedButton className={classes.controlButton} onTouchTap={this.scaleUp} label="scale down" />
-          <RaisedButton className={classes.controlButton} onTouchTap={this.scaleDown} label="scale up" />
-          <RaisedButton className={classes.controlButton} onTouchTap={this.rotateX} label="rotate x" />
-          <RaisedButton className={classes.controlButton} onTouchTap={this.rotateY} label="rotate y" />
-          <RaisedButton className={classes.controlButton} onTouchTap={this.rotateZ} label="rotate z" />
-        </div>}
+        <div className={classes.controlBar}>
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.resetMesh} label="reset" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.scaleUp} label="scale down" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.scaleDown} label="scale up" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.rotateX} label="rotate x" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.rotateY} label="rotate y" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.rotateZ} label="rotate z" />
+        </div>
       </div>
     );
 
