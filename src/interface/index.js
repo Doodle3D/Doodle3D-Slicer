@@ -178,7 +178,7 @@ class Interface extends React.Component {
   };
 
   slice = async () => {
-    const { settings, isSlicing, printers, quality, mesh: { matrix }, material } = this.state;
+    const { isSlicing, settings, printers, quality, material, mesh: { matrix } } = this.state;
     const { name, mesh } = this.props;
 
     if (isSlicing) return;
