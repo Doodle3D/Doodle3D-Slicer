@@ -11,6 +11,9 @@ import FlatButton from 'material-ui/FlatButton';
 import Slider from 'material-ui/Slider';
 import LinearProgress from 'material-ui/LinearProgress';
 import { grey50, grey300, grey800, red500 } from 'material-ui/styles/colors';
+import Popover from 'material-ui/Popover/Popover';
+import Menu from 'material-ui/Menu';
+import MenuItem from 'material-ui/MenuItem';
 import { Tabs, Tab } from 'material-ui/Tabs';
 import Settings from './Settings.js';
 import defaultSettings from '../settings/default.yml';
@@ -114,6 +117,10 @@ class Interface extends React.Component {
       printers: defaultPrinter,
       quality: defaultQuality,
       material: defaultMaterial,
+      popover: {
+        element: null,
+        open: false
+      },
       settings: _.merge(
         {},
         defaultSettings,
@@ -177,19 +184,21 @@ class Interface extends React.Component {
     }
   };
 
-  slice = async () => {
+  slice = async (target) => {
     const { isSlicing, settings, printers, quality, material, mesh: { matrix } } = this.state;
     const { name, mesh } = this.props;
 
     if (isSlicing) return;
 
-    this.setState({ isSlicing: true, progress: { action: '', slicing: 0, uploading: 0 }, error: null });
+    this.closePopover();
+
+    this.setState({ isSlicing: true, progress: { action: '', percentage: 0, step: 0 }, error: null });
 
     const exportMesh = new Mesh(mesh.geometry, mesh.material);
     exportMesh.applyMatrix(matrix);
 
     try {
-      await slice(name, exportMesh, settings, printers, quality, material, progress => {
+      await slice(target, name, exportMesh, settings, printers, quality, material, progress => {
         this.setState({ progress: { ...this.state.progress, ...progress } });
       });
     } catch (error) {
@@ -198,6 +207,25 @@ class Interface extends React.Component {
     } finally {
       this.setState({ isSlicing: false });
     }
+  };
+
+  openPopover = (event) => {
+    event.preventDefault();
+
+    this.setState({
+      popover: {
+        element: event.currentTarget,
+        open: true
+      }
+    });
+  };
+  closePopover = () => {
+    this.setState({
+      popover: {
+        element: null,
+        open: false
+      }
+    });
   };
 
   onChangeSettings = (settings) => {
@@ -238,7 +266,6 @@ class Interface extends React.Component {
     const { classes, defaultPrinter, defaultQuality, defaultMaterial, onCancel } = this.props;
     const { isSlicing, progress, settings, printers, quality, material, showFullScreen, error } = this.state;
 
-    const percentage = progress ? (progress.uploading + progress.slicing) / 2.0 * 100.0 : 0.0;
     const style = { ...(showFullScreen ? {} : { maxWidth: 'inherit', width: '100%', height: '100%' }) };
 
     const settingsPanel = (
@@ -257,7 +284,7 @@ class Interface extends React.Component {
         <div className={classes.sliceActions}>
           {error && <p className={classes.error}>{error}</p>}
           {isSlicing && <p>{progress.action}</p>}
-          {isSlicing && <LinearProgress mode="determinate" value={percentage} />}
+          {isSlicing && <LinearProgress mode="determinate" value={progress.percentage * 100.0} />}
           <div className={classes.sliceButtons}>
             {onCancel && <RaisedButton
               label="Cancel"
@@ -266,11 +293,24 @@ class Interface extends React.Component {
             />}
             <RaisedButton
               label="Print"
+              ref="button"
               primary
               className={`${classes.button}`}
-              onTouchTap={this.slice}
+              onTouchTap={this.openPopover}
               disabled={isSlicing}
             />
+            <Popover
+              open={this.state.popover.open}
+              anchorEl={this.state.popover.element}
+              anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
+              targetOrigin={{horizontal: 'left', vertical: 'bottom'}}
+              onRequestClose={this.closePopover}
+            >
+            <Menu>
+              <MenuItem primaryText="Send over WiFi" onTouchTap={() => this.slice('WIFI')} />
+              <MenuItem primaryText="Download GCode" onTouchTap={() => this.slice('DOWNLOAD')} />
+            </Menu>
+            </Popover>
           </div>
         </div>
       </div>

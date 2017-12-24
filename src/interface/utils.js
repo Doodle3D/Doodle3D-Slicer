@@ -118,8 +118,22 @@ export function fetchProgress(url, { method = 'get', headers = {}, body = {} } =
 const GCODE_SERVER_URL = 'https://gcodeserver.doodle3d.com';
 const CONNECT_URL = 'http://connect.doodle3d.com/';
 
-export async function slice(name, mesh, settings, printers, quality, material, updateProgress) {
+export async function slice(target, name, mesh, settings, printers, quality, material, updateProgress) {
   if (!printers) throw new Error('Please select a printer');
+
+  let steps;
+  let currentStep = 0;
+  switch (target) {
+    case 'DOWNLOAD':
+      steps = 1;
+      break;
+    case 'WIFI':
+      steps = 2;
+      break;
+    default:
+      steps = 1;
+      break;
+  }
 
   const { dimensions } = settings;
   const centerX = dimensions.x / 2;
@@ -129,50 +143,62 @@ export async function slice(name, mesh, settings, printers, quality, material, u
   const { gcode } = await sliceGeometry(settings, mesh.geometry, mesh.material, matrix, false, false, ({ progress }) => {
     updateProgress({
       action: progress.action,
-      slicing: progress.done / progress.total
+      percentage: currentStep / steps + progress.done / progress.total / steps
     });
   });
+  currentStep ++;
 
-  // const blob = new File([gcode], `${name}.gcode`, { type: 'text/plain;charset=utf-8' });
-  // fileSaver.saveAs(blob);
-
-  // upload G-code file to AWS S3
-  const { data: { reservation, id } } = await fetch(`${GCODE_SERVER_URL}/upload`, { method: 'POST' })
-    .then(response => response.json());
-
-  const body = new FormData();
-  const { fields } = reservation;
-  for (const key in fields) {
-    body.append(key, fields[key]);
-  }
-
-  const file = ';' + JSON.stringify({
-    name: `${name}.gcode`,
-    ...settings,
-    printer: {
-      type: printers,
-      title: printerSettings[printers].title
-    },
-    material: {
-      type: material,
-      title: materialSettings[material].title
-    },
-    quality: {
-      type: quality,
-      title: qualitySettings[quality].title
+  switch (target) {
+    case 'DOWNLOAD': {
+      const blob = new File([gcode], `${name}.gcode`, { type: 'text/plain;charset=utf-8' });
+      fileSaver.saveAs(blob);
+      break;
     }
-  }).trim() + '\n' + gcode;
-  body.append('file', file);
 
-  await fetchProgress(reservation.url, { method: 'POST', body }, (progess) => {
-    updateProgress({
-      action: 'Uploading',
-      uploading: progess.loaded / progess.total
-    });
-  });
+    case 'WIFI': {
+      // upload G-code file to AWS S3
+      const { data: { reservation, id } } = await fetch(`${GCODE_SERVER_URL}/upload`, { method: 'POST' })
+        .then(response => response.json());
 
-  const popup = window.open(`${CONNECT_URL}?uuid=${id}`, '_blank');
-  if (!popup) throw new Error('popup was blocked by browser');
+      const body = new FormData();
+      const { fields } = reservation;
+      for (const key in fields) {
+        body.append(key, fields[key]);
+      }
+
+      const file = ';' + JSON.stringify({
+        name: `${name}.gcode`,
+        ...settings,
+        printer: {
+          type: printers,
+          title: printerSettings[printers].title
+        },
+        material: {
+          type: material,
+          title: materialSettings[material].title
+        },
+        quality: {
+          type: quality,
+          title: qualitySettings[quality].title
+        }
+      }).trim() + '\n' + gcode;
+      body.append('file', file);
+
+      await fetchProgress(reservation.url, { method: 'POST', body }, (progess) => {
+        updateProgress({
+          action: 'Uploading',
+          percentage: currentStep / steps + progess.loaded / progess.total / steps
+        });
+      });
+      currentStep ++;
+
+      const popup = window.open(`${CONNECT_URL}?uuid=${id}`, '_blank');
+      if (!popup) throw new Error('popup was blocked by browser');
+    }
+
+    default:
+      break;
+  }
 }
 
 export const TabTemplate = ({ children, selected, style }) => {
