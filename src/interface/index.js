@@ -13,7 +13,7 @@ import LinearProgress from 'material-ui/LinearProgress';
 import { grey50, grey300, grey800, red500 } from 'material-ui/styles/colors';
 import { Tabs, Tab } from 'material-ui/Tabs';
 import Settings from './Settings.js';
-import baseSettings from '../settings/default.yml';
+import defaultSettings from '../settings/default.yml';
 import printerSettings from '../settings/printer.yml';
 import materialSettings from '../settings/material.yml';
 import qualitySettings from '../settings/quality.yml';
@@ -94,7 +94,7 @@ class Interface extends React.Component {
   };
 
   static defaultProps = {
-    defaultSettings: baseSettings,
+    defaultSettings: defaultSettings,
     printers: printerSettings,
     quality: qualitySettings,
     defaultQuality: 'medium',
