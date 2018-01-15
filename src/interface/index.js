@@ -1,27 +1,38 @@
 import _ from 'lodash';
 import React from 'react';
-import * as THREE from 'three';
+import { Quaternion } from 'three/src/math/Quaternion.js';
+import { Vector3 } from 'three/src/math/Vector3.js';
+import { Mesh } from 'three/src/objects/Mesh.js';
 import PropTypes from 'proptypes';
-import { placeOnGround, createScene, createGcodeGeometry } from './utils.js';
+import { placeOnGround, createScene, fetchProgress, slice, TabTemplate } from './utils.js';
 import injectSheet from 'react-jss';
-import { sliceGeometry } from '../slicer.js';
 import RaisedButton from 'material-ui/RaisedButton';
+import FlatButton from 'material-ui/FlatButton';
 import Slider from 'material-ui/Slider';
-import { grey100, grey300 } from 'material-ui/styles/colors';
+import LinearProgress from 'material-ui/LinearProgress';
+import { grey50, grey300, grey800, red500 } from 'material-ui/styles/colors';
+import Popover from 'material-ui/Popover/Popover';
+import Menu from 'material-ui/Menu';
+import MenuItem from 'material-ui/MenuItem';
+import { Tabs, Tab } from 'material-ui/Tabs';
 import Settings from './Settings.js';
-import baseSettings from '../settings/default.yml';
+import defaultSettings from '../settings/default.yml';
 import printerSettings from '../settings/printer.yml';
 import materialSettings from '../settings/material.yml';
 import qualitySettings from '../settings/quality.yml';
 import ReactResizeDetector from 'react-resize-detector';
+
+const MAX_FULLSCREEN_WIDTH = 720;
 
 const styles = {
   container: {
     position: 'relative',
     display: 'flex',
     height: '100%',
-    backgroundColor: grey100,
-    overflow: 'hidden'
+    backgroundColor: grey50,
+    color: grey800,
+    overflow: 'hidden',
+    fontFamily: 'roboto, sans-serif'
   },
   controlBar: {
     position: 'absolute',
@@ -29,46 +40,87 @@ const styles = {
     left: '10px'
   },
   d3View: {
-    flexGrow: 1
+    flexGrow: 1,
+    flexBasis: 0
   },
   canvas: {
     position: 'absolute'
   },
-  sliceBar: {
-    width: '240px',
-    padding: '0 10px',
-    overflowY: 'auto',
+  settingsBar: {
+    display: 'flex',
+    flexDirection: 'column',
+    maxWidth: '380px',
+    boxSizing: 'border-box',
+    padding: '10px',
     backgroundColor: 'white',
     borderLeft: `1px solid ${grey300}`
   },
-  overlay: {
-    position: 'absolute',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    color: 'white',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0
-  },
   sliceActions: {
-    listStyleType: 'none'
+    flexShrink: 0,
+  },
+  sliceButtons: {
+    justifyContent: 'flex-end',
+    display: 'flex'
   },
   button: {
-    margin: '5px 0'
+    margin: '5px 0 5px 5px'
   },
   controlButton: {
     marginRight: '2px'
+  },
+  buttonContainer: {
+    width: '100%',
+    padding: '10px'
+  },
+  error: {
+    color: red500
+  },
+  title: {
+    position: 'absolute'
   }
 };
 
 class Interface extends React.Component {
+  static propTypes = {
+    mesh: PropTypes.shape({ isMesh: PropTypes.oneOf([true]) }).isRequired,
+    classes: PropTypes.objectOf(PropTypes.string),
+    defaultSettings: PropTypes.object.isRequired,
+    printers: PropTypes.object.isRequired,
+    defaultPrinter: PropTypes.string,
+    quality: PropTypes.object.isRequired,
+    defaultQuality: PropTypes.string.isRequired,
+    material: PropTypes.object.isRequired,
+    defaultMaterial: PropTypes.string.isRequired,
+    pixelRatio: PropTypes.number.isRequired,
+    onCancel: PropTypes.func,
+    name: PropTypes.string.isRequired
+  };
+
+  static defaultProps = {
+    defaultSettings: defaultSettings,
+    printers: printerSettings,
+    quality: qualitySettings,
+    defaultQuality: 'medium',
+    material: materialSettings,
+    defaultMaterial: 'pla',
+    pixelRatio: 1,
+    name: 'Doodle3D'
+  };
+
   constructor(props) {
     super(props);
     const { defaultPrinter, defaultQuality, defaultMaterial, printers, quality, material, defaultSettings } = props;
     this.state = {
-      controlMode: 'translate',
+      showFullScreen: false,
       isSlicing: false,
-      sliced: false,
+      error: null,
+      printers: defaultPrinter,
+      quality: defaultQuality,
+      material: defaultMaterial,
+      popover: {
+        element: null,
+        open: false
+      },
       settings: _.merge(
         {},
         defaultSettings,
@@ -81,12 +133,21 @@ class Interface extends React.Component {
 
   componentDidMount() {
     const { canvas } = this.refs;
+
     const scene = createScene(canvas, this.props, this.state);
-    this.setState(scene);
+    this.setState({ ...scene });
+  }
+
+  componentWillUnmount() {
+    const { editorControls, mesh: { material }, renderer } = this.state;
+    editorControls.dispose();
+    material.dispose();
+    renderer.dispose();
   }
 
   resetMesh = () => {
-    const { mesh, render } = this.state;
+    const { mesh, render, isSlicing } = this.state;
+    if (isSlicing) return;
     if (mesh) {
       mesh.position.set(0, 0, 0);
       mesh.scale.set(1, 1, 1);
@@ -97,176 +158,210 @@ class Interface extends React.Component {
     }
   };
 
-  reset = () => {
-    const { control, mesh, render, gcode, scene } = this.state;
-    control.enabled = true;
-    control.setSize(1);
-    control.visible = true;
-    mesh.visible = true;
-
-    scene.remove(gcode.linePreview);
-    gcode.linePreview.geometry.dispose();
-
-    this.setState({ sliced: false, gcode: null });
-    render();
+  scaleUp = () => this.scaleMesh(0.9);
+  scaleDown = () => this.scaleMesh(1.0 / 0.9);
+  scaleMesh = (factor) => {
+    const { mesh, render, isSlicing } = this.state;
+    if (isSlicing) return;
+    if (mesh) {
+      mesh.scale.multiplyScalar(factor);
+      mesh.updateMatrix();
+      placeOnGround(mesh);
+      render();
+    }
   };
 
-  slice = async () => {
-    const { mesh, render, scene, control, settings } = this.state;
+  rotateX = () => this.rotate(new Vector3(0, 0, 1), Math.PI / 2.0);
+  rotateY = () => this.rotate(new Vector3(1, 0, 0), Math.PI / 2.0);
+  rotateZ = () => this.rotate(new Vector3(0, 1, 0), Math.PI / 2.0);
+  rotate = (axis, angle) => {
+    const { mesh, render, isSlicing } = this.state;
+    if (isSlicing) return;
+    if (mesh) {
+      mesh.rotateOnWorldAxis(axis, angle);
+      placeOnGround(mesh);
+      render();
+    }
+  };
 
-    const { dimensions } = settings;
-    const centerX = dimensions.x / 2;
-    const centerY = dimensions.y / 2;
+  slice = async (target) => {
+    const { isSlicing, settings, printers, quality, material, mesh: { matrix } } = this.state;
+    const { name, mesh } = this.props;
 
-    const geometry = mesh.geometry.clone();
-    mesh.updateMatrix();
+    if (isSlicing) return;
 
-    this.setState({ isSlicing: true, progress: { actions: [], percentage: 0 } });
+    this.closePopover();
 
-    const matrix = new THREE.Matrix4().makeTranslation(centerY, 0, centerX).multiply(mesh.matrix);
-    const gcode = await sliceGeometry(settings, geometry, matrix, false, true, ({ progress }) => {
-      this.setState({ progress: {
-        actions: [...this.state.progress.actions, progress.action],
-        percentage: progress.done / progress.total
-      } });
+    this.setState({ isSlicing: true, progress: { action: '', percentage: 0, step: 0 }, error: null });
+
+    const exportMesh = new Mesh(mesh.geometry, mesh.material);
+    exportMesh.applyMatrix(matrix);
+
+    try {
+      await slice(target, name, exportMesh, settings, printers, quality, material, progress => {
+        this.setState({ progress: { ...this.state.progress, ...progress } });
+      });
+    } catch (error) {
+      this.setState({ error: error.message });
+      throw error;
+    } finally {
+      this.setState({ isSlicing: false });
+    }
+  };
+
+  openPopover = (event) => {
+    event.preventDefault();
+
+    this.setState({
+      popover: {
+        element: event.currentTarget,
+        open: true
+      }
     });
-
-    this.setState({ isSlicing: false });
-
-    // TODO
-    // can't disable control ui still interacts with mouse input
-    control.enabled = false;
-    // hack to disable control
-    control.setSize(0);
-    control.visible = false;
-    mesh.visible = false;
-
-    gcode.linePreview.position.x = -centerY;
-    gcode.linePreview.position.z = -centerX;
-    scene.add(gcode.linePreview);
-
-    this.setState({ sliced: true, gcode });
-    render();
+  };
+  closePopover = () => {
+    this.setState({
+      popover: {
+        element: null,
+        open: false
+      }
+    });
   };
 
   onChangeSettings = (settings) => {
-    this.setState({ settings });
+    this.setState(settings);
   };
-
-  updateDrawRange = (event, value) => {
-    const { gcode, render } = this.state;
-    gcode.linePreview.geometry.setDrawRange(0, value);
-    render();
-  };
-
-  componentWillUnmount() {
-    if (this.state.editorControls) this.state.editorControls.dispose();
-    if (this.state.control) this.state.control.dispose();
-  }
 
   componentWillUpdate(nextProps, nextState) {
-    const { control, box, render, setSize } = this.state;
-    if (control && nextState.controlMode !== this.state.controlMode) control.setMode(nextState.controlMode);
+    const { box, render, setSize } = this.state;
+    let changed = false;
     if (box && nextState.settings.dimensions !== this.state.settings.dimensions) {
       const { dimensions } = nextState.settings;
       box.scale.set(dimensions.y, dimensions.z, dimensions.x);
-      render();
+      box.updateMatrix();
+      changed = true;
     }
-    if (setSize && nextProps.width !== this.props.width || nextProps.height !== this.props.height || nextProps.pixelRatio !== this.props.pixelRatio) {
-      setSize(nextProps.width, nextProps.height, nextProps.pixelRatio);
-    }
+    if (changed) render();
   }
 
-  onResize = (width, height) => {
+  componentDidUpdate() {
+    const { updateCanvas } = this.state;
+    const { canvas } = this.refs;
+    if (updateCanvas && canvas) updateCanvas(canvas);
+  }
+
+  onResize3dView = (width, height) => {
     window.requestAnimationFrame(() => {
       const { setSize } = this.state;
       const { pixelRatio } = this.props;
-      setSize(width, height, pixelRatio);
+      if (setSize) setSize(width, height, pixelRatio);
     });
   };
 
-  render() {
-    const { width, height, classes, onCompleteActions, defaultPrinter, defaultQuality, defaultMaterial } = this.props;
-    const { sliced, isSlicing, progress, gcode, controlMode, settings } = this.state;
+  onResizeContainer = (width) => {
+    this.setState({ showFullScreen: width > MAX_FULLSCREEN_WIDTH });
+  };
 
-    return (
-      <div className={classes.container}>
-        <div className={classes.d3View}>
-          <ReactResizeDetector handleWidth handleHeight onResize={this.onResize} />
-          <canvas className={classes.canvas} ref="canvas" width={width} height={height} />
-          {!sliced && <div className={classes.controlBar}>
-          <RaisedButton className={classes.controlButton} onTouchTap={this.resetMesh} primary label="reset" />
-          <RaisedButton className={classes.controlButton} disabled={controlMode === 'translate'} onTouchTap={() => this.setState({ controlMode: 'translate' })} primary label="translate" />
-          <RaisedButton className={classes.controlButton} disabled={controlMode === 'rotate'} onTouchTap={() => this.setState({ controlMode: 'rotate' })} primary label="rotate" />
-          <RaisedButton className={classes.controlButton} disabled={controlMode === 'scale'} onTouchTap={() => this.setState({ controlMode: 'scale' })} primary label="scale" />
-          </div>}
+  render() {
+    const { classes, defaultPrinter, defaultQuality, defaultMaterial, onCancel } = this.props;
+    const { isSlicing, progress, settings, printers, quality, material, showFullScreen, error } = this.state;
+
+    const style = { ...(showFullScreen ? {} : { maxWidth: 'inherit', width: '100%', height: '100%' }) };
+
+    const settingsPanel = (
+      <div className={classes.settingsBar} style={style}>
+        <Settings
+          disabled={isSlicing}
+          printers={printerSettings}
+          defaultPrinter={defaultPrinter}
+          quality={qualitySettings}
+          defaultQuality={defaultQuality}
+          material={materialSettings}
+          defaultMaterial={defaultMaterial}
+          initialSettings={settings}
+          onChange={this.onChangeSettings}
+        />
+        <div className={classes.sliceActions}>
+          {error && <p className={classes.error}>{error}</p>}
+          {isSlicing && <p>{progress.action}</p>}
+          {isSlicing && <LinearProgress mode="determinate" value={progress.percentage * 100.0} />}
+          <div className={classes.sliceButtons}>
+            {onCancel && <RaisedButton
+              label="Cancel"
+              className={`${classes.button}`}
+              onTouchTap={onCancel}
+            />}
+            <RaisedButton
+              label="Print"
+              ref="button"
+              primary
+              className={`${classes.button}`}
+              onTouchTap={this.openPopover}
+              disabled={isSlicing}
+            />
+            <Popover
+              open={this.state.popover.open}
+              anchorEl={this.state.popover.element}
+              anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
+              targetOrigin={{horizontal: 'left', vertical: 'bottom'}}
+              onRequestClose={this.closePopover}
+            >
+            <Menu>
+              <MenuItem primaryText="Send over WiFi" onTouchTap={() => this.slice('WIFI')} />
+              <MenuItem primaryText="Download GCode" onTouchTap={() => this.slice('DOWNLOAD')} />
+            </Menu>
+            </Popover>
+          </div>
         </div>
-        {sliced && <div className={classes.controlBar}>
-          <Slider
-            axis="y"
-            style={{ height: '300px' }}
-            step={2}
-            min={1}
-            max={gcode.linePreview.geometry.getAttribute('position').count}
-            defaultValue={gcode.linePreview.geometry.getAttribute('position').count}
-            onChange={this.updateDrawRange}
-          />
-        </div>}
-        {!sliced && <div className={classes.sliceBar}>
-          <Settings
-            printers={printerSettings}
-            defaultPrinter={defaultPrinter}
-            quality={qualitySettings}
-            defaultQuality={defaultQuality}
-            material={materialSettings}
-            defaultMaterial={defaultMaterial}
-            initialSettings={settings}
-            onChange={this.onChangeSettings}
-          />
-          <RaisedButton className={classes.button} fullWidth disabled={isSlicing} onTouchTap={this.slice} primary label="slice" />
-        </div>}
-        {sliced && <div className={classes.sliceBar}>
-          <RaisedButton className={classes.button} fullWidth onTouchTap={this.reset} primary label="slice again" />
-          {onCompleteActions.map(({ title, callback }, i) => (
-            <RaisedButton className={classes.button} key={i} fullWidth onTouchTap={() => callback(gcode.gcode, settings)} primary label={title} />
-          ))}
-        </div>}
-        {isSlicing && <div className={classes.overlay}>
-          <p>Slicing: {progress.percentage.toLocaleString(navigator.language, { style: 'percent' })}</p>
-          <ul className={classes.sliceActions}>
-            {progress.actions.map((action, i) => <li key={i}>{action}</li>)}
-          </ul>
-        </div>}
       </div>
     );
+
+    const d3Panel = (
+      <div className={classes.d3View}>
+        <ReactResizeDetector handleWidth handleHeight onResize={this.onResize3dView} />
+        <canvas className={classes.canvas} ref="canvas" />
+        <div className={classes.controlBar}>
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.resetMesh} label="reset" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.scaleUp} label="scale down" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.scaleDown} label="scale up" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.rotateX} label="rotate x" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.rotateY} label="rotate y" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.rotateZ} label="rotate z" />
+        </div>
+      </div>
+    );
+
+    if (showFullScreen) {
+      return (
+        <div className={classes.container}>
+          <ReactResizeDetector handleWidth handleHeight onResize={this.onResizeContainer} />
+          <h1 className={classes.title}>Print</h1>
+          {d3Panel}
+          {settingsPanel}
+        </div>
+      );
+    } else {
+      return (
+        <div className={classes.container}>
+          <ReactResizeDetector handleWidth handleHeight onResize={this.onResizeContainer} />
+          <Tabs
+            style={{ width: '100%', display: 'flex', flexDirection: 'column' }}
+            tabItemContainerStyle={{ flexShrink: 0 }}
+            contentContainerStyle={{ flexGrow: 1, display: 'flex' }}
+            tabTemplateStyle={{ display: 'flex' }}
+            tabTemplate={TabTemplate}
+          >
+            <Tab label="Settings">
+              {settingsPanel}
+            </Tab>
+            <Tab label="Edit Model">
+              {d3Panel}
+            </Tab>
+          </Tabs>
+        </div>
+      );
+    }
   }
 }
-Interface.propTypes = {
-  geometry(props, propName) {
-    if (!(props[propName].isGeometry || props[propName].isBufferGeometry)) {
-      throw new Error('invalid prop, is not geometry');
-    }
-  },
-  classes: PropTypes.objectOf(PropTypes.string),
-  onCompleteActions: PropTypes.arrayOf(PropTypes.shape({ title: PropTypes.string, callback: PropTypes.func })).isRequired,
-  defaultSettings: PropTypes.object.isRequired,
-  printers: PropTypes.object.isRequired,
-  defaultPrinter: PropTypes.string.isRequired,
-  quality: PropTypes.object.isRequired,
-  defaultQuality: PropTypes.string.isRequired,
-  material: PropTypes.object.isRequired,
-  defaultMaterial: PropTypes.string.isRequired,
-  pixelRatio: PropTypes.number.isRequired
-};
-Interface.defaultProps = {
-  defaultSettings: baseSettings,
-  printers: printerSettings,
-  defaultPrinter: 'ultimaker2',
-  quality: qualitySettings,
-  defaultQuality: 'medium',
-  material: materialSettings,
-  defaultMaterial: 'pla',
-  pixelRatio: 1
-};
 
 export default injectSheet(styles)(Interface);

@@ -1,8 +1,7 @@
 import 'core-js'; // polyfills
 import slice from './sliceActions/slice.js';
-import * as THREE from 'three';
-
-const loader = new THREE.JSONLoader();
+import { Matrix4 } from 'three/src/math/Matrix4.js';
+import { JSONLoader } from 'three/src/loaders/JSONLoader.js';
 
 const onProgress = progress => {
   self.postMessage({
@@ -11,16 +10,18 @@ const onProgress = progress => {
   });
 }
 
-self.addEventListener('message', (event) => {
+const loader = new JSONLoader();
+
+self.addEventListener('message', async (event) => {
   const { message, data } = event.data;
   switch (message) {
     case 'SLICE': {
-      const buffers = [];
-      const { settings, geometry: JSONGeometry, constructLinePreview } = data;
+      const { settings, geometry: JSONGeometry, constructLinePreview, openObjectIndexes } = data;
       const { geometry } = loader.parse(JSONGeometry.data);
 
-      const gcode = slice(settings, geometry, constructLinePreview, onProgress);
+      const gcode = slice(settings, geometry, openObjectIndexes, constructLinePreview, onProgress);
 
+      const buffers = [];
       if (gcode.linePreview) {
         const position = gcode.linePreview.geometry.getAttribute('position').array;
         const color = gcode.linePreview.geometry.getAttribute('color').array;

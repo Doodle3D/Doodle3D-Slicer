@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import { Vector2 } from 'three/src/math/Vector2.js';
 import { PRECISION } from '../../constants.js';
 
 export const MOVE = 'G';
@@ -16,7 +16,7 @@ export default class {
 
     this._gcode = [];
     this._currentValues = {};
-    this._nozzlePosition = new THREE.Vector2(0, 0);
+    this._nozzlePosition = new Vector2(0, 0);
     this._extruder = 0.0;
     this._duration = 0.0;
     this._isRetracted = false;
@@ -47,7 +47,7 @@ export default class {
   }
 
   moveTo(x, y, z, { speed }) {
-    const newNozzlePosition = new THREE.Vector2(x, y).multiplyScalar(PRECISION);
+    const newNozzlePosition = new Vector2(x, y).multiplyScalar(PRECISION);
     const lineLength = this._nozzlePosition.distanceTo(newNozzlePosition);
 
     this._duration += lineLength / speed;
@@ -66,7 +66,7 @@ export default class {
   }
 
   lineTo(x, y, z, { speed, flowRate }) {
-    const newNozzlePosition = new THREE.Vector2(x, y).multiplyScalar(PRECISION);
+    const newNozzlePosition = new Vector2(x, y).multiplyScalar(PRECISION);
     const lineLength = this._nozzlePosition.distanceTo(newNozzlePosition);
 
     this._extruder += this._nozzleToFilamentRatio * lineLength * flowRate;

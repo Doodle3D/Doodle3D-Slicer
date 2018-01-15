@@ -1,8 +1,9 @@
+import { devide } from './helpers/VectorUtils.js';
 import { PRECISION } from '../constants.js'
 
-export default function applyPrecision(shapes) {
-  for (let i = 0; i < shapes.length; i ++) {
-    const { fillShapes, lineShapesOpen, lineShapesClosed } = shapes[i];
+export default function applyPrecision(layers) {
+  for (let layer = 0; layer < layers.length; layer ++) {
+    const { fillShapes, lineShapesOpen, lineShapesClosed } = layers[layer];
 
     scaleUpShape(fillShapes);
     scaleUpShape(lineShapesOpen);
@@ -15,9 +16,7 @@ function scaleUpShape(shape) {
     const path = shape[i];
 
     for (let i = 0; i < path.length; i ++) {
-      const point = path[i];
-
-      point.copy(point.divideScalar(PRECISION));
+      path[i] = devide(path[i], PRECISION);
     }
   }
 }

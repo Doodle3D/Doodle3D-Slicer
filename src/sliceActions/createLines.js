@@ -1,15 +1,20 @@
-import * as THREE from 'three';
+import { Line3 } from 'three/src/math/Line3.js';
+import { normalize } from './helpers/VectorUtils.js';
 
-function addLine(geometry, lineLookup, lines, a, b, isFlat) {
-  const index = lines.length;
-  lineLookup[`${a}_${b}`] = index;
+function addLine(geometry, lineLookup, lines, a, b, faceIndex) {
+  let index;
+  if (typeof lineLookup[`${b}_${a}`] !== 'undefined') {
+    index = lineLookup[`${b}_${a}`];
+  } else {
+    index = lines.length;
+    lineLookup[`${a}_${b}`] = index;
 
-  lines.push({
-    line: new THREE.Line3(geometry.vertices[a], geometry.vertices[b]),
-    connects: [],
-    normals: [],
-    isFlat
-  });
+    const line = new Line3(geometry.vertices[a], geometry.vertices[b]);
+    lines.push({ line, faces: [] });
+  }
+
+  const { faces } = lines[index];
+  faces.push(faceIndex);
 
   return index;
 }
@@ -18,31 +23,20 @@ export default function createLines(geometry, settings) {
   const lines = [];
   const lineLookup = {};
 
-  for (let i = 0; i < geometry.faces.length; i ++) {
-    const face = geometry.faces[i];
+  const faces = geometry.faces.map((face, i) => {
+    const { normal, materialIndex: objectIndex, a, b, c } = geometry.faces[i];
 
-    const lookupA = lineLookup[`${face.b}_${face.a}`];
-    const lookupB = lineLookup[`${face.c}_${face.b}`];
-    const lookupC = lineLookup[`${face.a}_${face.c}`];
+    // skip faces that point up or down
+    if (normal.y > .999 || normal.y < -.999) return;
 
-    const isFlat = face.normal.y > 0.999 || face.normal.y < -0.999;
+    const indexA = addLine(geometry, lineLookup, lines, a, b, i);
+    const indexB = addLine(geometry, lineLookup, lines, b, c, i);
+    const indexC = addLine(geometry, lineLookup, lines, c, a, i);
 
-    // only add unique lines
-    // returns index of said line
-    const lineIndexA = typeof lookupA !== 'undefined' ? lookupA : addLine(geometry, lineLookup, lines, face.a, face.b, isFlat);
-    const lineIndexB = typeof lookupB !== 'undefined' ? lookupB : addLine(geometry, lineLookup, lines, face.b, face.c, isFlat);
-    const lineIndexC = typeof lookupC !== 'undefined' ? lookupC : addLine(geometry, lineLookup, lines, face.c, face.a, isFlat);
+    const flatNormal = normalize({ x: normal.z, y: normal.x });
+    const lineIndexes = [indexA, indexB, indexC];
+    return { lineIndexes, flatNormal, objectIndex };
+  });
 
-    // set connecting lines (based on face)
-    lines[lineIndexA].connects.push(lineIndexB, lineIndexC);
-    lines[lineIndexB].connects.push(lineIndexC, lineIndexA);
-    lines[lineIndexC].connects.push(lineIndexA, lineIndexB);
-
-    const normal = new THREE.Vector2(face.normal.z, face.normal.x).normalize();
-    lines[lineIndexA].normals.push(normal);
-    lines[lineIndexB].normals.push(normal);
-    lines[lineIndexC].normals.push(normal);
-  }
-
-  return lines;
+  return { lines, faces };
 }

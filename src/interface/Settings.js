@@ -4,18 +4,43 @@ import _ from 'lodash';
 import { Tabs, Tab } from 'material-ui/Tabs';
 import MenuItem from 'material-ui/MenuItem';
 import injectSheet from 'react-jss';
-import { SettingsGroup, SelectField, TextField, Checkbox } from './FormComponents.js';
-import { grey500 } from 'material-ui/styles/colors';
+import { SelectField, TextField, Checkbox } from './FormComponents.js';
+import { grey800, cyan500 } from 'material-ui/styles/colors';
 
 const styles = {
   textFieldRow: {
     display: 'flex'
+  },
+  container: {
+    width: '100%',
+    flexGrow: 1,
+    overflowY: 'auto',
+    '& p, h3': {
+      fontWeight: 'bold',
+      margin: '30px 0 0 0'
+    }
   }
 };
 
 class Settings extends React.Component {
+  static childContextTypes = { state: PropTypes.object, onChange: PropTypes.func, disabled: PropTypes.bool };
+  static defaultProps: {
+    disabled: false
+  };
+  static propTypes = {
+    classes: PropTypes.objectOf(PropTypes.string),
+    onChange: PropTypes.func,
+    printers: PropTypes.object.isRequired,
+    defaultPrinter: PropTypes.string,
+    quality: PropTypes.object.isRequired,
+    defaultQuality: PropTypes.string.isRequired,
+    material: PropTypes.object.isRequired,
+    defaultMaterial: PropTypes.string.isRequired,
+    initialSettings: PropTypes.object.isRequired,
+    disabled: PropTypes.bool.isRequired
+  };
   constructor(props) {
-    super(props);
+    super();
     this.state = {
       settings: props.initialSettings,
       printers: props.defaultPrinter,
@@ -42,116 +67,96 @@ class Settings extends React.Component {
         state = _.set(_.cloneDeep(this.state), fieldName, value);
         break;
     }
-    if (onChange) onChange(state.settings);
+    if (onChange) onChange(state);
     if (state) this.setState(state);
   };
 
   getChildContext() {
-    return { state: this.state, onChange: this.changeSettings };
+    return { state: this.state, onChange: this.changeSettings, disabled: this.props.disabled };
   }
 
   render() {
-    const { classes, printers, quality, material } = this.props;
+    const { classes, printers, quality, material, disabled } = this.props;
 
     return (
-      <Tabs>
-        <Tab label="basic">
-          <div>
-            <SelectField name="printers" floatingLabelText="Printer" fullWidth>
-              {Object.entries(printers).map(([value, { title }]) => (
-                <MenuItem key={value} value={value} primaryText={title} />
-              ))}
-            </SelectField>
-            <SelectField name="quality" floatingLabelText="Quality" fullWidth>
-              {Object.entries(quality).map(([value, { title }]) => (
-                <MenuItem key={value} value={value} primaryText={title} />
-              ))}
-            </SelectField>
-            <SelectField name="material" floatingLabelText="Material" fullWidth>
-              {Object.entries(material).map(([value, { title }]) => (
-                <MenuItem key={value} value={value} primaryText={title} />
-              ))}
-            </SelectField>
-          </div>
-        </Tab>
-        <Tab label="advanced">
-          <div>
-            <SettingsGroup name="Printer dimensions">
+      <div className={classes.container}>
+        <SelectField name="printers" floatingLabelText="Printer" fullWidth>
+          {Object.entries(printers).map(([value, { title }]) => (
+            <MenuItem key={value} value={value} primaryText={title} />
+          ))}
+        </SelectField>
+        <SelectField name="material" floatingLabelText="Material" fullWidth>
+          {Object.entries(material).map(([value, { title }]) => (
+            <MenuItem key={value} value={value} primaryText={title} />
+          ))}
+        </SelectField>
+        <h3>Printer Setup</h3>
+        <Tabs inkBarStyle={{ backgroundColor: cyan500 }}>
+          <Tab buttonStyle={{ color: grey800, backgroundColor: 'white' }} label="Basic">
+            <div>
+              <SelectField name="quality" floatingLabelText="Quality" fullWidth>
+                {Object.entries(quality).map(([value, { title }]) => (
+                  <MenuItem key={value} value={value} primaryText={title} />
+                ))}
+              </SelectField>
+            </div>
+          </Tab>
+          <Tab buttonStyle={{ color: grey800, backgroundColor: 'white' }} label="Advanced">
+            <div>
+              <p>Layer</p>
+              <TextField name="settings.layerHeight" fullWidth floatingLabelText="Height" type="number" />
+              <p>Printer dimensions</p>
               <div className={classes.textFieldRow}>
                 <TextField name="settings.dimensions.x" fullWidth floatingLabelText="X" type="number" />
                 <TextField name="settings.dimensions.y" fullWidth floatingLabelText="Y" type="number" />
                 <TextField name="settings.dimensions.z" fullWidth floatingLabelText="Z" type="number" />
               </div>
-            </SettingsGroup>
-            <SettingsGroup name="Nozzle">
+              <p>Nozzle</p>
               <TextField name="settings.nozzleDiameter" fullWidth floatingLabelText="Diameter" type="number" />
-            </SettingsGroup>
-            <SettingsGroup name="Bed">
+              <p>Bed</p>
               <TextField name="settings.bedTemperature" fullWidth floatingLabelText="Temperature" type="number" />
               <Checkbox name="settings.heatedBed" label="Heated" />
-            </SettingsGroup>
-            <SettingsGroup name="Material">
+              <p>Material</p>
               <TextField name="settings.filamentThickness" fullWidth floatingLabelText="Thickness" type="number" />
               <TextField name="settings.temperature" fullWidth floatingLabelText="Temperature" type="number" />
-            </SettingsGroup>
-            <SettingsGroup name="Thickness">
+              <p>Thickness</p>
               <TextField name="settings.thickness.top" fullWidth floatingLabelText="top" type="number" />
               <TextField name="settings.thickness.bottom" fullWidth floatingLabelText="bottom" type="number" />
               <TextField name="settings.thickness.shell" fullWidth floatingLabelText="shell" type="number" />
-            </SettingsGroup>
-            <SettingsGroup name="Retraction">
+              <p>Retraction</p>
               <Checkbox name="settings.retraction.enabled" label="Enabled" />
               <TextField name="settings.retraction.amount" fullWidth floatingLabelText="Amount" type="number" />
               <TextField name="settings.retraction.speed" fullWidth floatingLabelText="Speed" type="number" />
               <TextField name="settings.retraction.minDistance" fullWidth floatingLabelText="Min distance" type="number" />
-            </SettingsGroup>
-            <SettingsGroup name="Travel">
+              <p>Travel</p>
               <TextField name="settings.travel.speed" fullWidth floatingLabelText="Speed" type="number" />
               <Checkbox name="settings.combing" label="Combing" />
-            </SettingsGroup>
-            <SettingsGroup name="Inner shell">
+              <p>Inner shell</p>
               <TextField name="settings.innerShell.speed" fullWidth floatingLabelText="Speed" type="number" />
               <TextField name="settings.innerShell.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
-            </SettingsGroup>
-            <SettingsGroup name="Outer shell">
+              <p>Outer shell</p>
               <TextField name="settings.outerShell.speed" fullWidth floatingLabelText="Speed" type="number" />
               <TextField name="settings.outerShell.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
-            </SettingsGroup>
-            <SettingsGroup name="Inner infill">
+              <p>Inner infill</p>
               <TextField name="settings.innerInfill.gridSize" fullWidth floatingLabelText="Grid size" type="number" />
               <TextField name="settings.innerInfill.speed" fullWidth floatingLabelText="Speed" type="number" />
               <TextField name="settings.innerInfill.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
-            </SettingsGroup>
-            <SettingsGroup name="Outer infill">
+              <p>Outer infill</p>
               <TextField name="settings.outerInfill.speed" fullWidth floatingLabelText="Speed" type="number" />
               <TextField name="settings.outerInfill.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
-            </SettingsGroup>
-            <SettingsGroup name="Brim">
+              <p>Brim</p>
               <TextField name="settings.brim.offset" fullWidth floatingLabelText="Offset" type="number" />
               <TextField name="settings.brim.speed" fullWidth floatingLabelText="Speed" type="number" />
               <TextField name="settings.brim.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
-            </SettingsGroup>
-            <SettingsGroup name="First layer">
+              <p>First layer</p>
               <TextField name="settings.firstLayer.speed" fullWidth floatingLabelText="Speed" type="number" />
               <TextField name="settings.firstLayer.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
-            </SettingsGroup>
-          </div>
-        </Tab>
-      </Tabs>
+            </div>
+          </Tab>
+        </Tabs>
+      </div>
     );
   }
 }
-Settings.childContextTypes = { state: PropTypes.object, onChange: PropTypes.func };
-Settings.propTypes = {
-  classes: PropTypes.objectOf(PropTypes.string),
-  onChange: PropTypes.func,
-  printers: PropTypes.object.isRequired,
-  defaultPrinter: PropTypes.string.isRequired,
-  quality: PropTypes.object.isRequired,
-  defaultQuality: PropTypes.string.isRequired,
-  material: PropTypes.object.isRequired,
-  defaultMaterial: PropTypes.string.isRequired,
-  initialSettings: PropTypes.object.isRequired
-};
 
 export default injectSheet(styles)(Settings);

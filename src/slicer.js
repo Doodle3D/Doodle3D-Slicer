@@ -1,6 +1,11 @@
-import * as THREE from 'three';
+import { VertexColors } from 'three/src/constants.js';
+import { BufferAttribute } from 'three/src/core/BufferAttribute.js';
+import { LineBasicMaterial } from 'three/src/materials/LineBasicMaterial.js';
+import { LineSegments } from 'three/src/objects/LineSegments.js';
 import slice from './sliceActions/slice.js';
 import SlicerWorker from './slicer.worker.js';
+import { FrontSide, DoubleSide } from 'three/src/constants.js';
+import { BufferGeometry } from 'three/src/core/BufferGeometry.js'
 
 export function sliceMesh(settings, mesh, sync = false, constructLinePreview = false, onProgress) {
   if (!mesh || !mesh.isMesh) {
@@ -8,15 +13,15 @@ export function sliceMesh(settings, mesh, sync = false, constructLinePreview = f
   }
 
   mesh.updateMatrix();
-  const { geometry, matrix } = mesh;
-  return sliceGeometry(settings, geometry, matrix, sync, onProgress);
+  const { geometry, matrix, material } = mesh;
+  return sliceGeometry(settings, geometry, material, matrix, sync, constructLinePreview, onProgress);
 }
 
-export function sliceGeometry(settings, geometry, matrix, sync = false, constructLinePreview = false, onProgress) {
+export function sliceGeometry(settings, geometry, materials, matrix, sync = false, constructLinePreview = false, onProgress) {
   if (!geometry) {
     throw new Error('Missing required geometry argument');
   } else if (geometry.isBufferGeometry) {
-    geometry = new THREE.Geometry().fromBufferGeometry(geometry);
+    geometry = new Geometry().fromBufferGeometry(geometry);
   } else if (geometry.isGeometry) {
     geometry = geometry.clone();
   } else {
@@ -31,18 +36,29 @@ export function sliceGeometry(settings, geometry, matrix, sync = false, construc
     geometry.applyMatrix(matrix);
   }
 
+  const openObjectIndexes = materials instanceof Array ? materials.map(({ side }) => {
+    switch (side) {
+      case FrontSide:
+        return false;
+      case DoubleSide:
+        return true;
+      default:
+        return false;
+    }
+  }) : [false];
+
   if (sync) {
-    return sliceSync(settings, geometry, constructLinePreview, onProgress);
+    return sliceSync(settings, geometry, openObjectIndexes, constructLinePreview, onProgress);
   } else {
-    return sliceAsync(settings, geometry, constructLinePreview, onProgress);
+    return sliceAsync(settings, geometry, openObjectIndexes, constructLinePreview, onProgress);
   }
 }
 
-function sliceSync(settings, geometry, constructLinePreview, onProgress) {
-  return slice(settings, geometry, constructLinePreview, onProgress);
+function sliceSync(settings, geometry, openObjectIndexes, constructLinePreview, onProgress) {
+  return slice(settings, geometry, openObjectIndexes, constructLinePreview, onProgress);
 }
 
-function sliceAsync(settings, geometry, constructLinePreview, onProgress) {
+function sliceAsync(settings, geometry, openObjectIndexes, constructLinePreview, onProgress) {
   return new Promise((resolve, reject) => {
     // create the slicer worker
     const slicerWorker = new SlicerWorker();
@@ -60,14 +76,14 @@ function sliceAsync(settings, geometry, constructLinePreview, onProgress) {
           slicerWorker.terminate();
 
           if (data.gcode.linePreview) {
-            const geometry = new THREE.BufferGeometry();
+            const geometry = new BufferGeometry();
 
             const { position, color } = data.gcode.linePreview;
-            geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(position), 3));
-            geometry.addAttribute('color', new THREE.BufferAttribute(new Float32Array(color), 3));
+            geometry.addAttribute('position', new BufferAttribute(new Float32Array(position), 3));
+            geometry.addAttribute('color', new BufferAttribute(new Float32Array(color), 3));
 
-            const material = new THREE.LineBasicMaterial({ vertexColors: THREE.VertexColors });
-            const linePreview = new THREE.LineSegments(geometry, material);
+            const material = new LineBasicMaterial({ vertexColors: VertexColors });
+            const linePreview = new LineSegments(geometry, material);
 
             data.gcode.linePreview = linePreview;
           }
@@ -88,11 +104,7 @@ function sliceAsync(settings, geometry, constructLinePreview, onProgress) {
     geometry = geometry.toJSON();
     slicerWorker.postMessage({
       message: 'SLICE',
-      data: {
-        settings,
-        geometry,
-        constructLinePreview
-      }
+      data: { settings, geometry, openObjectIndexes, constructLinePreview }
     });
   });
 }

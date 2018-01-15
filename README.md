@@ -9,7 +9,7 @@ import * as THREE from 'three';
 import { defaultSettings, sliceGeometry } from 'Doodle3D/Doodle3D-Slicer';
 
 const settings = {
-  ...defaultSettings.base,
+  ...defaultSettings.default,
   ...defaultSettings.material.pla,
   ...defaultSettings.printer.ultimaker2go,
   ...defaultSettings.quality.high
@@ -27,7 +27,7 @@ const gcode = await sliceGeometry(settings, geometry);
 import { defaultSettings } from 'Doodle3D/Doodle3D-Slicer';
 
 const settings = {
-  ...defaultSettings.base,
+  ...defaultSettings.default,
   ...defaultSettings.material.pla,
   ...defaultSettings.printer.ultimaker2go,
   ...defaultSettings.quality.high

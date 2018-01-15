@@ -1,40 +1,79 @@
 _3Dison_plus:
   title: 3Dison plus
+  heatedBed: false
+  filamentThickness: 2.85
   dimensions:
     x: 227
     y: 147
     z: 150
 bigbuilder3d:
   title: Big Builder 3D
+  heatedBed: false
+  filamentThickness: 2.85
+  dimensions:
+    x: 200
+    y: 200
+    z: 200
 builder3d:
   title: Builder 3D
+  heatedBed: false
+  filamentThickness: 2.85
+  dimensions:
+    x: 200
+    y: 200
+    z: 200
 bukobot:
   title: Bukobot
+  heatedBed: false
+  filamentThickness: 2.85
+  dimensions:
+    x: 200
+    y: 200
+    z: 200
 cartesio:
   title: Cartesio
+  heatedBed: false
+  filamentThickness: 2.85
+  dimensions:
+    x: 200
+    y: 200
+    z: 200
 colido_2_0_plus:
   title: ColiDo 2.0 Plus
   heatedBed: true
+  filamentThickness: 2.85
   dimensions:
     x: 230
     y: 150
     z: 140
 colido_compact:
   title: ColiDo Compact
+  heatedBed: false
+  filamentThickness: 2.85
   dimensions:
     x: 130
     y: 130
     z: 115
 colido_diy:
   title: ColiDo DIY
+  heatedBed: false
+  filamentThickness: 2.85
   dimensions:
+    x: 200
+    y: 200
     z: 170
 colido_m2020:
   title: ColiDo M2020
   heatedBed: true
+  filamentThickness: 2.85
+  dimensions:
+    x: 200
+    y: 200
+    z: 200
 colido_x3045:
   title: ColiDo X3045
   heatedBed: true
+  filamentThickness: 2.85
   dimensions:
     x: 300
     y: 300
@@ -42,23 +81,27 @@ colido_x3045:
 craftbot_plus:
   title: CraftBot PLUS
   heatedBed: true
-  filamentThickness: 1.75
+  filamentThickness: 2.85
   dimensions:
     x: 250
+    y: 200
+    z: 200
 cyrus:
   title: Cyrus
+  heatedBed: false
+  dimensions:
+    x: 195
+    y: 195
+    z: 200
 delta_rostockmax:
   title: Delta RostockMax
-  dimensions:
-    x: 0
-    y: 0
+  heatedBed: false
 deltamaker:
   title: Deltamaker
-  dimensions:
-    x: 0
-    y: 0
+  heatedBed: false
 doodle_dream:
   title: Doodle Dream
+  heatedBed: false
   filamentThickness: 1.75
   dimensions:
     x: 120
@@ -66,68 +109,119 @@ doodle_dream:
     z: 80
 eventorbot:
   title: EventorBot
+  heatedBed: false
+  filamentThickness: 2.85
+  dimensions:
+    x: 203
+    y: 250
+    z: 150
 felix:
   title: Felix
+  heatedBed: false
+  filamentThickness: 2.85
+  dimensions:
+    x: 237
+    y: 244
+    z: 235
 gigabot:
   title: Gigabot
+  heatedBed: false
+  filamentThickness: 2.85
 kossel:
   title: Kossel
-  dimensions:
-    x: 0
-    y: 0
+  heatedBed: false
+  filamentThickness: 2.85
 leapfrog_creatr:
   title: LeapFrog Creatr
+  heatedBed: false
+  filamentThickness: 2.85
 lulzbot_aO_101:
   title: LulzBot AO-101
+  heatedBed: false
+  filamentThickness: 2.85
 lulzbot_taz_4:
   title: LulzBot TAZ 4
+  heatedBed: true
+  filamentThickness: 2.85
   dimensions:
     x: 298
     y: 275
     z: 250
-  heatedBed: true
 makerbot_generic:
   title: Generic Makerbot Printer
+  heatedBed: false
+  filamentThickness: 2.85
 makerbot_replicator2:
   title: MakerBot Replicator2
+  heatedBed: false
+  filamentThickness: 2.85
 makerbot_replicator2x:
   title: MakerBot Replicator2x
   heatedBed: true
+  filamentThickness: 2.85
 makerbot_thingomatic:
   title: MakerBot Thing-o-matic
+  heatedBed: false
+  filamentThickness: 2.85
 makergear_m2:
   title: MakerGear M2
+  heatedBed: false
+  filamentThickness: 2.85
 makergear_prusa:
   title: MakerGear Prusa
+  heatedBed: false
+  filamentThickness: 2.85
 makibox:
   title: Makibox
+  heatedBed: false
+  filamentThickness: 2.85
 mamba3d:
   title: Mamba3D
+  heatedBed: false
+  filamentThickness: 2.85
 marlin_generic:
   title: Generic Marlin Printer
+  heatedBed: false
+  filamentThickness: 2.85
 minifactory:
   title: miniFactory
+  heatedBed: true
+  filamentThickness: 2.85
   dimensions:
     x: 150
     y: 150
     z: 155
-  heatedBed: true
 orca_0_3:
   title: Orca 0.3
+  heatedBed: false
+  filamentThickness: 2.85
 ord_bot_hadron:
   title: ORD Bot Hadron
+  heatedBed: false
+  filamentThickness: 2.85
 printrbot:
   title: Printrbot
+  heatedBed: false
+  filamentThickness: 2.85
 printxel_3d:
   title: Printxel 3D
+  heatedBed: false
+  filamentThickness: 2.85
 prusa_i3:
   title: Prusa I3
+  heatedBed: false
+  filamentThickness: 2.85
 prusa_iteration_2:
   title: Prusa Iteration 2
+  heatedBed: false
+  filamentThickness: 2.85
 rapman:
   title: RapMan
+  heatedBed: false
+  filamentThickness: 2.85
 renkforce_rf100:
   title: Renkforce RF100
+  heatedBed: false
   filamentThickness: 1.75
   dimensions:
     x: 100
@@ -135,21 +229,36 @@ renkforce_rf100:
     z: 100
 reprappro_huxley:
   title: RepRapPro Huxley
+  heatedBed: false
+  filamentThickness: 2.85
 reprappro_mendel:
   title: RepRapPro Mendel
+  heatedBed: false
+  filamentThickness: 2.85
 rigidbot:
   title: Rigidbot
+  heatedBed: false
+  filamentThickness: 2.85
 robo_3d_printer:
   title: RoBo 3D Printer
+  heatedBed: false
+  filamentThickness: 2.85
 shapercube:
   title: ShaperCube
+  heatedBed: false
+  filamentThickness: 2.85
 tantillus:
   title: Tantillus
+  heatedBed: false
+  filamentThickness: 2.85
 ultimaker:
   title: Ultimaker Original
+  heatedBed: false
+  filamentThickness: 2.85
 ultimaker2:
   title: Ultimaker 2
   heatedBed: true
+  filamentThickness: 2.85
   dimensions:
     x: 223
     y: 223
@@ -157,12 +266,15 @@ ultimaker2:
 ultimaker2_plus:
   title: Ultimaker 2+
   heatedBed: true
+  filamentThickness: 2.85
   dimensions:
     x: 223
     y: 223
     z: 305
 ultimaker2go:
   title: Ultimaker 2 Go
+  heatedBed: false
+  filamentThickness: 2.85
   dimensions:
     x: 120
     y: 120
@@ -170,17 +282,20 @@ ultimaker2go:
 ultimaker_original_plus:
   title: Ultimaker Original Plus
   heatedBed: true
+  filamentThickness: 2.85
 vision_3d_printer:
   title: Vision 3D Printer
+  heatedBed: false
+  filamentThickness: 2.85
 wanhao_duplicator4:
   title: Wanhao Duplicator 4
-  filamentThickness: 1.75
   heatedBed: true
+  filamentThickness: 1.75
   dimensions:
     x: 210
     y: 140
     z: 140
 wanhao_duplicator_i3_plus:
   title: Wanhao Duplicator i3 Plus
-  filamentThickness: 1.75
   heatedBed: false
+  filamentThickness: 1.75

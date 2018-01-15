@@ -2,17 +2,21 @@ const path = require('path');
 // const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const HTMLWebpackPlugin = require('html-webpack-plugin');
 
+const devMode = true;
+
 const babelLoader = {
   loader: 'babel-loader',
   options: {
     presets: [
       require('babel-preset-env'),
+      require('babel-preset-stage-0'),
       require('babel-preset-react')
     ],
     plugins: [
-      require('babel-plugin-transform-object-rest-spread'),
       require('babel-plugin-transform-class-properties'),
-      require('babel-plugin-transform-runtime')
+      require('babel-plugin-transform-object-rest-spread'),
+      require('babel-plugin-transform-runtime'),
+      require('babel-plugin-transform-es2015-classes')
     ],
     babelrc: false
   }
@@ -26,13 +30,15 @@ module.exports = {
   },
   resolve: {
     alias: {
-      'doodle3d-slicer': path.resolve(__dirname, '../src/index.js'),
+      'doodle3d-slicer': path.resolve(__dirname, 'src/'),
       'clipper-lib': '@doodle3d/clipper-lib',
-      'clipper-js': '@doodle3d/clipper-js'
+      'clipper-js': '@doodle3d/clipper-js',
+      'doodle3d-core': `@doodle3d/doodle3d-core/${devMode ? 'module' : 'lib'}`,
+      'cal': '@doodle3d/cal'
     }
   },
   module: {
-    rules:  [
+    rules: [
       {
         test: /\.js$/,
         exclude: /node_modules/,
@@ -46,6 +52,12 @@ module.exports = {
       }, {
         test: /\.worker\.js$/,
         use: ['worker-loader', babelLoader]
+      }, {
+        test: /\.(png|jpg|gif)$/,
+        use: ['url-loader?name=images/[name].[ext]']
+      }, {
+        test: /\.glsl$/,
+        use: ['raw-loader']
       }
     ]
   },
