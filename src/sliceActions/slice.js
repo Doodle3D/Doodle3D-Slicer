@@ -76,16 +76,20 @@ export default function(settings, geometry, openObjectIndexes, constructLinePrev
 function gcodeToString(gcode) {
   const currentValues = {};
   return gcode.reduce((string, command) => {
-    let first = true;
-    for (const action in command) {
-      const value = command[action];
-      const currentValue = currentValues[action];
-      if (first) {
-        string += `${action}${value}`;
-        first = false;
-      } else if (currentValue !== value) {
-        string += ` ${action}${value}`;
-        currentValues[action] = value;
+    if (typeof command === 'string') {
+      string += command;
+    } else {
+      let first = true;
+      for (const action in command) {
+        const value = command[action];
+        const currentValue = currentValues[action];
+        if (first) {
+          string += `${action}${value}`;
+          first = false;
+        } else if (currentValue !== value) {
+          string += ` ${action}${value}`;
+          currentValues[action] = value;
+        }
       }
     }
     string += '\n';
@@ -101,7 +105,10 @@ function createGcodeGeometry(gcode) {
 
   let lastPoint = [0, 0, 0];
   for (let i = 0; i < gcode.length; i ++) {
-    const { G, F, X, Y, Z } = gcode[i];
+    const command = gcode[i];
+    if (typeof command === 'string') continue;
+
+    const { G, F, X, Y, Z } = command;
 
     if (X || Y || Z) {
       if (G === 1) {

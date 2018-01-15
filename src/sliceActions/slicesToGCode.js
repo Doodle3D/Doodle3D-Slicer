@@ -22,6 +22,8 @@ export default function slicesToGCode(slices, settings) {
 
   const gcode = new GCode(nozzleToFilamentRatio);
 
+  if (settings.startCode) gcode.addGCode(settings.startCode, settings);
+
   const defaultProfile = {
     travelProfile: travel,
     retractionProfile: retraction
@@ -76,6 +78,8 @@ export default function slicesToGCode(slices, settings) {
       pathToGCode(null, false, gcode, slice.support, true, true, z, profiles.support);
     }
   }
+
+  if (settings.endCode) gcode.addGCode(settings.endCode, settings);
 
   return gcode.getGCode();
 }
