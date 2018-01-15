@@ -139,15 +139,15 @@ class Interface extends React.Component {
   }
 
   componentWillUnmount() {
-    const { editorControls, mesh: { material }, renderer } = this.state;
+    const { scene: { editorControls, mesh: { material } }, renderer } = this.state;
     editorControls.dispose();
     material.dispose();
     renderer.dispose();
   }
 
   resetMesh = () => {
-    const { mesh, render, isSlicing } = this.state;
     if (isSlicing) return;
+    const { scene: { mesh, render }, isSlicing, isLoading } = this.state;
     if (mesh) {
       mesh.position.set(0, 0, 0);
       mesh.scale.set(1, 1, 1);
@@ -161,8 +161,8 @@ class Interface extends React.Component {
   scaleUp = () => this.scaleMesh(0.9);
   scaleDown = () => this.scaleMesh(1.0 / 0.9);
   scaleMesh = (factor) => {
-    const { mesh, render, isSlicing } = this.state;
     if (isSlicing) return;
+    const { scene: { mesh, render }, isSlicing, isLoading } = this.state;
     if (mesh) {
       mesh.scale.multiplyScalar(factor);
       mesh.updateMatrix();
@@ -175,8 +175,8 @@ class Interface extends React.Component {
   rotateY = () => this.rotate(new Vector3(1, 0, 0), Math.PI / 2.0);
   rotateZ = () => this.rotate(new Vector3(0, 1, 0), Math.PI / 2.0);
   rotate = (axis, angle) => {
-    const { mesh, render, isSlicing } = this.state;
     if (isSlicing) return;
+    const { scene: { mesh, render }, isSlicing, isLoading } = this.state;
     if (mesh) {
       mesh.rotateOnWorldAxis(axis, angle);
       placeOnGround(mesh);
@@ -185,7 +185,7 @@ class Interface extends React.Component {
   };
 
   slice = async (target) => {
-    const { isSlicing, settings, printers, quality, material, mesh: { matrix } } = this.state;
+    const { isSlicing, isLoading, settings, printers, quality, scene: { material, mesh: { matrix } } } = this.state;
     const { name, mesh } = this.props;
 
     if (isSlicing) return;
@@ -233,7 +233,8 @@ class Interface extends React.Component {
   };
 
   componentWillUpdate(nextProps, nextState) {
-    const { box, render, setSize } = this.state;
+    if (!this.state.scene) return;
+    const { scene: { box, render, setSize } } = this.state;
     let changed = false;
     if (box && nextState.settings.dimensions !== this.state.settings.dimensions) {
       const { dimensions } = nextState.settings;
@@ -245,14 +246,14 @@ class Interface extends React.Component {
   }
 
   componentDidUpdate() {
-    const { updateCanvas } = this.state;
+    const { scene: { updateCanvas } } = this.state;
     const { canvas } = this.refs;
     if (updateCanvas && canvas) updateCanvas(canvas);
   }
 
   onResize3dView = (width, height) => {
     window.requestAnimationFrame(() => {
-      const { setSize } = this.state;
+      const { scene: { setSize } } = this.state;
       const { pixelRatio } = this.props;
       if (setSize) setSize(width, height, pixelRatio);
     });
