@@ -147,7 +147,7 @@ class Settings extends React.Component {
               <TextField name="settings.outerInfill.speed" fullWidth floatingLabelText="Speed" type="number" />
               <TextField name="settings.outerInfill.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
               <p>Brim</p>
-              <TextField name="settings.brim.offset" fullWidth floatingLabelText="Offset" type="number" />
+              <TextField name="settings.brim.size" fullWidth floatingLabelText="Size" type="number" />
               <TextField name="settings.brim.speed" fullWidth floatingLabelText="Speed" type="number" />
               <TextField name="settings.brim.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
               <p>First layer</p>
