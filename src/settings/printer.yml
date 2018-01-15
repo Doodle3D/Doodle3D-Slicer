@@ -20,6 +20,7 @@ doodle3d_printer:
     M104 S0
   title: Doodle3D Printer
   heatedBed: true
+  bedTemperature: 50
   filamentThickness: 1.75
   dimensions:
     x: 120
