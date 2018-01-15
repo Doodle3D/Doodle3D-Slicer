@@ -4,7 +4,7 @@ import { Quaternion } from 'three/src/math/Quaternion.js';
 import { Vector3 } from 'three/src/math/Vector3.js';
 import { Mesh } from 'three/src/objects/Mesh.js';
 import PropTypes from 'proptypes';
-import { placeOnGround, createScene, fetchProgress, slice, TabTemplate } from './utils.js';
+import { centerGeometry, placeOnGround, createScene, fetchProgress, slice, TabTemplate } from './utils.js';
 import injectSheet from 'react-jss';
 import RaisedButton from 'material-ui/RaisedButton';
 import FlatButton from 'material-ui/FlatButton';
@@ -21,6 +21,10 @@ import printerSettings from '../settings/printer.yml';
 import materialSettings from '../settings/material.yml';
 import qualitySettings from '../settings/quality.yml';
 import ReactResizeDetector from 'react-resize-detector';
+import JSONToSketchData from 'doodle3d-core/shape/JSONToSketchData';
+import createSceneData from 'doodle3d-core/d3/createSceneData.js';
+import { generateExportMesh } from 'doodle3d-core/utils/exportUtils.js';
+import { Matrix4 } from 'three/src/math/Matrix4.js';
 
 const MAX_FULLSCREEN_WIDTH = 720;
 
@@ -82,7 +86,10 @@ const styles = {
 
 class Interface extends React.Component {
   static propTypes = {
-    mesh: PropTypes.shape({ isMesh: PropTypes.oneOf([true]) }).isRequired,
+    file: PropTypes.oneOfType([
+      PropTypes.shape({ isMesh: PropTypes.oneOf([true]) }),
+      PropTypes.string
+    ]).isRequired,
     classes: PropTypes.objectOf(PropTypes.string),
     defaultSettings: PropTypes.object.isRequired,
     printers: PropTypes.object.isRequired,
@@ -110,9 +117,11 @@ class Interface extends React.Component {
   constructor(props) {
     super(props);
     const { defaultPrinter, defaultQuality, defaultMaterial, printers, quality, material, defaultSettings } = props;
+
     this.state = {
       showFullScreen: false,
       isSlicing: false,
+      isLoading: true,
       error: null,
       printers: defaultPrinter,
       quality: defaultQuality,
@@ -133,9 +142,35 @@ class Interface extends React.Component {
 
   componentDidMount() {
     const { canvas } = this.refs;
-
     const scene = createScene(canvas, this.props, this.state);
-    this.setState({ ...scene });
+
+    this.setState({ scene });
+
+    const { file } = this.props;
+
+    if (!file) {
+      throw new Error('no file provided');
+    } if (typeof file === 'string') {
+      fetch(file)
+        .then(resonse => resonse.json())
+        .then(json => JSONToSketchData(json))
+        .then(file => createSceneData(file))
+        .then(sketch => generateExportMesh(sketch, { offsetSingleWalls: false, matrix: new Matrix4() }))
+        .then(mesh => this.updateMesh(mesh, scene));
+    } else if (file.isMesh) {
+      this.updateMesh(file, scene);
+    } else {
+      throw new Error('unknown file property');
+    }
+  }
+
+  updateMesh(mesh, scene) {
+    scene.mesh.geometry = mesh.geometry;
+    centerGeometry(scene.mesh);
+    placeOnGround(scene.mesh);
+    scene.render();
+
+    this.setState({ mesh, isLoading: false });
   }
 
   componentWillUnmount() {
@@ -146,8 +181,8 @@ class Interface extends React.Component {
   }
 
   resetMesh = () => {
-    if (isSlicing) return;
     const { scene: { mesh, render }, isSlicing, isLoading } = this.state;
+    if (isSlicing || isLoading) return;
     if (mesh) {
       mesh.position.set(0, 0, 0);
       mesh.scale.set(1, 1, 1);
@@ -161,8 +196,8 @@ class Interface extends React.Component {
   scaleUp = () => this.scaleMesh(0.9);
   scaleDown = () => this.scaleMesh(1.0 / 0.9);
   scaleMesh = (factor) => {
-    if (isSlicing) return;
     const { scene: { mesh, render }, isSlicing, isLoading } = this.state;
+    if (isSlicing || isLoading) return;
     if (mesh) {
       mesh.scale.multiplyScalar(factor);
       mesh.updateMatrix();
@@ -175,8 +210,8 @@ class Interface extends React.Component {
   rotateY = () => this.rotate(new Vector3(1, 0, 0), Math.PI / 2.0);
   rotateZ = () => this.rotate(new Vector3(0, 1, 0), Math.PI / 2.0);
   rotate = (axis, angle) => {
-    if (isSlicing) return;
     const { scene: { mesh, render }, isSlicing, isLoading } = this.state;
+    if (isSlicing || isLoading) return;
     if (mesh) {
       mesh.rotateOnWorldAxis(axis, angle);
       placeOnGround(mesh);
@@ -185,10 +220,10 @@ class Interface extends React.Component {
   };
 
   slice = async (target) => {
-    const { isSlicing, isLoading, settings, printers, quality, scene: { material, mesh: { matrix } } } = this.state;
-    const { name, mesh } = this.props;
+    const { isSlicing, isLoading, settings, printers, quality, mesh, scene: { material, mesh: { matrix } } } = this.state;
+    const { name } = this.props;
 
-    if (isSlicing) return;
+    if (isSlicing || isLoading) return;
 
     this.closePopover();
 
@@ -265,14 +300,15 @@ class Interface extends React.Component {
 
   render() {
     const { classes, defaultPrinter, defaultQuality, defaultMaterial, onCancel } = this.props;
-    const { isSlicing, progress, settings, printers, quality, material, showFullScreen, error } = this.state;
+    const { isSlicing, isLoading, progress, settings, printers, quality, material, showFullScreen, error } = this.state;
 
+    const disableUI = isSlicing || isLoading;
     const style = { ...(showFullScreen ? {} : { maxWidth: 'inherit', width: '100%', height: '100%' }) };
 
     const settingsPanel = (
       <div className={classes.settingsBar} style={style}>
         <Settings
-          disabled={isSlicing}
+          disabled={disableUI}
           printers={printerSettings}
           defaultPrinter={defaultPrinter}
           quality={qualitySettings}
@@ -298,7 +334,7 @@ class Interface extends React.Component {
               primary
               className={`${classes.button}`}
               onTouchTap={this.openPopover}
-              disabled={isSlicing}
+              disabled={disableUI}
             />
             <Popover
               open={this.state.popover.open}
@@ -322,12 +358,12 @@ class Interface extends React.Component {
         <ReactResizeDetector handleWidth handleHeight onResize={this.onResize3dView} />
         <canvas className={classes.canvas} ref="canvas" />
         <div className={classes.controlBar}>
-          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.resetMesh} label="reset" />
-          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.scaleUp} label="scale down" />
-          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.scaleDown} label="scale up" />
-          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.rotateX} label="rotate x" />
-          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.rotateY} label="rotate y" />
-          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.rotateZ} label="rotate z" />
+          <RaisedButton disabled={disableUI} className={classes.controlButton} onTouchTap={this.resetMesh} label="reset" />
+          <RaisedButton disabled={disableUI} className={classes.controlButton} onTouchTap={this.scaleUp} label="scale down" />
+          <RaisedButton disabled={disableUI} className={classes.controlButton} onTouchTap={this.scaleDown} label="scale up" />
+          <RaisedButton disabled={disableUI} className={classes.controlButton} onTouchTap={this.rotateX} label="rotate x" />
+          <RaisedButton disabled={disableUI} className={classes.controlButton} onTouchTap={this.rotateY} label="rotate y" />
+          <RaisedButton disabled={disableUI} className={classes.controlButton} onTouchTap={this.rotateZ} label="rotate z" />
         </div>
       </div>
     );

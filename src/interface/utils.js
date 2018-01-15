@@ -27,14 +27,16 @@ export function placeOnGround(mesh) {
   mesh.updateMatrix();
 }
 
-export function createScene(canvas, props, state) {
-  const { pixelRatio, mesh: { geometry } } = props;
-  const { settings } = state;
-
+export function centerGeometry(mesh) {
   // center geometry
-  geometry.computeBoundingBox();
-  const center = geometry.boundingBox.getCenter();
-  geometry.applyMatrix(new Matrix4().makeTranslation(-center.x, -center.y, -center.z));
+  mesh.geometry.computeBoundingBox();
+  const center = mesh.geometry.boundingBox.getCenter();
+  mesh.geometry.applyMatrix(new Matrix4().makeTranslation(-center.x, -center.y, -center.z));
+}
+
+export function createScene(canvas, props, state) {
+  const { pixelRatio } = props;
+  const { settings } = state;
 
   const scene = new Scene();
 
@@ -53,8 +55,7 @@ export function createScene(canvas, props, state) {
   scene.add(light);
 
   const material = new MeshPhongMaterial({ color: 0x2194ce, side: DoubleSide, specular: 0xc5c5c5, shininess: 5 });
-  const mesh = new Mesh(geometry, material);
-  placeOnGround(mesh);
+  const mesh = new Mesh(new THREE.Geometry(), material);
   scene.add(mesh);
 
   const box = new BoxHelper(new Mesh(new BoxGeometry(1, 1, 1).applyMatrix(new Matrix4().makeTranslation(0, 0.5, 0))), 0x72bcd4);
