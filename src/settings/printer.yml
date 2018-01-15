@@ -1,3 +1,30 @@
+doodle3d_printer:
+  startCode: |-
+    M140 S{bedTemperature}
+    M104 S{temperature}
+    G28
+    M109 S{temperature}
+    M82
+    G1 Z10.0 F6000
+    G92 E0
+    G1 F200 E3
+    G92 E0
+  endCode: |-
+    M104 S0
+    M140 S0
+    G92 E1
+    G1 E-1 F300
+    G28 X0 Y0
+    M84
+    M82
+    M104 S0
+  title: Doodle3D Printer
+  heatedBed: true
+  filamentThickness: 1.75
+  dimensions:
+    x: 120
+    y: 120
+    z: 120
 ultimaker2go:
   title: Ultimaker 2 Go
   heatedBed: false
