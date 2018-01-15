@@ -123,6 +123,8 @@ class Settings extends React.Component {
               <TextField name="settings.thickness.top" fullWidth floatingLabelText="top" type="number" />
               <TextField name="settings.thickness.bottom" fullWidth floatingLabelText="bottom" type="number" />
               <TextField name="settings.thickness.shell" fullWidth floatingLabelText="shell" type="number" />
+              <p>Combing</p>
+              <Checkbox name="settings.combing" label="Enabled" />
               <p>Retraction</p>
               <Checkbox name="settings.retraction.enabled" label="Enabled" />
               <TextField name="settings.retraction.amount" fullWidth floatingLabelText="Amount" type="number" />
