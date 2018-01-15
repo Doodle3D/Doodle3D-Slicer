@@ -7,9 +7,13 @@ export default function optimizePaths(slices, settings) {
   for (let layer = 0; layer < slices.length; layer ++) {
     const slice = slices[layer];
 
-    if (typeof slice.brim !== 'undefined' && slice.brim.paths.length > 0) {
-      slice.brim = optimizeShape(slice.brim, start);
-      start.copy(slice.brim.lastPoint(true));
+    if (typeof slice.brim !== 'undefined') {
+      for (let i = 0; i < slice.brim.length; i ++) {
+        if (slice.brim[i].paths.length > 0) {
+          slice.brim[i] = optimizeShape(slice.brim[i], start);
+          start.copy(slice.brim[i].lastPoint(true));
+        }
+      }
     }
 
     const parts = [];

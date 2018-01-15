@@ -25,7 +25,9 @@ export default function removePrecision(slices) {
       slice.support.scaleDown(inversePrecision);
     }
     if (typeof slice.brim !== 'undefined') {
-      slice.brim.scaleDown(inversePrecision);
+      for (let i = 0; i < slice.brim.length; i ++) {
+        slice.brim[i].scaleDown(inversePrecision);
+      }
     }
   }
 }
