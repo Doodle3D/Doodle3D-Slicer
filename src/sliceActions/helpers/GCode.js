@@ -1,5 +1,5 @@
 import { Vector2 } from 'three/src/math/Vector2.js';
-import { PRECISION } from '../../constants.js';
+import { PRECISION, VERSION } from '../../constants.js';
 
 export const MOVE = 'G';
 export const M_COMMAND = 'M';
@@ -14,7 +14,7 @@ export default class {
   constructor(nozzleToFilamentRatio) {
     this._nozzleToFilamentRatio = nozzleToFilamentRatio;
 
-    this._gcode = [];
+    this._gcode = [`; Generated with Doodle3D Slicer V${VERSION}`];
     this._currentValues = {};
     this._nozzlePosition = new Vector2(0, 0);
     this._extruder = 0.0;
