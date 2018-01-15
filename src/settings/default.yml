@@ -7,7 +7,7 @@ heatedBed: false
 nozzleDiameter: 0.4
 filamentThickness: 2.85
 temperature: 210
-bedTemperature: 70
+bedTemperature: 50
 layerHeight: 0.15
 combing: true
 thickness:
