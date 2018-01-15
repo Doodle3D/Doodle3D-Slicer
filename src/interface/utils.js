@@ -131,7 +131,7 @@ export async function slice(target, name, mesh, settings, printers, quality, mat
       steps = 2;
       break;
     default:
-      steps = 1;
+      throw new Error('unknown target');
       break;
   }
 
@@ -197,6 +197,7 @@ export async function slice(target, name, mesh, settings, printers, quality, mat
     }
 
     default:
+      throw new Error('unknown target');
       break;
   }
 }
