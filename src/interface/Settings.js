@@ -144,7 +144,7 @@ class Settings extends React.Component {
       case 'settings.innerShell.flowRate':
       case 'settings.outerShell.speed':
       case 'settings.outerShell.flowRate':
-      case 'settings.innerInfill.gridSize':
+      case 'settings.innerInfill.precentage':
       case 'settings.innerInfill.speed':
       case 'settings.innerInfill.flowRate':
       case 'settings.outerInfill.speed':
@@ -306,7 +306,7 @@ class Settings extends React.Component {
               <TextField name="settings.outerShell.speed" fullWidth floatingLabelText="Speed" type="number" />
               <TextField name="settings.outerShell.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
               <p>Inner infill</p>
-              <TextField name="settings.innerInfill.gridSize" fullWidth floatingLabelText="Grid size" type="number" />
+              <TextField name="settings.innerInfill.precentage" fullWidth floatingLabelText="Percentage" type="number" />
               <TextField name="settings.innerInfill.speed" fullWidth floatingLabelText="Speed" type="number" />
               <TextField name="settings.innerInfill.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
               <p>Outer infill</p>

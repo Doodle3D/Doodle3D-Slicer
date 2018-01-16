@@ -39,7 +39,7 @@ outerShell:
 innerInfill:
   flowRate: 1.0
   speed: 80.0
-  gridSize: 15.0
+  precentage: 20.0
 outerInfill:
   flowRate: 1.0
   speed: 50.0

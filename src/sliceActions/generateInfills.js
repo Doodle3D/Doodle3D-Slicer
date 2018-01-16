@@ -5,7 +5,7 @@ import Shape from 'clipper-js';
 export default function generateInfills(slices, settings) {
   let {
     layerHeight,
-    innerInfill: { gridSize: infillGridSize },
+    innerInfill: { precentage: infillPercentage },
     thickness: {
       top: topThickness,
       bottom: bottomThickness
@@ -13,11 +13,11 @@ export default function generateInfills(slices, settings) {
     nozzleDiameter
   } = settings;
 
-  infillGridSize /= PRECISION;
+  infillPercentage /= 100;
   nozzleDiameter /= PRECISION;
 
-  const bottomSkinCount = Math.ceil(bottomThickness/layerHeight);
-  const topSkinCount = Math.ceil(topThickness/layerHeight);
+  const bidirectionalInfill = infillPercentage < 0.8;
+  const infillGridSize = nozzleDiameter * (bidirectionalInfill ? 2 : 1) / infillPercentage;
   const nozzleRadius = nozzleDiameter / 2;
   const outerFillTemplateSize = Math.sqrt(2 * Math.pow(nozzleDiameter, 2));
 
@@ -32,6 +32,7 @@ export default function generateInfills(slices, settings) {
     }
 
     for (let i = 0; i < slice.parts.length; i ++) {
+      const even = (layer % 2 === 0);
       const part = slice.parts[i];
 
       if (!part.closed) continue;
@@ -52,14 +53,13 @@ export default function generateInfills(slices, settings) {
 
       if (innerFillArea && innerFillArea.paths.length > 0) {
         const bounds = innerFillArea.shapeBounds();
-        const innerFillTemplate = getFillTemplate(bounds, infillGridSize, true, true);
+        const innerFillTemplate = getFillTemplate(bounds, infillGridSize, bidirectionalInfill || even, bidirectionalInfill || !even);
 
         part.innerFill.join(innerFillTemplate.intersect(innerFillArea));
       }
 
       if (outerFillArea.paths.length > 0) {
         const bounds = outerFillArea.shapeBounds();
-        const even = (layer % 2 === 0);
         const outerFillTemplate = getFillTemplate(bounds, outerFillTemplateSize, even, !even);
 
         part.outerFill.join(outerFillTemplate.intersect(outerFillArea));
