@@ -18,6 +18,9 @@ export default function generateInfills(slices, settings) {
 
   const bidirectionalInfill = infillPercentage < 0.8;
   const infillGridSize = nozzleDiameter * (bidirectionalInfill ? 2 : 1) / infillPercentage;
+
+  const bottomSkinCount = Math.ceil(bottomThickness / layerHeight);
+  const topSkinCount = Math.ceil(topThickness / layerHeight);
   const nozzleRadius = nozzleDiameter / 2;
   const outerFillTemplateSize = Math.sqrt(2 * Math.pow(nozzleDiameter, 2));
 
