@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Box3 } from 'three/src/math/Box3.js';
 import { Matrix4 } from 'three/src/math/Matrix4.js';
+import { Vector3 } from 'three/src/math/Vector3.js';
 import { Scene } from 'three/src/scenes/Scene.js';
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera.js';
 import { AmbientLight } from 'three/src/lights/AmbientLight.js';
@@ -34,14 +35,12 @@ export function centerGeometry(mesh) {
   mesh.geometry.applyMatrix(new Matrix4().makeTranslation(-center.x, -center.y, -center.z));
 }
 
-export function createScene(canvas, props, state) {
-  const { pixelRatio } = props;
-  const { settings } = state;
-
+export function createScene({ pixelRatio }) {
   const scene = new Scene();
 
   const camera = new PerspectiveCamera(50, 1, 1, 10000);
   camera.position.set(0, 400, 300);
+  camera.lookAt(new Vector3(0, 0, 0));
 
   const directionalLightA = new DirectionalLight(0xa2a2a2);
   directionalLightA.position.set(1, 1, 1);
@@ -61,8 +60,10 @@ export function createScene(canvas, props, state) {
   const box = new BoxHelper(new Mesh(new BoxGeometry(1, 1, 1).applyMatrix(new Matrix4().makeTranslation(0, 0.5, 0))), 0x72bcd4);
   scene.add(box);
 
-  const { dimensions } = settings;
-  box.scale.set(dimensions.y, dimensions.z, dimensions.x);
+  let renderer = new WebGLRenderer({ alpha: true, antialias: true });
+  let editorControls = new THREE.EditorControls(camera, renderer.domElement);
+
+  box.scale.set(1., 1., 1.);
   box.updateMatrix();
 
   const render = () => renderer.render(scene, camera);
@@ -75,8 +76,6 @@ export function createScene(canvas, props, state) {
     render();
   };
 
-  let editorControls;
-  let renderer;
   const updateCanvas = (canvas) => {
     if (!renderer || renderer.domElement !== canvas) {
       if (renderer) renderer.dispose();
@@ -86,13 +85,11 @@ export function createScene(canvas, props, state) {
     if (!editorControls || editorControls.domElement !== canvas) {
       if (editorControls) editorControls.dispose();
       editorControls = new THREE.EditorControls(camera, canvas);
-      editorControls.focus(mesh);
       editorControls.addEventListener('change', render);
     }
 
     render();
   };
-  updateCanvas(canvas);
 
   const focus = () => editorControls.focus(mesh);
 
@@ -119,8 +116,8 @@ export function fetchProgress(url, { method = 'get', headers = {}, body = {} } =
 const GCODE_SERVER_URL = 'https://gcodeserver.doodle3d.com';
 const CONNECT_URL = 'http://connect.doodle3d.com/';
 
-export async function slice(target, name, mesh, settings, printers, quality, material, updateProgress) {
-  if (!printers) throw new Error('Please select a printer');
+export async function slice(target, name, mesh, settings, updateProgress) {
+  if (!settings) throw new Error('please select a printer first');
 
   let steps;
   let currentStep = 0;
@@ -167,22 +164,13 @@ export async function slice(target, name, mesh, settings, printers, quality, mat
         body.append(key, fields[key]);
       }
 
-      const file = ';' + JSON.stringify({
-        name: `${name}.gcode`,
+      const file = `;${JSON.stringify({
         ...settings,
-        printer: {
-          type: printers,
-          title: printerSettings[printers].title
-        },
-        material: {
-          type: material,
-          title: materialSettings[material].title
-        },
-        quality: {
-          type: quality,
-          title: qualitySettings[quality].title
-        }
-      }).trim() + '\n' + gcode;
+        name: `${name}.gcode`,
+        printer: { type: settings.printers, title: printerSettings[settings.printer].title },
+        material: { type: settings.material, title: materialSettings[settings.material].title },
+        quality: { type: settings.quality, title: qualitySettings[settings.quality].title }
+      }).trim()}\n${gcode}`;
       body.append('file', file);
 
       await fetchProgress(reservation.url, { method: 'POST', body }, (progess) => {
@@ -195,6 +183,7 @@ export async function slice(target, name, mesh, settings, printers, quality, mat
 
       const popup = window.open(`${CONNECT_URL}?uuid=${id}`, '_blank');
       if (!popup) throw new Error('popup was blocked by browser');
+      break;
     }
 
     default:

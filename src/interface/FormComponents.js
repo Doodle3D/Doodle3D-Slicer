@@ -4,36 +4,58 @@ import _ from 'lodash';
 import injectSheet from 'react-jss';
 import MaterialUISelectField from 'material-ui/SelectField'
 import MaterialUICheckbox from 'material-ui/Checkbox';
-import MaterialUITextField from 'material-ui/TextField';
+import { blue500, grey500 } from 'material-ui/styles/colors';
+import TextFieldIcon from 'material-ui-textfield-icon';
+import Clear from 'material-ui-icons/Clear';
 
-const contextTypes = { state: PropTypes.object, onChange: PropTypes.func, disabled: PropTypes.bool };
+const contextTypes = {
+  settings: PropTypes.object.isRequired,
+  onChange: PropTypes.func.isRequired,
+  disabled: PropTypes.bool.isRequired,
+  addPrinter: PropTypes.object.isRequired,
+  advancedFields: PropTypes.array.isRequired,
+  activePrinter: PropTypes.string
+};
+const propTypes = {
+  name: PropTypes.string.isRequired
+};
 
 export const SelectField = (props, context) => (
   <MaterialUISelectField
-    { ...props }
+    {...props}
     disabled={context.disabled}
-    value={_.get(context.state, props.name)}
+    value={_.get(context, props.name)}
     onChange={(event, index, value) => context.onChange(props.name, value)}
   />
 );
 SelectField.contextTypes = contextTypes;
+SelectField.propTypes = propTypes;
 
 export const TextField = (props, context) => (
-  <MaterialUITextField
-    { ...props }
+  <TextFieldIcon
+    {...props}
+    icon={context.advancedFields.includes(props.name) && <Clear onTouchTap={() => context.onChange(props.name, null)} />}
+    floatingLabelStyle={{ color: context.advancedFields.includes(props.name) ? blue500 : grey500 }}
     disabled={context.disabled}
-    value={_.get(context.state, props.name)}
-    onChange={(event, value) => context.onChange(props.name, value)}
+    value={_.get(context, props.name)}
+    onChange={(event, value) => context.onChange(props.name, props.type === 'number' ? parseFloat(value) : value)}
   />
 );
 TextField.contextTypes = contextTypes;
+TextField.propTypes = propTypes;
 
 export const Checkbox = (props, context) => (
-  <MaterialUICheckbox
-    { ...props }
-    disabled={context.disabled}
-    checked={_.get(context.state, props.name)}
-    onCheck={(event, value) => context.onChange(props.name, value)}
-  />
+  <span style={{ display: 'flex' }}>
+    <MaterialUICheckbox
+      {...props}
+      style={{ display: 'block' }}
+      iconStyle={{ fill: context.advancedFields.includes(props.name) ? blue500 : grey500 }}
+      disabled={context.disabled}
+      checked={_.get(context, props.name)}
+      onCheck={(event, value) => context.onChange(props.name, value)}
+    />
+    {context.advancedFields.includes(props.name) && <Clear onTouchTap={() => context.onChange(props.name, null)} />}
+  </span>
 );
 Checkbox.contextTypes = contextTypes;
+Checkbox.propTypes = propTypes;

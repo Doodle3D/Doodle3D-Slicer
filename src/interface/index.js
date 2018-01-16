@@ -16,10 +16,6 @@ import Menu from 'material-ui/Menu';
 import MenuItem from 'material-ui/MenuItem';
 import { Tabs, Tab } from 'material-ui/Tabs';
 import Settings from './Settings.js';
-import defaultSettings from '../settings/default.yml';
-import printerSettings from '../settings/printer.yml';
-import materialSettings from '../settings/material.yml';
-import qualitySettings from '../settings/quality.yml';
 import ReactResizeDetector from 'react-resize-detector';
 import JSONToSketchData from 'doodle3d-core/shape/JSONToSketchData';
 import createSceneData from 'doodle3d-core/d3/createSceneData.js';
@@ -91,63 +87,40 @@ class Interface extends React.Component {
       PropTypes.string
     ]).isRequired,
     classes: PropTypes.objectOf(PropTypes.string),
-    defaultSettings: PropTypes.object.isRequired,
-    printers: PropTypes.object.isRequired,
-    defaultPrinter: PropTypes.string,
-    quality: PropTypes.object.isRequired,
-    defaultQuality: PropTypes.string.isRequired,
-    material: PropTypes.object.isRequired,
-    defaultMaterial: PropTypes.string.isRequired,
     pixelRatio: PropTypes.number.isRequired,
     onCancel: PropTypes.func,
     name: PropTypes.string.isRequired
   };
 
   static defaultProps = {
-    defaultSettings: defaultSettings,
-    printers: printerSettings,
-    quality: qualitySettings,
-    defaultQuality: 'medium',
-    material: materialSettings,
-    defaultMaterial: 'pla',
     pixelRatio: 1,
     name: 'Doodle3D'
   };
 
   constructor(props) {
     super(props);
-    const { defaultPrinter, defaultQuality, defaultMaterial, printers, quality, material, defaultSettings } = props;
 
+    const scene = createScene(this.props);
     this.state = {
+      scene,
+      settings: null,
       showFullScreen: false,
       isSlicing: false,
       isLoading: true,
       error: null,
-      printers: defaultPrinter,
-      quality: defaultQuality,
-      material: defaultMaterial,
       popover: {
         element: null,
         open: false
-      },
-      settings: _.merge(
-        {},
-        defaultSettings,
-        printers[defaultPrinter],
-        quality[defaultQuality],
-        material[defaultMaterial]
-      )
+      }
     };
   }
 
   componentDidMount() {
     const { canvas } = this.refs;
-    const scene = createScene(canvas, this.props, this.state);
-
-    this.setState({ scene });
+    const { scene } = this.state;
+    scene.updateCanvas(canvas);
 
     const { file } = this.props;
-
     if (!file) {
       throw new Error('no file provided');
     } if (typeof file === 'string') {
@@ -220,22 +193,20 @@ class Interface extends React.Component {
   };
 
   slice = async (target) => {
-    const { isSlicing, isLoading, settings, printers, quality, mesh, scene: { material, mesh: { matrix } } } = this.state;
+    const { isSlicing, isLoading, settings, mesh, scene: { material, mesh: { matrix } } } = this.state;
     const { name } = this.props;
 
     if (isSlicing || isLoading) return;
 
     this.closePopover();
-
     this.setState({ isSlicing: true, progress: { action: '', percentage: 0, step: 0 }, error: null });
 
     const exportMesh = new Mesh(mesh.geometry, mesh.material);
     exportMesh.applyMatrix(matrix);
 
     try {
-      await slice(target, name, exportMesh, settings, printers, quality, material, progress => {
-        this.setState({ progress: { ...this.state.progress, ...progress } });
-      });
+      const updateProgres = progress => this.setState({ progress: { ...this.state.progress, ...progress } });
+      await slice(target, name, exportMesh, settings, updateProgres);
     } catch (error) {
       this.setState({ error: error.message });
       throw error;
@@ -263,23 +234,6 @@ class Interface extends React.Component {
     });
   };
 
-  onChangeSettings = (settings) => {
-    this.setState(settings);
-  };
-
-  componentWillUpdate(nextProps, nextState) {
-    if (!this.state.scene) return;
-    const { scene: { box, render, setSize } } = this.state;
-    let changed = false;
-    if (box && nextState.settings.dimensions !== this.state.settings.dimensions) {
-      const { dimensions } = nextState.settings;
-      box.scale.set(dimensions.y, dimensions.z, dimensions.x);
-      box.updateMatrix();
-      changed = true;
-    }
-    if (changed) render();
-  }
-
   componentDidUpdate() {
     const { scene: { updateCanvas } } = this.state;
     const { canvas } = this.refs;
@@ -298,9 +252,23 @@ class Interface extends React.Component {
     this.setState({ showFullScreen: width > MAX_FULLSCREEN_WIDTH });
   };
 
+  onChangeSettings = (settings) => {
+    const { scene: { box, render } } = this.state;
+
+    let changed = false;
+    if (!this.state.settings || this.state.settings.dimensions !== settings.dimensions) {
+      box.scale.set(settings.dimensions.y, settings.dimensions.z, settings.dimensions.x);
+      box.updateMatrix();
+      changed = true;
+    }
+    if (changed) render();
+
+    this.setState({ settings, error: null });
+  };
+
   render() {
-    const { classes, defaultPrinter, defaultQuality, defaultMaterial, onCancel } = this.props;
-    const { isSlicing, isLoading, progress, settings, printers, quality, material, showFullScreen, error } = this.state;
+    const { classes, onCancel } = this.props;
+    const { isSlicing, isLoading, progress, showFullScreen, error } = this.state;
 
     const disableUI = isSlicing || isLoading;
     const style = { ...(showFullScreen ? {} : { maxWidth: 'inherit', width: '100%', height: '100%' }) };
@@ -309,13 +277,6 @@ class Interface extends React.Component {
       <div className={classes.settingsBar} style={style}>
         <Settings
           disabled={disableUI}
-          printers={printerSettings}
-          defaultPrinter={defaultPrinter}
-          quality={qualitySettings}
-          defaultQuality={defaultQuality}
-          material={materialSettings}
-          defaultMaterial={defaultMaterial}
-          initialSettings={settings}
           onChange={this.onChangeSettings}
         />
         <div className={classes.sliceActions}>
