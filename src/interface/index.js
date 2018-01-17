@@ -3,6 +3,7 @@ import React from 'react';
 import { Quaternion } from 'three/src/math/Quaternion.js';
 import { Vector3 } from 'three/src/math/Vector3.js';
 import { Mesh } from 'three/src/objects/Mesh.js';
+import { Box3 } from 'three/src/math/Box3.js';
 import PropTypes from 'proptypes';
 import { centerGeometry, placeOnGround, createScene, fetchProgress, slice, TabTemplate } from './utils.js';
 import injectSheet from 'react-jss';
@@ -77,6 +78,9 @@ const styles = {
   },
   title: {
     position: 'absolute'
+  },
+  detail: {
+    marginBottom: '10px'
   }
 };
 
@@ -108,6 +112,7 @@ class Interface extends React.Component {
       isSlicing: false,
       isLoading: true,
       error: null,
+      objectDimensions: '0x0x0mm',
       popover: {
         element: null,
         open: false
@@ -141,6 +146,7 @@ class Interface extends React.Component {
     scene.mesh.geometry = mesh.geometry;
     centerGeometry(scene.mesh);
     placeOnGround(scene.mesh);
+    this.calculateDimensions();
     scene.render();
 
     this.setState({ mesh, isLoading: false });
@@ -162,6 +168,7 @@ class Interface extends React.Component {
       mesh.rotation.set(0, 0, 0);
       mesh.updateMatrix();
       placeOnGround(mesh);
+      this.calculateDimensions();
       render();
     }
   };
@@ -175,6 +182,7 @@ class Interface extends React.Component {
       mesh.scale.multiplyScalar(factor);
       mesh.updateMatrix();
       placeOnGround(mesh);
+      this.calculateDimensions();
       render();
     }
   };
@@ -188,6 +196,7 @@ class Interface extends React.Component {
     if (mesh) {
       mesh.rotateOnWorldAxis(axis, angle);
       placeOnGround(mesh);
+      this.calculateDimensions();
       render();
     }
   };
@@ -266,9 +275,15 @@ class Interface extends React.Component {
     this.setState({ settings, error: null });
   };
 
+  calculateDimensions = () => {
+    const { scene: { mesh } } = this.state;
+    const { x, y, z } = new Box3().setFromObject(mesh).getSize();
+    this.setState({ objectDimensions: `${Math.round(x)}x${Math.round(y)}x${Math.round(z)}mm` });
+  };
+
   render() {
     const { classes, onCancel } = this.props;
-    const { isSlicing, isLoading, progress, showFullScreen, error } = this.state;
+    const { isSlicing, isLoading, progress, showFullScreen, error, objectDimensions } = this.state;
 
     const disableUI = isSlicing || isLoading;
     const style = { ...(showFullScreen ? {} : { maxWidth: 'inherit', width: '100%', height: '100%' }) };
@@ -319,6 +334,9 @@ class Interface extends React.Component {
         <ReactResizeDetector handleWidth handleHeight onResize={this.onResize3dView} />
         <canvas className={classes.canvas} ref="canvas" />
         <div className={classes.controlBar}>
+          <div className={classes.detail}>
+            <p>Dimensions: {objectDimensions}</p>
+          </div>
           <RaisedButton disabled={disableUI} className={classes.controlButton} onTouchTap={this.resetMesh} label="reset" />
           <RaisedButton disabled={disableUI} className={classes.controlButton} onTouchTap={this.scaleUp} label="scale down" />
           <RaisedButton disabled={disableUI} className={classes.controlButton} onTouchTap={this.scaleDown} label="scale up" />
