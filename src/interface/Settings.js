@@ -4,7 +4,7 @@ import _ from 'lodash';
 import { Tabs, Tab } from 'material-ui/Tabs';
 import MenuItem from 'material-ui/MenuItem';
 import injectSheet from 'react-jss';
-import { SelectField, TextField, Checkbox } from './FormComponents.js';
+import { SelectField, TextField, NumberField, Checkbox } from './FormComponents.js';
 import { grey800, cyan500, red500 } from 'material-ui/styles/colors';
 import Divider from 'material-ui/Divider';
 import Dialog from 'material-ui/Dialog';
@@ -341,53 +341,53 @@ class Settings extends React.Component {
           <Tab buttonStyle={{ color: grey800, backgroundColor: 'white' }} label="Advanced">
             <div>
               <p>Layer</p>
-              <TextField name="settings.layerHeight" fullWidth floatingLabelText="Height" type="number" />
+              <NumberField name="settings.layerHeight" min={0.05} max={3} fullWidth floatingLabelText="Height" />
               <p>Printer dimensions</p>
               <div className={classes.textFieldRow}>
-                <TextField name="settings.dimensions.x" fullWidth floatingLabelText="X" type="number" />
-                <TextField name="settings.dimensions.y" fullWidth floatingLabelText="Y" type="number" />
-                <TextField name="settings.dimensions.z" fullWidth floatingLabelText="Z" type="number" />
+                <NumberField name="settings.dimensions.x" min={1} fullWidth floatingLabelText="X" />
+                <NumberField name="settings.dimensions.y" min={1} fullWidth floatingLabelText="Y" />
+                <NumberField name="settings.dimensions.z" min={1} fullWidth floatingLabelText="Z" />
               </div>
               <p>Nozzle</p>
-              <TextField name="settings.nozzleDiameter" fullWidth floatingLabelText="Diameter" type="number" />
+              <NumberField name="settings.nozzleDiameter" min={0.1} max={5} fullWidth floatingLabelText="Diameter" />
               <p>Bed</p>
-              <TextField name="settings.bedTemperature" fullWidth floatingLabelText="Temperature" type="number" />
+              <NumberField name="settings.bedTemperature" min={30} max={150} fullWidth floatingLabelText="Temperature" />
               <Checkbox name="settings.heatedBed" label="Heated" />
               <p>Material</p>
-              <TextField name="settings.filamentThickness" fullWidth floatingLabelText="Thickness" type="number" />
-              <TextField name="settings.temperature" fullWidth floatingLabelText="Temperature" type="number" />
+              <NumberField name="settings.filamentThickness" min={0.1} max={10} fullWidth floatingLabelText="Thickness" />
+              <NumberField name="settings.temperature" min={100} max={400} fullWidth floatingLabelText="Temperature" />
               <p>Thickness</p>
-              <TextField name="settings.thickness.top" fullWidth floatingLabelText="top" type="number" />
-              <TextField name="settings.thickness.bottom" fullWidth floatingLabelText="bottom" type="number" />
-              <TextField name="settings.thickness.shell" fullWidth floatingLabelText="shell" type="number" />
+              <NumberField name="settings.thickness.top" min={0} fullWidth floatingLabelText="top" />
+              <NumberField name="settings.thickness.bottom" min={0} fullWidth floatingLabelText="bottom" />
+              <NumberField name="settings.thickness.shell" min={0} fullWidth floatingLabelText="shell" />
               <p>Retraction</p>
               <Checkbox name="settings.retraction.enabled" label="Enabled" />
-              <TextField name="settings.retraction.amount" fullWidth floatingLabelText="Amount" type="number" />
-              <TextField name="settings.retraction.speed" fullWidth floatingLabelText="Speed" type="number" />
-              <TextField name="settings.retraction.minDistance" fullWidth floatingLabelText="Min distance" type="number" />
+              <NumberField name="settings.retraction.amount" min={0} max={10} fullWidth floatingLabelText="Amount" />
+              <NumberField name="settings.retraction.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+              <NumberField name="settings.retraction.minDistance" min={0} fullWidth floatingLabelText="Min distance" />
               <p>Travel</p>
-              <TextField name="settings.travel.speed" fullWidth floatingLabelText="Speed" type="number" />
+              <NumberField name="settings.travel.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
               <Checkbox name="settings.combing" label="Combing" />
               <p>Inner shell</p>
-              <TextField name="settings.innerShell.speed" fullWidth floatingLabelText="Speed" type="number" />
-              <TextField name="settings.innerShell.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
+              <NumberField name="settings.innerShell.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+              <NumberField name="settings.innerShell.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
               <p>Outer shell</p>
-              <TextField name="settings.outerShell.speed" fullWidth floatingLabelText="Speed" type="number" />
-              <TextField name="settings.outerShell.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
+              <NumberField name="settings.outerShell.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+              <NumberField name="settings.outerShell.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
               <p>Inner infill</p>
-              <TextField name="settings.innerInfill.precentage" fullWidth floatingLabelText="Percentage" type="number" />
-              <TextField name="settings.innerInfill.speed" fullWidth floatingLabelText="Speed" type="number" />
-              <TextField name="settings.innerInfill.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
+              <NumberField name="settings.innerInfill.precentage" min={0} max={100} fullWidth floatingLabelText="Percentage" />
+              <NumberField name="settings.innerInfill.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+              <NumberField name="settings.innerInfill.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
               <p>Outer infill</p>
-              <TextField name="settings.outerInfill.speed" fullWidth floatingLabelText="Speed" type="number" />
-              <TextField name="settings.outerInfill.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
+              <NumberField name="settings.outerInfill.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+              <NumberField name="settings.outerInfill.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
               <p>Brim</p>
-              <TextField name="settings.brim.size" fullWidth floatingLabelText="Size" type="number" />
-              <TextField name="settings.brim.speed" fullWidth floatingLabelText="Speed" type="number" />
-              <TextField name="settings.brim.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
+              <NumberField name="settings.brim.size" min={0} max={20} fullWidth floatingLabelText="Size" />
+              <NumberField name="settings.brim.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+              <NumberField name="settings.brim.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
               <p>First layer</p>
-              <TextField name="settings.firstLayer.speed" fullWidth floatingLabelText="Speed" type="number" />
-              <TextField name="settings.firstLayer.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
+              <NumberField name="settings.firstLayer.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+              <NumberField name="settings.firstLayer.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
             </div>
           </Tab>
         </Tabs>
