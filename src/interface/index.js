@@ -77,7 +77,8 @@ const styles = {
     color: red500
   },
   title: {
-    position: 'absolute'
+    position: 'absolute',
+    left: '10px'
   },
   detail: {
     marginBottom: '10px'
@@ -351,7 +352,7 @@ class Interface extends React.Component {
       return (
         <div className={classes.container}>
           <ReactResizeDetector handleWidth handleHeight onResize={this.onResizeContainer} />
-          <h1 className={classes.title}>Print</h1>
+          <h1 className={classes.title}>Doodle3D Slicer</h1>
           {d3Panel}
           {settingsPanel}
         </div>
