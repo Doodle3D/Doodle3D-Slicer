@@ -5,7 +5,7 @@ import { Tabs, Tab } from 'material-ui/Tabs';
 import MenuItem from 'material-ui/MenuItem';
 import injectSheet from 'react-jss';
 import { SelectField, TextField, NumberField, Checkbox } from './FormComponents.js';
-import { grey800, cyan500, red500 } from 'material-ui/styles/colors';
+import { grey800, red500 } from 'material-ui/styles/colors';
 import Divider from 'material-ui/Divider';
 import Dialog from 'material-ui/Dialog';
 import FlatButton from 'material-ui/FlatButton';
@@ -319,7 +319,7 @@ class Settings extends React.Component {
           </SelectField>
           {localStorage.active && <SettingsIcon
             onTouchTap={this.openManagePrinterDialog}
-            style={{ margin: '0 10px', cursor: 'pointer' }}
+            style={{ fill: grey800, marginLeft: '10px', cursor: 'pointer' }}
           />}
         </div>
         <SelectField name="settings.material" floatingLabelText="Material" fullWidth>
@@ -328,7 +328,7 @@ class Settings extends React.Component {
           ))}
         </SelectField>
         <h3>Printer Setup</h3>
-        <Tabs inkBarStyle={{ backgroundColor: cyan500 }}>
+        <Tabs>
           <Tab buttonStyle={{ color: grey800, backgroundColor: 'white' }} label="Basic">
             <div>
               <SelectField name="settings.quality" floatingLabelText="Quality" fullWidth>

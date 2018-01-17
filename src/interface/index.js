@@ -22,6 +22,7 @@ import JSONToSketchData from 'doodle3d-core/shape/JSONToSketchData';
 import createSceneData from 'doodle3d-core/d3/createSceneData.js';
 import { generateExportMesh } from 'doodle3d-core/utils/exportUtils.js';
 import { Matrix4 } from 'three/src/math/Matrix4.js';
+import muiThemeable from 'material-ui/styles/muiThemeable';
 
 const MAX_FULLSCREEN_WIDTH = 720;
 
@@ -96,7 +97,8 @@ class Interface extends React.Component {
     classes: PropTypes.objectOf(PropTypes.string),
     pixelRatio: PropTypes.number.isRequired,
     onCancel: PropTypes.func,
-    name: PropTypes.string.isRequired
+    name: PropTypes.string.isRequired,
+    muiTheme: PropTypes.object.isRequired
   };
 
   static defaultProps = {
@@ -383,4 +385,4 @@ class Interface extends React.Component {
   }
 }
 
-export default injectSheet(styles)(Interface);
+export default muiThemeable()(injectSheet(styles)(Interface));

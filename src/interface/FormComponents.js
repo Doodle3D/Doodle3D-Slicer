@@ -4,11 +4,11 @@ import _ from 'lodash';
 import injectSheet from 'react-jss';
 import MaterialUISelectField from 'material-ui/SelectField'
 import MaterialUICheckbox from 'material-ui/Checkbox';
-import { blue500, grey500 } from 'material-ui/styles/colors';
 import TextFieldIcon from 'material-ui-textfield-icon';
 import RefreshIcon from 'material-ui-icons/Refresh';
+import muiThemeable from 'material-ui/styles/muiThemeable';
 
-const contextTypes = {
+export const contextTypes = {
   settings: PropTypes.object.isRequired,
   onChange: PropTypes.func.isRequired,
   disabled: PropTypes.bool.isRequired,
@@ -18,64 +18,69 @@ const contextTypes = {
   activePrinter: PropTypes.string
 };
 const propTypes = {
-  name: PropTypes.string.isRequired
+  name: PropTypes.string.isRequired,
+  muiTheme: PropTypes.object.isRequired
 };
 
-export const SelectField = (props, context) => (
+export const _SelectField = ({ name, muiTheme, ...props }, context) => (
   <MaterialUISelectField
     {...props}
     disabled={context.disabled}
-    value={_.get(context, props.name)}
-    onChange={(event, index, value) => context.onChange(props.name, value)}
+    value={_.get(context, name)}
+    onChange={(event, index, value) => context.onChange(name, value)}
   />
 );
-SelectField.contextTypes = contextTypes;
-SelectField.propTypes = propTypes;
+_SelectField.contextTypes = contextTypes;
+_SelectField.propTypes = propTypes;
+export const SelectField = muiThemeable()(_SelectField);
 
-export const TextField = (props, context) => (
+const _TextField = ({ name, muiTheme, ...props }, context) => (
   <TextFieldIcon
     {...props}
-    icon={context.advancedFields.includes(props.name) && <RefreshIcon onTouchTap={() => context.onChange(props.name, null)} />}
-    floatingLabelStyle={{ color: context.advancedFields.includes(props.name) ? blue500 : grey500 }}
+    icon={context.advancedFields.includes(name) && <RefreshIcon style={{ fill: muiTheme.palette.textColor }} onTouchTap={() => context.onChange(name, null)} />}
+    floatingLabelStyle={{ color: context.advancedFields.includes(name) ? muiTheme.palette.primary3Color : muiTheme.palette.disabledColor }}
     disabled={context.disabled}
-    value={_.get(context, props.name)}
-    onChange={(event, value) => context.onChange(props.name, value)}
+    value={_.get(context, name)}
+    onChange={(event, value) => context.onChange(name, value)}
   />
 );
-TextField.contextTypes = contextTypes;
-TextField.propTypes = propTypes;
+_TextField.contextTypes = contextTypes;
+_TextField.propTypes = propTypes;
+export const TextField = muiThemeable()(_TextField);
 
-export const NumberField = (props, context) => (
+const _NumberField = ({ name, min, max, muiTheme, ...props }, context) => (
   <TextFieldIcon
     {...props}
     type="number"
-    icon={context.advancedFields.includes(props.name) && <RefreshIcon onTouchTap={() => context.onChange(props.name, null)} />}
-    floatingLabelStyle={{ color: context.advancedFields.includes(props.name) ? blue500 : grey500 }}
+    icon={context.advancedFields.includes(name) && <RefreshIcon style={{ fill: muiTheme.palette.textColor }} onTouchTap={() => context.onChange(name, null)} />}
+    floatingLabelStyle={{ color: context.advancedFields.includes(name) ? muiTheme.palette.primary3Color : muiTheme.palette.disabledColor }}
     disabled={context.disabled}
-    value={_.get(context, props.name.toString())}
+    value={_.get(context, name.toString())}
     onChange={(event, value) => {
       value = parseFloat(value);
-      if (props.min) value = Math.max(value, props.min);
-      if (props.max) value = Math.min(value, props.max);
-      context.onChange(props.name, value);
+      if (min) value = Math.max(value, min);
+      if (max) value = Math.min(value, max);
+      context.onChange(name, value);
     }}
   />
 );
-NumberField.contextTypes = contextTypes;
-NumberField.propTypes = propTypes;
+_NumberField.contextTypes = contextTypes;
+_NumberField.propTypes = propTypes;
+export const NumberField = muiThemeable()(_NumberField);
 
-export const Checkbox = (props, context) => (
+export const _Checkbox = ({ name, muiTheme, ...props }, context) => (
   <span style={{ display: 'flex', position: 'relative' }}>
     <MaterialUICheckbox
       {...props}
       style={{ display: 'block' }}
-      iconStyle={{ fill: context.advancedFields.includes(props.name) ? blue500 : grey500 }}
+      iconStyle={{ fill: context.advancedFields.includes(name) ? muiTheme.palette.primary3Color : muiTheme.palette.disabledColor }}
       disabled={context.disabled}
-      checked={_.get(context, props.name)}
-      onCheck={(event, value) => context.onChange(props.name, value)}
+      checked={_.get(context, name)}
+      onCheck={(event, value) => context.onChange(name, value)}
     />
-    {context.advancedFields.includes(props.name) && <RefreshIcon onTouchTap={() => context.onChange(props.name, null)} />}
+    {context.advancedFields.includes(name) && <RefreshIcon onTouchTap={() => context.onChange(name, null)} />}
   </span>
 );
-Checkbox.contextTypes = contextTypes;
-Checkbox.propTypes = propTypes;
+_Checkbox.contextTypes = contextTypes;
+_Checkbox.propTypes = propTypes;
+export const Checkbox = muiThemeable()(_Checkbox);

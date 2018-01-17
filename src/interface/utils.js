@@ -17,6 +17,7 @@ import printerSettings from '../settings/printer.yml';
 import materialSettings from '../settings/material.yml';
 import qualitySettings from '../settings/quality.yml';
 import { sliceGeometry } from '../slicer.js';
+import { grey800, red500 } from 'material-ui/styles/colors';
 import React from 'react';
 import PropTypes from 'prop-types';
 import fileSaver from 'file-saver';
@@ -35,7 +36,7 @@ export function centerGeometry(mesh) {
   mesh.geometry.applyMatrix(new Matrix4().makeTranslation(-center.x, -center.y, -center.z));
 }
 
-export function createScene({ pixelRatio }) {
+export function createScene({ pixelRatio, muiTheme }) {
   const scene = new Scene();
 
   const camera = new PerspectiveCamera(50, 1, 1, 10000);
@@ -53,11 +54,11 @@ export function createScene({ pixelRatio }) {
   const light = new AmbientLight(0x656565);
   scene.add(light);
 
-  const material = new MeshPhongMaterial({ color: 0x2194ce, side: DoubleSide, specular: 0xc5c5c5, shininess: 5 });
+  const material = new MeshPhongMaterial({ color: muiTheme.palette.primary2Color, side: DoubleSide, specular: 0xc5c5c5, shininess: 5 });
   const mesh = new Mesh(new THREE.Geometry(), material);
   scene.add(mesh);
 
-  const box = new BoxHelper(new Mesh(new BoxGeometry(1, 1, 1).applyMatrix(new Matrix4().makeTranslation(0, 0.5, 0))), 0x72bcd4);
+  const box = new BoxHelper(new Mesh(new BoxGeometry(1, 1, 1).applyMatrix(new Matrix4().makeTranslation(0, 0.5, 0))), muiTheme.palette.primary3Color);
   scene.add(box);
 
   let renderer = new WebGLRenderer({ alpha: true, antialias: true });
