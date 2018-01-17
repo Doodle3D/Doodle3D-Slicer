@@ -23,6 +23,7 @@ import createSceneData from 'doodle3d-core/d3/createSceneData.js';
 import { generateExportMesh } from 'doodle3d-core/utils/exportUtils.js';
 import { Matrix4 } from 'three/src/math/Matrix4.js';
 import muiThemeable from 'material-ui/styles/muiThemeable';
+import Dialog from 'material-ui/Dialog';
 
 const MAX_FULLSCREEN_WIDTH = 720;
 
@@ -121,6 +122,10 @@ class Interface extends React.Component {
       popover: {
         element: null,
         open: false
+      },
+      openUrlDialog: {
+        open: true,
+        url: ''
       }
     };
   }
@@ -222,8 +227,12 @@ class Interface extends React.Component {
       const updateProgres = progress => this.setState({ progress: { ...this.state.progress, ...progress } });
       await slice(target, name, exportMesh, settings, updateProgres);
     } catch (error) {
-      this.setState({ error: error.message });
-      throw error;
+      if (error.code === 3) {
+        this.setState({ openUrlDialog: { open: true, url: error.url } });
+      } else {
+        this.setState({ error: error.message });
+        throw error;
+      }
     } finally {
       this.setState({ isSlicing: false });
     }
@@ -288,7 +297,7 @@ class Interface extends React.Component {
 
   render() {
     const { classes, onCancel } = this.props;
-    const { isSlicing, isLoading, progress, showFullScreen, error, objectDimensions } = this.state;
+    const { isSlicing, isLoading, progress, showFullScreen, error, objectDimensions, openUrlDialog } = this.state;
 
     const disableUI = isSlicing || isLoading;
     const style = { ...(showFullScreen ? {} : { maxWidth: 'inherit', width: '100%', height: '100%' }) };
@@ -352,6 +361,32 @@ class Interface extends React.Component {
       </div>
     );
 
+    const closeDialog = () => this.setState({ openUrlDialog: { open: false, url: '' } });
+
+    const dialog = (
+      <Dialog
+        open={openUrlDialog.open}
+        title="Open with Doodle3D Connect"
+        contentStyle={{ maxWidth: '400px' }}
+        actions={[
+          <FlatButton
+            label="Cancel"
+            onTouchTap={closeDialog}
+          />,
+          <FlatButton
+            label="Open"
+            primary
+            onTouchTap={() => {
+              window.open(openUrlDialog.url, '_blank');
+              closeDialog();
+            }}
+          />
+        ]}
+      >
+        <p>Click 'Open' to continue to Doodle3D Connect</p>
+      </Dialog>
+    )
+
     if (showFullScreen) {
       return (
         <div className={classes.container}>
@@ -359,6 +394,7 @@ class Interface extends React.Component {
           <h1 className={classes.title}>Doodle3D Slicer</h1>
           {d3Panel}
           {settingsPanel}
+          {dialog}
         </div>
       );
     } else {
@@ -379,6 +415,7 @@ class Interface extends React.Component {
               {d3Panel}
             </Tab>
           </Tabs>
+          {dialog}
         </div>
       );
     }

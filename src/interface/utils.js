@@ -118,7 +118,7 @@ const GCODE_SERVER_URL = 'https://gcodeserver.doodle3d.com';
 const CONNECT_URL = 'http://connect.doodle3d.com/';
 
 export async function slice(target, name, mesh, settings, updateProgress) {
-  if (!settings) throw new Error('please select a printer first');
+  if (!settings) throw { message: 'please select a printer first', code: 0 };
 
   let steps;
   let currentStep = 0;
@@ -130,7 +130,7 @@ export async function slice(target, name, mesh, settings, updateProgress) {
       steps = 2;
       break;
     default:
-      throw new Error('unknown target');
+      throw { message: 'unknown target', code: 1 };
       break;
   }
 
@@ -144,6 +144,8 @@ export async function slice(target, name, mesh, settings, updateProgress) {
       action: progress.action,
       percentage: currentStep / steps + progress.done / progress.total / steps
     });
+  }).catch(error => {
+    throw { message: `error during slicing: ${error.message}`, code: 2 };
   });
   currentStep ++;
 
@@ -182,13 +184,14 @@ export async function slice(target, name, mesh, settings, updateProgress) {
       });
       currentStep ++;
 
-      const popup = window.open(`${CONNECT_URL}?uuid=${id}`, '_blank');
-      if (!popup) throw new Error('popup was blocked by browser');
+      const url = `${CONNECT_URL}?uuid=${id}`;
+      const popup = window.open(url, '_blank');
+      if (!popup) throw { message: 'popup was blocked by browser', code: 3, url };
       break;
     }
 
     default:
-      throw new Error('unknown target');
+      throw { message: 'unknown target', code: 1 };
       break;
   }
 }
