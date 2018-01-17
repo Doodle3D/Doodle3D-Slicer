@@ -26,14 +26,6 @@ doodle3d_printer:
     x: 120
     y: 120
     z: 120
-ultimaker2go:
-  title: Ultimaker 2 Go
-  heatedBed: false
-  filamentThickness: 2.85
-  dimensions:
-    x: 120
-    y: 120
-    z: 112
 _3Dison_plus:
   title: 3Dison plus
   heatedBed: false
@@ -307,6 +299,14 @@ ultimaker2_plus:
     x: 223
     y: 223
     z: 305
+ultimaker2go:
+  title: Ultimaker 2 Go
+  heatedBed: false
+  filamentThickness: 2.85
+  dimensions:
+    x: 120
+    y: 120
+    z: 112
 ultimaker_original_plus:
   title: Ultimaker Original Plus
   heatedBed: true
