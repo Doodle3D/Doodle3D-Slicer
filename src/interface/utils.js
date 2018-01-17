@@ -58,7 +58,7 @@ export function createScene({ pixelRatio, muiTheme }) {
   const mesh = new Mesh(new THREE.Geometry(), material);
   scene.add(mesh);
 
-  const box = new BoxHelper(new Mesh(new BoxGeometry(1, 1, 1).applyMatrix(new Matrix4().makeTranslation(0, 0.5, 0))), muiTheme.palette.primary3Color);
+  const box = new BoxHelper(new Mesh(new BoxGeometry(1, 1, 1).applyMatrix(new Matrix4().makeTranslation(0, 0.5, 0))), muiTheme.palette.primary2Color);
   scene.add(box);
 
   let renderer = new WebGLRenderer({ alpha: true, antialias: true });

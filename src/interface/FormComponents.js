@@ -38,7 +38,7 @@ const _TextField = ({ name, muiTheme, ...props }, context) => (
   <TextFieldIcon
     {...props}
     icon={context.advancedFields.includes(name) && <RefreshIcon style={{ fill: muiTheme.palette.textColor }} onTouchTap={() => context.onChange(name, null)} />}
-    floatingLabelStyle={{ color: context.advancedFields.includes(name) ? muiTheme.palette.primary3Color : muiTheme.palette.disabledColor }}
+    floatingLabelStyle={{ color: context.advancedFields.includes(name) ? muiTheme.palette.primary1Color : muiTheme.palette.primary3Color }}
     disabled={context.disabled}
     value={_.get(context, name)}
     onChange={(event, value) => context.onChange(name, value)}
@@ -53,7 +53,7 @@ const _NumberField = ({ name, min, max, muiTheme, ...props }, context) => (
     {...props}
     type="number"
     icon={context.advancedFields.includes(name) && <RefreshIcon style={{ fill: muiTheme.palette.textColor }} onTouchTap={() => context.onChange(name, null)} />}
-    floatingLabelStyle={{ color: context.advancedFields.includes(name) ? muiTheme.palette.primary3Color : muiTheme.palette.disabledColor }}
+    floatingLabelStyle={{ color: context.advancedFields.includes(name) ? muiTheme.palette.primary1Color : muiTheme.palette.primary3Color }}
     disabled={context.disabled}
     value={_.get(context, name.toString())}
     onChange={(event, value) => {
@@ -73,7 +73,7 @@ export const _Checkbox = ({ name, muiTheme, ...props }, context) => (
     <MaterialUICheckbox
       {...props}
       style={{ display: 'block' }}
-      iconStyle={{ fill: context.advancedFields.includes(name) ? muiTheme.palette.primary3Color : muiTheme.palette.disabledColor }}
+      iconStyle={{ fill: context.advancedFields.includes(name) ? muiTheme.palette.primary1Color : muiTheme.palette.primary3Color }}
       disabled={context.disabled}
       checked={_.get(context, name)}
       onCheck={(event, value) => context.onChange(name, value)}
