@@ -45,7 +45,7 @@ TextField.contextTypes = contextTypes;
 TextField.propTypes = propTypes;
 
 export const Checkbox = (props, context) => (
-  <span style={{ display: 'flex' }}>
+  <span style={{ display: 'flex', position: 'relative' }}>
     <MaterialUICheckbox
       {...props}
       style={{ display: 'block' }}
