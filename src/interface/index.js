@@ -367,7 +367,7 @@ class Interface extends React.Component {
             label="Cancel"
             onTouchTap={closeDialog}
           />,
-          <FlatButton
+          <RaisedButton
             label="Open"
             primary
             onTouchTap={() => {

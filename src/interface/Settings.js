@@ -9,6 +9,7 @@ import { grey800, red500 } from 'material-ui/styles/colors';
 import Divider from 'material-ui/Divider';
 import Dialog from 'material-ui/Dialog';
 import FlatButton from 'material-ui/FlatButton';
+import RaisedButton from 'material-ui/RaisedButton';
 import { LOCAL_STORAGE_KEY } from '../constants.js';
 import shortid from 'shortid';
 import defaultSettings from '../settings/default.yml';
@@ -401,7 +402,7 @@ class Settings extends React.Component {
               label="Cancel"
               onTouchTap={this.closeAddPrinterDialog}
             />,
-            <FlatButton
+            <RaisedButton
               label="Add"
               primary
               onTouchTap={this.addPrinter}
@@ -430,7 +431,7 @@ class Settings extends React.Component {
               label="Remove Printer"
               onTouchTap={this.removeActivePrinter}
             />,
-            <FlatButton
+            <RaisedButton
               label="Save"
               primary
               onTouchTap={this.editPrinter}
