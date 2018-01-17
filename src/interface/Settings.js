@@ -342,32 +342,23 @@ class Settings extends React.Component {
             <div>
               <p>Layer</p>
               <NumberField name="settings.layerHeight" min={0.05} max={3} fullWidth floatingLabelText="Height" />
-              <p>Printer dimensions</p>
-              <div className={classes.textFieldRow}>
-                <NumberField name="settings.dimensions.x" min={1} fullWidth floatingLabelText="X" />
-                <NumberField name="settings.dimensions.y" min={1} fullWidth floatingLabelText="Y" />
-                <NumberField name="settings.dimensions.z" min={1} fullWidth floatingLabelText="Z" />
-              </div>
-              <p>Nozzle</p>
-              <NumberField name="settings.nozzleDiameter" min={0.1} max={5} fullWidth floatingLabelText="Diameter" />
-              <p>Bed</p>
-              <NumberField name="settings.bedTemperature" min={30} max={150} fullWidth floatingLabelText="Temperature" />
-              <Checkbox name="settings.heatedBed" label="Heated" />
-              <p>Material</p>
-              <NumberField name="settings.filamentThickness" min={0.1} max={10} fullWidth floatingLabelText="Thickness" />
-              <NumberField name="settings.temperature" min={100} max={400} fullWidth floatingLabelText="Temperature" />
               <p>Thickness</p>
               <NumberField name="settings.thickness.top" min={0} fullWidth floatingLabelText="top" />
               <NumberField name="settings.thickness.bottom" min={0} fullWidth floatingLabelText="bottom" />
               <NumberField name="settings.thickness.shell" min={0} fullWidth floatingLabelText="shell" />
-              <p>Retraction</p>
-              <Checkbox name="settings.retraction.enabled" label="Enabled" />
-              <NumberField name="settings.retraction.amount" min={0} max={10} fullWidth floatingLabelText="Amount" />
-              <NumberField name="settings.retraction.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
-              <NumberField name="settings.retraction.minDistance" min={0} fullWidth floatingLabelText="Min distance" />
-              <p>Travel</p>
-              <NumberField name="settings.travel.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
-              <Checkbox name="settings.combing" label="Combing" />
+              <p>Material</p>
+              <NumberField name="settings.filamentThickness" min={0.1} max={10} fullWidth floatingLabelText="Thickness" />
+              <NumberField name="settings.temperature" min={100} max={400} fullWidth floatingLabelText="Temperature" />
+              <p>Bed</p>
+              <NumberField name="settings.bedTemperature" min={30} max={150} fullWidth floatingLabelText="Temperature" />
+              <Checkbox name="settings.heatedBed" label="Heated" />
+              <p>Brim</p>
+              <NumberField name="settings.brim.size" min={0} max={20} fullWidth floatingLabelText="Size" />
+              <NumberField name="settings.brim.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+              <NumberField name="settings.brim.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
+              <p>First layer</p>
+              <NumberField name="settings.firstLayer.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+              <NumberField name="settings.firstLayer.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
               <p>Inner shell</p>
               <NumberField name="settings.innerShell.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
               <NumberField name="settings.innerShell.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
@@ -381,13 +372,22 @@ class Settings extends React.Component {
               <p>Outer infill</p>
               <NumberField name="settings.outerInfill.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
               <NumberField name="settings.outerInfill.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
-              <p>Brim</p>
-              <NumberField name="settings.brim.size" min={0} max={20} fullWidth floatingLabelText="Size" />
-              <NumberField name="settings.brim.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
-              <NumberField name="settings.brim.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
-              <p>First layer</p>
-              <NumberField name="settings.firstLayer.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
-              <NumberField name="settings.firstLayer.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
+              <p>Travel</p>
+              <NumberField name="settings.travel.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+              <Checkbox name="settings.combing" label="Combing" />
+              <p>Retraction</p>
+              <Checkbox name="settings.retraction.enabled" label="Enabled" />
+              <NumberField name="settings.retraction.amount" min={0} max={10} fullWidth floatingLabelText="Amount" />
+              <NumberField name="settings.retraction.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+              <NumberField name="settings.retraction.minDistance" min={0} fullWidth floatingLabelText="Min distance" />
+              <p>Printer dimensions</p>
+              <div className={classes.textFieldRow}>
+                <NumberField name="settings.dimensions.x" min={1} fullWidth floatingLabelText="X" />
+                <NumberField name="settings.dimensions.y" min={1} fullWidth floatingLabelText="Y" />
+                <NumberField name="settings.dimensions.z" min={1} fullWidth floatingLabelText="Z" />
+              </div>
+              <p>Nozzle</p>
+              <NumberField name="settings.nozzleDiameter" min={0.1} max={5} fullWidth floatingLabelText="Diameter" />
             </div>
           </Tab>
         </Tabs>
