@@ -13,6 +13,7 @@ const contextTypes = {
   onChange: PropTypes.func.isRequired,
   disabled: PropTypes.bool.isRequired,
   addPrinter: PropTypes.object.isRequired,
+  managePrinter: PropTypes.object.isRequired,
   advancedFields: PropTypes.array.isRequired,
   activePrinter: PropTypes.string
 };

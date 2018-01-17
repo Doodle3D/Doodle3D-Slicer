@@ -16,10 +16,12 @@ import printerSettings from '../settings/printer.yml';
 import materialSettings from '../settings/material.yml';
 import qualitySettings from '../settings/quality.yml';
 import update from 'react-addons-update';
+import SettingsIcon from 'material-ui-icons/Settings';
 
 const styles = {
   textFieldRow: {
-    display: 'flex'
+    display: 'flex',
+    alignItems: 'center'
   },
   container: {
     width: '100%',
@@ -65,6 +67,7 @@ class Settings extends React.Component {
     onChange: PropTypes.func.isRequired,
     disabled: PropTypes.bool.isRequired,
     addPrinter: PropTypes.object.isRequired,
+    managePrinter: PropTypes.object.isRequired,
     activePrinter: PropTypes.string,
     advancedFields: PropTypes.array.isRequired
   };
@@ -76,6 +79,9 @@ class Settings extends React.Component {
       name: '',
       printer: '',
       error: null
+    },
+    managePrinter: {
+      open: false
     }
   };
 
@@ -100,6 +106,11 @@ class Settings extends React.Component {
     };
 
     switch (fieldName) {
+      case 'managePrinter.printer':
+      case 'managePrinter.name':
+        state = _.set(state, fieldName, value);
+        break;
+
       case 'addPrinter.printer':
         state = update(state, { addPrinter: { printer: { $set: value } } });
         state = update(state, { addPrinter: { name: { $set: printerSettings[value].title } } });
@@ -176,10 +187,11 @@ class Settings extends React.Component {
   }
 
   getChildContext() {
-    const { localStorage, addPrinter } = this.state;
+    const { localStorage, addPrinter, managePrinter } = this.state;
 
     return {
       addPrinter,
+      managePrinter,
       activePrinter: localStorage.active,
       advancedFields: localStorage.active ? Object.keys(localStorage.printers[localStorage.active].settings.advanced) : [],
       settings: this.constructSettings(localStorage),
@@ -234,25 +246,82 @@ class Settings extends React.Component {
 
     const { onChange } = this.props;
     if (onChange) onChange(this.constructSettings(localStorage));
-  }
+  };
+
+  editPrinter = () => {
+    const { localStorage: { active, printers }, managePrinter: { printer, name } } = this.state;
+    const localStorage = update(this.state.localStorage, {
+      printers: {
+        [active]: {
+          name: { $set: name },
+          settings: {
+            printer: { $set: printer }
+          }
+        }
+      }
+    });
+    this.closeManagePrinterDialog();
+    this.setState({ localStorage });
+    updateLocalStorage(localStorage);
+
+    const { onChange } = this.props;
+    if (onChange) onChange(this.constructSettings(localStorage));
+  };
+
+  removeActivePrinter = () => {
+    let { localStorage: { active, printers } } = this.state;
+    if (!active) return;
+
+    printers = { ...printers };
+    delete printers[active];
+    active = Object.keys(printers)[0] || null;
+    const localStorage = { active, printers };
+
+    this.closeManagePrinterDialog();
+    this.setState({ localStorage });
+    updateLocalStorage(localStorage);
+
+    const { onChange } = this.props;
+    if (onChange) onChange(this.constructSettings(localStorage));
+  };
 
   closeAddPrinterDialog = () => this.setAddPrinterDialog(false);
   openAddPrinterDialog = () => this.setAddPrinterDialog(true);
   setAddPrinterDialog = (open) => this.setState({ addPrinter: { name: '', printer: '', error: null, open } });
 
+  closeManagePrinterDialog = () => this.setManagePrinterDialog(false);
+  openManagePrinterDialog = () => this.setManagePrinterDialog(true);
+  setManagePrinterDialog = (open) => {
+    const { localStorage: { active, printers } } = this.state;
+    if (!active) return this.setState({ managePrinter: { open: false } });
+    this.setState({
+      managePrinter: {
+        open,
+        name: printers[active].name,
+        printer: printers[active].settings.printer
+      }
+    });
+  }
+
   render() {
-    const { addPrinter, localStorage } = this.state;
+    const { addPrinter, managePrinter, localStorage } = this.state;
     const { classes, disabled } = this.props;
 
     return (
       <div className={classes.container}>
-        <SelectField name="activePrinter" floatingLabelText="Printer" fullWidth>
-          {Object.entries(localStorage.printers).map(([id, { name }]) => (
-            <MenuItem key={id} value={id} primaryText={name} />
-          ))}
-          <Divider />
-          <MenuItem onTouchTap={this.openAddPrinterDialog} value="add_printer" primaryText="Add Printer" />
-        </SelectField>
+        <div className={classes.textFieldRow}>
+          <SelectField name="activePrinter" floatingLabelText="Printer" fullWidth>
+            {Object.entries(localStorage.printers).map(([id, { name }]) => (
+              <MenuItem key={id} value={id} primaryText={name} />
+            ))}
+            <Divider />
+            <MenuItem onTouchTap={this.openAddPrinterDialog} value="add_printer" primaryText="Add Printer" />
+          </SelectField>
+          {localStorage.active && <SettingsIcon
+            onTouchTap={this.openManagePrinterDialog}
+            style={{ margin: '0 10px', cursor: 'pointer' }}
+          />}
+        </div>
         <SelectField name="settings.material" floatingLabelText="Material" fullWidth>
           {Object.entries(materialSettings).map(([value, { title }]) => (
             <MenuItem key={value} value={value} primaryText={title} />
@@ -341,10 +410,39 @@ class Settings extends React.Component {
         >
           <SelectField name="addPrinter.printer" floatingLabelText="Printer" fullWidth>
             {Object.entries(printerSettings).map(([value, { title }]) => (
-              <MenuItem key={value} value={value} primaryText={title} /> ))}
+              <MenuItem key={value} value={value} primaryText={title} />
+            ))}
           </SelectField>
           <TextField name="addPrinter.name" floatingLabelText="Name" fullWidth />
           {addPrinter.error && <p className={classes.error}>{addPrinter.error}</p>}
+        </Dialog>
+        <Dialog
+          title="Manage Printer"
+          open={managePrinter.open}
+          onRequestClose={this.closeManagePrinterDialog}
+          contentStyle={{ maxWidth: '400px' }}
+          actions={[
+            <FlatButton
+              label="Cancel"
+              onTouchTap={this.closeManagePrinterDialog}
+            />,
+            <FlatButton
+              label="Remove Printer"
+              onTouchTap={this.removeActivePrinter}
+            />,
+            <FlatButton
+              label="Save"
+              primary
+              onTouchTap={this.editPrinter}
+            />
+          ]}
+        >
+          <SelectField name="managePrinter.printer" floatingLabelText="Printer" fullWidth>
+            {Object.entries(printerSettings).map(([value, { title }]) => (
+              <MenuItem key={value} value={value} primaryText={title} />
+            ))}
+          </SelectField>
+          <TextField name="managePrinter.name" floatingLabelText="Name" fullWidth />
         </Dialog>
       </div>
     );
