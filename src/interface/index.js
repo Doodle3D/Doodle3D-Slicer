@@ -61,6 +61,9 @@ const styles = {
   sliceActions: {
     flexShrink: 0,
   },
+  sliceInfo: {
+    margin: '10px 0'
+  },
   sliceButtons: {
     justifyContent: 'flex-end',
     display: 'flex'
@@ -303,9 +306,11 @@ class Interface extends React.Component {
           onChange={this.onChangeSettings}
         />
         <div className={classes.sliceActions}>
-          {error && <p className={classes.error}>{error}</p>}
-          {isSlicing && <p>{progress.action}</p>}
-          {isSlicing && <LinearProgress mode="determinate" value={progress.percentage * 100.0} />}
+          <div className={classes.sliceInfo}>
+            {error && <p className={classes.error}>{error}</p>}
+            {isSlicing && <p>{progress.action}</p>}
+            {isSlicing && <LinearProgress mode="determinate" value={progress.percentage * 100.0} />}
+          </div>
           <div className={classes.sliceButtons}>
             {onCancel && <RaisedButton
               label="Cancel"
