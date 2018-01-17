@@ -100,12 +100,14 @@ class Interface extends React.Component {
     pixelRatio: PropTypes.number.isRequired,
     onCancel: PropTypes.func,
     name: PropTypes.string.isRequired,
-    muiTheme: PropTypes.object.isRequired
+    muiTheme: PropTypes.object.isRequired,
+    allowDragDrop: PropTypes.bool.isRequired
   };
 
   static defaultProps = {
     pixelRatio: 1,
-    name: 'Doodle3D'
+    name: 'Doodle3D',
+    allowDragDrop: true
   };
 
   constructor(props) {
@@ -133,16 +135,20 @@ class Interface extends React.Component {
     if (mesh) {
       this.updateMesh(mesh, scene);
     } else if (fileUrl) {
-      fetch(fileUrl)
-        .then(resonse => resonse.json())
-        .then(json => JSONToSketchData(json))
-        .then(file => createSceneData(file))
-        .then(sketch => generateExportMesh(sketch, { offsetSingleWalls: false, matrix: new Matrix4() }))
-        .then(mesh => this.updateMesh(mesh, scene));
+      this.loadFile(fileUrl);
     }
   }
 
-  updateMesh(mesh, scene) {
+  loadFile = (fileUrl) => {
+    fetch(fileUrl)
+      .then(resonse => resonse.json())
+      .then(json => JSONToSketchData(json))
+      .then(file => createSceneData(file))
+      .then(sketch => generateExportMesh(sketch, { offsetSingleWalls: false, matrix: new Matrix4() }))
+      .then(mesh => this.updateMesh(mesh));
+  };
+
+  updateMesh(mesh, scene = this.state.scene) {
     scene.mesh.geometry = mesh.geometry;
     centerGeometry(scene.mesh);
     placeOnGround(scene.mesh);
@@ -287,6 +293,23 @@ class Interface extends React.Component {
     this.setState({ objectDimensions: `${Math.round(x)}x${Math.round(y)}x${Math.round(z)}mm` });
   };
 
+  onDrop = (event) => {
+    event.preventDefault();
+    if (!this.props.allowDragDrop) return;
+
+    for (const file of event.dataTransfer.files) {
+      const extentions = file.name.split('.').pop();
+
+      switch (extentions.toUpperCase()) {
+        case 'D3SKETCH':
+          this.loadFile(URL.createObjectURL(file));
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
   render() {
     const { classes, onCancel } = this.props;
     const { isSlicing, progress, showFullScreen, error, objectDimensions, openUrlDialog } = this.state;
@@ -382,7 +405,15 @@ class Interface extends React.Component {
 
     if (showFullScreen) {
       return (
-        <div className={classes.container}>
+        <div
+          className={classes.container}
+          ref={(container) => {
+            if (container) {
+              container.addEventListener('dragover', event => event.preventDefault());
+              container.addEventListener('drop', this.onDrop);
+            }
+          }}
+        >
           <ReactResizeDetector handleWidth handleHeight onResize={this.onResizeContainer} />
           <h1 className={classes.title}>Doodle3D Slicer</h1>
           {d3Panel}
@@ -392,7 +423,15 @@ class Interface extends React.Component {
       );
     } else {
       return (
-        <div className={classes.container}>
+        <div
+          className={classes.container}
+          ref={(container) => {
+            if (container) {
+              container.addEventListener('dragover', event => event.preventDefault());
+              container.addEventListener('drop', this.onDrop);
+            }
+          }}
+        >
           <ReactResizeDetector handleWidth handleHeight onResize={this.onResizeContainer} />
           <Tabs
             style={{ width: '100%', display: 'flex', flexDirection: 'column' }}
