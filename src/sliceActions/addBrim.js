@@ -27,9 +27,10 @@ export default function addBrim(slices, settings) {
     }))
   ), new Shape([], true)).simplify('pftNonZero');
 
-  firstLayer.brim = [];
+  firstLayer.brim = new Shape([], true);
+
   for (let offset = 0; offset < brimSize; offset += nozzleDiameter) {
     const brimPart = brim.offset(offset, offsetOptions);
-    firstLayer.brim.unshift(brimPart);
+    firstLayer.brim = firstLayer.brim.join(brimPart);
   }
 }

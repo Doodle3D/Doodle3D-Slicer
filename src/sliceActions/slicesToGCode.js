@@ -48,9 +48,7 @@ export default function slicesToGCode(slices, settings) {
     }, {});
 
     if (typeof slice.brim !== 'undefined') {
-      for (let i = 0; i < slice.brim.length; i ++) {
-        pathToGCode(null, false, gcode, slice.brim[i], false, false, z, profiles.brim);
-      }
+      pathToGCode(null, false, gcode, slice.brim, true, true, z, profiles.brim);
     }
 
     for (let i = 0; i < slice.parts.length; i ++) {
