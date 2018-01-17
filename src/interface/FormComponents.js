@@ -58,8 +58,8 @@ const _NumberField = ({ name, min, max, muiTheme, ...props }, context) => (
     value={_.get(context, name.toString())}
     onChange={(event, value) => {
       value = parseFloat(value);
-      if (min) value = Math.max(value, min);
-      if (max) value = Math.min(value, max);
+      if (typeof min === 'number') value = Math.max(value, min);
+      if (typeof max === 'number') value = Math.min(value, max);
       context.onChange(name, value);
     }}
   />
