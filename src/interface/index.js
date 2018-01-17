@@ -120,6 +120,7 @@ class Interface extends React.Component {
       showFullScreen: false,
       isSlicing: false,
       error: null,
+      mesh: null,
       objectDimensions: '0x0x0mm',
       popover: { open: false, element: null },
       openUrlDialog: { open: false, url: '' }
@@ -154,6 +155,8 @@ class Interface extends React.Component {
     placeOnGround(scene.mesh);
     this.calculateDimensions();
     scene.render();
+
+    this.setState({ mesh });
   }
 
   componentWillUnmount() {
