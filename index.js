@@ -36,6 +36,6 @@ const { file } = queryString.parse(location.search);
 
 render((
   <MuiThemeProvider muiTheme={muiTheme}>
-    <Interface file={file} name="doodle"/>
+    <Interface fileUrl={file} name="doodle"/>
   </MuiThemeProvider>
 ), document.getElementById('app'));

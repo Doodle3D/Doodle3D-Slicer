@@ -94,10 +94,8 @@ const styles = {
 
 class Interface extends React.Component {
   static propTypes = {
-    file: PropTypes.oneOfType([
-      PropTypes.shape({ isMesh: PropTypes.oneOf([true]) }),
-      PropTypes.string
-    ]).isRequired,
+    fileUrl: PropTypes.string,
+    mesh: PropTypes.shape({ isMesh: PropTypes.oneOf([true]) }),
     classes: PropTypes.objectOf(PropTypes.string),
     pixelRatio: PropTypes.number.isRequired,
     onCancel: PropTypes.func,
@@ -119,10 +117,9 @@ class Interface extends React.Component {
       settings: null,
       showFullScreen: false,
       isSlicing: false,
-      isLoading: true,
       error: null,
       objectDimensions: '0x0x0mm',
-      popover: { element: null, open: false },
+      popover: { open: false, element: null },
       openUrlDialog: { open: false, url: '' }
     };
   }
@@ -132,20 +129,16 @@ class Interface extends React.Component {
     const { scene } = this.state;
     scene.updateCanvas(canvas);
 
-    const { file } = this.props;
-    if (!file) {
-      throw new Error('no file provided');
-    } if (typeof file === 'string') {
-      fetch(file)
+    const { mesh, fileUrl } = this.props;
+    if (mesh) {
+      this.updateMesh(mesh, scene);
+    } else if (fileUrl) {
+      fetch(fileUrl)
         .then(resonse => resonse.json())
         .then(json => JSONToSketchData(json))
         .then(file => createSceneData(file))
         .then(sketch => generateExportMesh(sketch, { offsetSingleWalls: false, matrix: new Matrix4() }))
         .then(mesh => this.updateMesh(mesh, scene));
-    } else if (file.isMesh) {
-      this.updateMesh(file, scene);
-    } else {
-      throw new Error('unknown file property');
     }
   }
 
@@ -155,8 +148,6 @@ class Interface extends React.Component {
     placeOnGround(scene.mesh);
     this.calculateDimensions();
     scene.render();
-
-    this.setState({ mesh, isLoading: false });
   }
 
   componentWillUnmount() {
@@ -167,8 +158,8 @@ class Interface extends React.Component {
   }
 
   resetMesh = () => {
-    const { scene: { mesh, render }, isSlicing, isLoading } = this.state;
-    if (isSlicing || isLoading) return;
+    const { scene: { mesh, render }, isSlicing } = this.state;
+    if (isSlicing) return;
     if (mesh) {
       mesh.position.set(0, 0, 0);
       mesh.scale.set(1, 1, 1);
@@ -183,8 +174,8 @@ class Interface extends React.Component {
   scaleUp = () => this.scaleMesh(0.9);
   scaleDown = () => this.scaleMesh(1.0 / 0.9);
   scaleMesh = (factor) => {
-    const { scene: { mesh, render }, isSlicing, isLoading } = this.state;
-    if (isSlicing || isLoading) return;
+    const { scene: { mesh, render }, isSlicing } = this.state;
+    if (isSlicing) return;
     if (mesh) {
       mesh.scale.multiplyScalar(factor);
       mesh.updateMatrix();
@@ -198,8 +189,8 @@ class Interface extends React.Component {
   rotateY = () => this.rotate(new Vector3(1, 0, 0), Math.PI / 2.0);
   rotateZ = () => this.rotate(new Vector3(0, 1, 0), Math.PI / 2.0);
   rotate = (axis, angle) => {
-    const { scene: { mesh, render }, isSlicing, isLoading } = this.state;
-    if (isSlicing || isLoading) return;
+    const { scene: { mesh, render }, isSlicing } = this.state;
+    if (isSlicing) return;
     if (mesh) {
       mesh.rotateOnWorldAxis(axis, angle);
       placeOnGround(mesh);
@@ -209,10 +200,14 @@ class Interface extends React.Component {
   };
 
   slice = async (target) => {
-    const { isSlicing, isLoading, settings, mesh, scene: { material, mesh: { matrix } } } = this.state;
+    const { isSlicing, settings, mesh, scene: { material, mesh: { matrix } } } = this.state;
     const { name } = this.props;
 
-    if (isSlicing || isLoading) return;
+    if (isSlicing) return;
+    if (!mesh) {
+      this.setState({ error: 'there is no file to slice' });
+      return;
+    }
 
     this.closePopover();
     this.setState({ isSlicing: true, progress: { action: '', percentage: 0, step: 0 }, error: null });
@@ -294,15 +289,14 @@ class Interface extends React.Component {
 
   render() {
     const { classes, onCancel } = this.props;
-    const { isSlicing, isLoading, progress, showFullScreen, error, objectDimensions, openUrlDialog } = this.state;
+    const { isSlicing, progress, showFullScreen, error, objectDimensions, openUrlDialog } = this.state;
 
-    const disableUI = isSlicing || isLoading;
     const style = { ...(showFullScreen ? {} : { maxWidth: 'inherit', width: '100%', height: '100%' }) };
 
     const settingsPanel = (
       <div className={classes.settingsBar} style={style}>
         <Settings
-          disabled={disableUI}
+          disabled={isSlicing}
           onChange={this.onChangeSettings}
         />
         <div className={classes.sliceActions}>
@@ -323,7 +317,7 @@ class Interface extends React.Component {
               primary
               className={`${classes.button}`}
               onTouchTap={this.openPopover}
-              disabled={disableUI}
+              disabled={isSlicing}
             />
             <Popover
               open={this.state.popover.open}
@@ -350,12 +344,12 @@ class Interface extends React.Component {
           <div className={classes.detail}>
             <p>Dimensions: {objectDimensions}</p>
           </div>
-          <RaisedButton disabled={disableUI} className={classes.controlButton} onTouchTap={this.resetMesh} label="reset" />
-          <RaisedButton disabled={disableUI} className={classes.controlButton} onTouchTap={this.scaleUp} label="scale down" />
-          <RaisedButton disabled={disableUI} className={classes.controlButton} onTouchTap={this.scaleDown} label="scale up" />
-          <RaisedButton disabled={disableUI} className={classes.controlButton} onTouchTap={this.rotateX} label="rotate x" />
-          <RaisedButton disabled={disableUI} className={classes.controlButton} onTouchTap={this.rotateY} label="rotate y" />
-          <RaisedButton disabled={disableUI} className={classes.controlButton} onTouchTap={this.rotateZ} label="rotate z" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.resetMesh} label="reset" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.scaleUp} label="scale down" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.scaleDown} label="scale up" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.rotateX} label="rotate x" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.rotateY} label="rotate y" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.rotateZ} label="rotate z" />
         </div>
       </div>
     );
