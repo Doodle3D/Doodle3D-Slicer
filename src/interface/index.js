@@ -119,14 +119,8 @@ class Interface extends React.Component {
       isLoading: true,
       error: null,
       objectDimensions: '0x0x0mm',
-      popover: {
-        element: null,
-        open: false
-      },
-      openUrlDialog: {
-        open: true,
-        url: ''
-      }
+      popover: { element: null, open: false },
+      openUrlDialog: { open: false, url: '' }
     };
   }
 
