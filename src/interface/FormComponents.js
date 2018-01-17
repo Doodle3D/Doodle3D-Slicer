@@ -52,7 +52,7 @@ export const NumberField = (props, context) => (
     icon={context.advancedFields.includes(props.name) && <RefreshIcon onTouchTap={() => context.onChange(props.name, null)} />}
     floatingLabelStyle={{ color: context.advancedFields.includes(props.name) ? blue500 : grey500 }}
     disabled={context.disabled}
-    value={_.get(context, props.name)}
+    value={_.get(context, props.name.toString())}
     onChange={(event, value) => {
       value = parseFloat(value);
       if (props.min) value = Math.max(value, props.min);
