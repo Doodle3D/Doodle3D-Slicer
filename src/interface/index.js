@@ -50,9 +50,9 @@ const styles = {
   settingsBar: {
     display: 'flex',
     flexDirection: 'column',
-    maxWidth: '380px',
+    maxWidth: '320px',
     boxSizing: 'border-box',
-    padding: '10px',
+    padding: '10px 20px',
     backgroundColor: 'white',
     borderLeft: `1px solid ${grey300}`
   },
