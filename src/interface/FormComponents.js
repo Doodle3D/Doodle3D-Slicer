@@ -6,7 +6,7 @@ import MaterialUISelectField from 'material-ui/SelectField'
 import MaterialUICheckbox from 'material-ui/Checkbox';
 import { blue500, grey500 } from 'material-ui/styles/colors';
 import TextFieldIcon from 'material-ui-textfield-icon';
-import Clear from 'material-ui-icons/Clear';
+import RefreshIcon from 'material-ui-icons/Refresh';
 
 const contextTypes = {
   settings: PropTypes.object.isRequired,
@@ -34,7 +34,7 @@ SelectField.propTypes = propTypes;
 export const TextField = (props, context) => (
   <TextFieldIcon
     {...props}
-    icon={context.advancedFields.includes(props.name) && <Clear onTouchTap={() => context.onChange(props.name, null)} />}
+    icon={context.advancedFields.includes(props.name) && <RefreshIcon onTouchTap={() => context.onChange(props.name, null)} />}
     floatingLabelStyle={{ color: context.advancedFields.includes(props.name) ? blue500 : grey500 }}
     disabled={context.disabled}
     value={_.get(context, props.name)}
@@ -54,7 +54,7 @@ export const Checkbox = (props, context) => (
       checked={_.get(context, props.name)}
       onCheck={(event, value) => context.onChange(props.name, value)}
     />
-    {context.advancedFields.includes(props.name) && <Clear onTouchTap={() => context.onChange(props.name, null)} />}
+    {context.advancedFields.includes(props.name) && <RefreshIcon onTouchTap={() => context.onChange(props.name, null)} />}
   </span>
 );
 Checkbox.contextTypes = contextTypes;
