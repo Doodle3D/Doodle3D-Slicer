@@ -12,7 +12,7 @@ const onProgress = progress => {
 
 const loader = new JSONLoader();
 
-self.addEventListener('message', async (event) => {
+self.addEventListener('message', (event) => {
   const { message, data } = event.data;
   switch (message) {
     case 'SLICE': {

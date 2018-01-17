@@ -63,10 +63,10 @@ function sliceAsync(settings, geometry, openObjectIndexes, constructLinePreview,
     // create the slicer worker
     const slicerWorker = new SlicerWorker();
 
-    slicerWorker.onerror = error => {
+    slicerWorker.addEventListener('error', event => {
       slicerWorker.terminate();
-      reject(error);
-    };
+      reject(event);
+    });
 
     // listen to messages send from worker
     slicerWorker.addEventListener('message', (event) => {
