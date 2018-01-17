@@ -77,10 +77,12 @@ const styles = {
     color: red500
   },
   title: {
+    userSelect: 'none',
     position: 'absolute',
     left: '10px'
   },
   detail: {
+    userSelect: 'none',
     marginBottom: '10px'
   }
 };
