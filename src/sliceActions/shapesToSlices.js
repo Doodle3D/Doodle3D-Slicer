@@ -27,14 +27,16 @@ export default function shapesToSlices(shapes, settings) {
 
     for (let i = 0; i < fillShapes.length; i ++) {
       const fillShape = fillShapes[i];
+      if (fillShape.paths.length === 0) continue;
+
       slice.add(fillShape, true);
 
-      // if (lineShapesClosed.paths.length > 0) {
-      //   lineShapesClosed = lineShapesClosed.difference(closedShape);
-      // }
-      // if (lineShapesOpen.paths.length > 0) {
-      //   lineShapesOpen = lineShapesOpen.difference(closedShape);
-      // }
+      if (lineShapesClosed.paths.length > 0) {
+        lineShapesClosed = lineShapesClosed.difference(fillShape);
+      }
+      if (lineShapesOpen.paths.length > 0) {
+        lineShapesOpen = lineShapesOpen.difference(fillShape);
+      }
     }
 
     if (lineShapesClosed.paths.length > 0) {
