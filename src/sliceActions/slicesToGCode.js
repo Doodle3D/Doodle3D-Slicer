@@ -1,6 +1,6 @@
 import GCode from './helpers/GCode.js';
 import comb from './helpers/comb.js';
-import { PRECISION } from '../constants.js';
+import { PRECISION, Z_OFFSET } from '../constants.js';
 
 const PROFILE_TYPES = ['support', 'innerShell', 'outerShell', 'innerInfill', 'outerInfill', 'brim'];
 
@@ -12,8 +12,7 @@ export default function slicesToGCode(slices, settings) {
     travelSpeed,
     retraction,
     travel,
-    combing,
-    zOffset
+    combing
   } = settings;
 
   const filamentSurfaceArea = Math.pow((filamentThickness / 2), 2) * Math.PI;
@@ -32,7 +31,7 @@ export default function slicesToGCode(slices, settings) {
   let isFirstLayer = true;
   for (let layer = 0; layer < slices.length; layer ++) {
     const slice = slices[layer];
-    const z = layer * layerHeight + zOffset;
+    const z = layer * layerHeight + Z_OFFSET;
 
     if (layer === 1) {
       gcode.turnFanOn();
