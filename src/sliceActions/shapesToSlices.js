@@ -1,7 +1,7 @@
 import Shape from 'clipper-js';
 import Slice from './helpers/Slice.js';
 
-import { PRECISION } from '../constants.js';
+import { PRECISION, MIN_AREA } from '../constants.js';
 
 export default function shapesToSlices(shapes, settings) {
   const sliceLayers = [];
@@ -11,6 +11,7 @@ export default function shapesToSlices(shapes, settings) {
 
     fillShapes = new Shape(fillShapes, true, true, true, true)
       .fixOrientation()
+      .thresholdArea(MIN_AREA / Math.pow(PRECISION, 2))
       .simplify('pftNonZero')
       .clean(1)
       .seperateShapes();
