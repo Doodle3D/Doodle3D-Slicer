@@ -38,7 +38,7 @@ outerShell:
 innerInfill:
   flowRate: 1.0
   speed: 80.0
-  precentage: 20.0
+  density: 20.0
 outerInfill:
   flowRate: 1.0
   speed: 50.0

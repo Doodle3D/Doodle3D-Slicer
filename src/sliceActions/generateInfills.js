@@ -5,7 +5,7 @@ import Shape from 'clipper-js';
 export default function generateInfills(slices, settings) {
   let {
     layerHeight,
-    innerInfill: { precentage: infillPercentage },
+    innerInfill: { density: infillDensity },
     thickness: {
       top: topThickness,
       bottom: bottomThickness
@@ -13,11 +13,11 @@ export default function generateInfills(slices, settings) {
     nozzleDiameter
   } = settings;
 
-  infillPercentage /= 100;
+  infillDensity /= 100;
   nozzleDiameter /= PRECISION;
 
-  const bidirectionalInfill = infillPercentage < 0.8;
-  const infillGridSize = nozzleDiameter * (bidirectionalInfill ? 2 : 1) / infillPercentage;
+  const bidirectionalInfill = infillDensity < 0.8;
+  const infillGridSize = nozzleDiameter * (bidirectionalInfill ? 2 : 1) / infillDensity;
 
   const bottomSkinCount = Math.ceil(bottomThickness / layerHeight);
   const topSkinCount = Math.ceil(topThickness / layerHeight);

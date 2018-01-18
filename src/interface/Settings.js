@@ -156,7 +156,7 @@ class Settings extends React.Component {
       case 'settings.innerShell.flowRate':
       case 'settings.outerShell.speed':
       case 'settings.outerShell.flowRate':
-      case 'settings.innerInfill.precentage':
+      case 'settings.innerInfill.density':
       case 'settings.innerInfill.speed':
       case 'settings.innerInfill.flowRate':
       case 'settings.outerInfill.speed':
@@ -367,7 +367,7 @@ class Settings extends React.Component {
               <NumberField name="settings.outerShell.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
               <NumberField name="settings.outerShell.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
               <p>Inner infill</p>
-              <NumberField name="settings.innerInfill.precentage" min={0} max={100} fullWidth floatingLabelText="Percentage" />
+              <NumberField name="settings.innerInfill.density" min={0} max={100} fullWidth floatingLabelText="Density" />
               <NumberField name="settings.innerInfill.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
               <NumberField name="settings.innerInfill.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
               <p>Outer infill</p>
