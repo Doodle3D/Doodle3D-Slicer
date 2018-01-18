@@ -34,11 +34,16 @@ _SelectField.contextTypes = contextTypes;
 _SelectField.propTypes = propTypes;
 export const SelectField = muiThemeable()(_SelectField);
 
-const _TextField = ({ name, muiTheme, ...props }, context) => (
+const _TextField = ({ name, muiTheme: { palette }, ...props }, context) => (
   <TextFieldIcon
     {...props}
-    icon={context.advancedFields.includes(name) && <RefreshIcon style={{ fill: muiTheme.palette.textColor }} onTouchTap={() => context.onChange(name, null)} />}
-    floatingLabelStyle={{ color: context.advancedFields.includes(name) ? muiTheme.palette.primary1Color : muiTheme.palette.primary3Color }}
+    icon={context.advancedFields.includes(name) && <RefreshIcon
+      style={{ fill: palette.textColor }}
+      onTouchTap={() => context.onChange(name, null)}
+    />}
+    floatingLabelStyle={{
+      color: context.advancedFields.includes(name) ? palette.primary1Color : palette.primary3Color
+    }}
     disabled={context.disabled}
     value={_.get(context, name)}
     onChange={(event, value) => context.onChange(name, value)}
@@ -48,12 +53,17 @@ _TextField.contextTypes = contextTypes;
 _TextField.propTypes = propTypes;
 export const TextField = muiThemeable()(_TextField);
 
-const _NumberField = ({ name, min, max, muiTheme, ...props }, context) => (
+const _NumberField = ({ name, min, max, muiTheme: { palette }, ...props }, context) => (
   <TextFieldIcon
     {...props}
     type="number"
-    icon={context.advancedFields.includes(name) && <RefreshIcon style={{ fill: muiTheme.palette.textColor }} onTouchTap={() => context.onChange(name, null)} />}
-    floatingLabelStyle={{ color: context.advancedFields.includes(name) ? muiTheme.palette.primary1Color : muiTheme.palette.primary3Color }}
+    icon={context.advancedFields.includes(name) && <RefreshIcon
+      style={{ fill: palette.textColor }}
+      onTouchTap={() => context.onChange(name, null)} />
+    }
+    floatingLabelStyle={{
+      color: context.advancedFields.includes(name) ? palette.primary1Color : palette.primary3Color
+    }}
     disabled={context.disabled}
     value={_.get(context, name.toString())}
     onChange={(event, value) => {
@@ -68,17 +78,21 @@ _NumberField.contextTypes = contextTypes;
 _NumberField.propTypes = propTypes;
 export const NumberField = muiThemeable()(_NumberField);
 
-export const _Checkbox = ({ name, muiTheme, ...props }, context) => (
+export const _Checkbox = ({ name, muiTheme: { palette }, ...props }, context) => (
   <span style={{ display: 'flex', position: 'relative' }}>
     <MaterialUICheckbox
       {...props}
       style={{ display: 'block' }}
-      iconStyle={{ fill: context.advancedFields.includes(name) ? muiTheme.palette.primary1Color : muiTheme.palette.primary3Color }}
+      iconStyle={{
+        fill: context.advancedFields.includes(name) ? palette.primary1Color : palette.primary3Color
+      }}
       disabled={context.disabled}
       checked={_.get(context, name)}
       onCheck={(event, value) => context.onChange(name, value)}
     />
-    {context.advancedFields.includes(name) && <RefreshIcon onTouchTap={() => context.onChange(name, null)} />}
+    {context.advancedFields.includes(name) && <RefreshIcon
+      onTouchTap={() => context.onChange(name, null)}
+    />}
   </span>
 );
 _Checkbox.contextTypes = contextTypes;
