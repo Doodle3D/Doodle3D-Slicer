@@ -22,7 +22,7 @@ export default function generateInfills(slices, settings) {
   const bottomSkinCount = Math.ceil(bottomThickness / layerHeight);
   const topSkinCount = Math.ceil(topThickness / layerHeight);
   const nozzleRadius = nozzleDiameter / 2;
-  const outerFillTemplateSize = Math.sqrt(2 * Math.pow(nozzleDiameter, 2));
+  const outerFillTemplateSize = nozzleDiameter;
 
   for (let layer = 0; layer < slices.length; layer ++) {
     const slice = slices[layer];

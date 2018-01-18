@@ -1,7 +1,9 @@
 import Shape from 'clipper-js';
 
-export default function getFillTemplate(bounds, size, even, uneven) {
+export default function getFillTemplate(bounds, gridSize, even, uneven) {
   const paths = [];
+
+  const size = Math.sqrt(2 * Math.pow(gridSize, 2));
 
   const left = Math.floor(bounds.left / size) * size;
   const right = Math.ceil(bounds.right / size) * size;
