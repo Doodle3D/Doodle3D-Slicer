@@ -1,11 +1,6 @@
-import { VertexColors } from 'three/src/constants.js';
-import { BufferAttribute } from 'three/src/core/BufferAttribute.js';
-import { LineBasicMaterial } from 'three/src/materials/LineBasicMaterial.js';
-import { LineSegments } from 'three/src/objects/LineSegments.js';
+import * as THREE from 'three';
 import slice from './sliceActions/slice.js';
 import SlicerWorker from './slicer.worker.js';
-import { FrontSide, DoubleSide } from 'three/src/constants.js';
-import { BufferGeometry } from 'three/src/core/BufferGeometry.js'
 
 export function sliceMesh(settings, mesh, sync = false, constructLinePreview = false, onProgress) {
   if (!mesh || !mesh.isMesh) {
@@ -21,7 +16,7 @@ export function sliceGeometry(settings, geometry, materials, matrix, sync = fals
   if (!geometry) {
     throw new Error('Missing required geometry argument');
   } else if (geometry.isBufferGeometry) {
-    geometry = new Geometry().fromBufferGeometry(geometry);
+    geometry = new THREE.Geometry().fromBufferGeometry(geometry);
   } else if (geometry.isGeometry) {
     geometry = geometry.clone();
   } else {
@@ -38,9 +33,9 @@ export function sliceGeometry(settings, geometry, materials, matrix, sync = fals
 
   const openObjectIndexes = materials instanceof Array ? materials.map(({ side }) => {
     switch (side) {
-      case FrontSide:
+      case THREE.FrontSide:
         return false;
-      case DoubleSide:
+      case THREE.DoubleSide:
         return true;
       default:
         return false;
@@ -76,14 +71,14 @@ function sliceAsync(settings, geometry, openObjectIndexes, constructLinePreview,
           slicerWorker.terminate();
 
           if (data.gcode.linePreview) {
-            const geometry = new BufferGeometry();
+            const geometry = new THREE.BufferGeometry();
 
             const { position, color } = data.gcode.linePreview;
-            geometry.addAttribute('position', new BufferAttribute(new Float32Array(position), 3));
-            geometry.addAttribute('color', new BufferAttribute(new Float32Array(color), 3));
+            geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(position), 3));
+            geometry.addAttribute('color', new THREE.BufferAttribute(new Float32Array(color), 3));
 
-            const material = new LineBasicMaterial({ vertexColors: VertexColors });
-            const linePreview = new LineSegments(geometry, material);
+            const material = new THREE.LineBasicMaterial({ vertexColors: THREE.VertexColors });
+            const linePreview = new THREE.LineSegments(geometry, material);
 
             data.gcode.linePreview = linePreview;
           }

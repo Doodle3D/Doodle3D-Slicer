@@ -1,7 +1,6 @@
 import 'core-js'; // polyfills
 import slice from './sliceActions/slice.js';
-import { Matrix4 } from 'three/src/math/Matrix4.js';
-import { JSONLoader } from 'three/src/loaders/JSONLoader.js';
+import * as THREE from 'three';
 
 const onProgress = progress => {
   self.postMessage({
@@ -10,7 +9,7 @@ const onProgress = progress => {
   });
 }
 
-const loader = new JSONLoader();
+const loader = new THREE.JSONLoader();
 
 self.addEventListener('message', (event) => {
   const { message, data } = event.data;

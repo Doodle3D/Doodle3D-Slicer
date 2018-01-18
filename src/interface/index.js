@@ -1,9 +1,6 @@
+import * as THREE from 'three';
 import _ from 'lodash';
 import React from 'react';
-import { Quaternion } from 'three/src/math/Quaternion.js';
-import { Vector3 } from 'three/src/math/Vector3.js';
-import { Mesh } from 'three/src/objects/Mesh.js';
-import { Box3 } from 'three/src/math/Box3.js';
 import PropTypes from 'proptypes';
 import { centerGeometry, placeOnGround, createScene, fetchProgress, slice, TabTemplate } from './utils.js';
 import injectSheet from 'react-jss';
@@ -21,7 +18,6 @@ import ReactResizeDetector from 'react-resize-detector';
 import JSONToSketchData from 'doodle3d-core/shape/JSONToSketchData';
 import createSceneData from 'doodle3d-core/d3/createSceneData.js';
 import { generateExportMesh } from 'doodle3d-core/utils/exportUtils.js';
-import { Matrix4 } from 'three/src/math/Matrix4.js';
 import muiThemeable from 'material-ui/styles/muiThemeable';
 import Dialog from 'material-ui/Dialog';
 
@@ -145,7 +141,7 @@ class Interface extends React.Component {
       .then(resonse => resonse.json())
       .then(json => JSONToSketchData(json))
       .then(file => createSceneData(file))
-      .then(sketch => generateExportMesh(sketch, { offsetSingleWalls: false, matrix: new Matrix4() }))
+      .then(sketch => generateExportMesh(sketch, { offsetSingleWalls: false, matrix: new THREE.Matrix4() }))
       .then(mesh => this.updateMesh(mesh));
   };
 
@@ -194,9 +190,9 @@ class Interface extends React.Component {
     }
   };
 
-  rotateX = () => this.rotate(new Vector3(0, 0, 1), Math.PI / 2.0);
-  rotateY = () => this.rotate(new Vector3(1, 0, 0), Math.PI / 2.0);
-  rotateZ = () => this.rotate(new Vector3(0, 1, 0), Math.PI / 2.0);
+  rotateX = () => this.rotate(new THREE.Vector3(0, 0, 1), Math.PI / 2.0);
+  rotateY = () => this.rotate(new THREE.Vector3(1, 0, 0), Math.PI / 2.0);
+  rotateZ = () => this.rotate(new THREE.Vector3(0, 1, 0), Math.PI / 2.0);
   rotate = (axis, angle) => {
     const { scene: { mesh, render }, isSlicing } = this.state;
     if (isSlicing) return;
@@ -221,7 +217,7 @@ class Interface extends React.Component {
     this.closePopover();
     this.setState({ isSlicing: true, progress: { action: '', percentage: 0, step: 0 }, error: null });
 
-    const exportMesh = new Mesh(mesh.geometry, mesh.material);
+    const exportMesh = new THREE.Mesh(mesh.geometry, mesh.material);
     exportMesh.applyMatrix(matrix);
 
     try {
@@ -292,7 +288,7 @@ class Interface extends React.Component {
 
   calculateDimensions = () => {
     const { scene: { mesh } } = this.state;
-    const { x, y, z } = new Box3().setFromObject(mesh).getSize();
+    const { x, y, z } = new THREE.Box3().setFromObject(mesh).getSize();
     this.setState({ objectDimensions: `${Math.round(x)}x${Math.round(y)}x${Math.round(z)}mm` });
   };
 

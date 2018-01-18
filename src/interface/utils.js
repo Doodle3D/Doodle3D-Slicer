@@ -1,17 +1,4 @@
 import * as THREE from 'three';
-import { Box3 } from 'three/src/math/Box3.js';
-import { Matrix4 } from 'three/src/math/Matrix4.js';
-import { Vector3 } from 'three/src/math/Vector3.js';
-import { Scene } from 'three/src/scenes/Scene.js';
-import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera.js';
-import { AmbientLight } from 'three/src/lights/AmbientLight.js';
-import { DirectionalLight } from 'three/src/lights/DirectionalLight.js';
-import { MeshPhongMaterial } from 'three/src/materials/MeshPhongMaterial.js';
-import { BoxGeometry } from 'three/src/geometries/BoxGeometry.js';
-import { Mesh } from 'three/src/objects/Mesh.js';
-import { BoxHelper } from 'three/src/helpers/BoxHelper.js';
-import { WebGLRenderer } from 'three/src/renderers/WebGLRenderer.js';
-import { DoubleSide } from 'three/src/constants.js';
 import 'three/examples/js/controls/EditorControls';
 import printerSettings from '../settings/printer.yml';
 import materialSettings from '../settings/material.yml';
@@ -23,7 +10,7 @@ import PropTypes from 'prop-types';
 import fileSaver from 'file-saver';
 
 export function placeOnGround(mesh) {
-  const boundingBox = new Box3().setFromObject(mesh);
+  const boundingBox = new THREE.Box3().setFromObject(mesh);
 
   mesh.position.y -= boundingBox.min.y;
   mesh.updateMatrix();
@@ -33,35 +20,35 @@ export function centerGeometry(mesh) {
   // center geometry
   mesh.geometry.computeBoundingBox();
   const center = mesh.geometry.boundingBox.getCenter();
-  mesh.geometry.applyMatrix(new Matrix4().makeTranslation(-center.x, -center.y, -center.z));
+  mesh.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(-center.x, -center.y, -center.z));
 }
 
 export function createScene({ pixelRatio, muiTheme }) {
-  const scene = new Scene();
+  const scene = new THREE.Scene();
 
-  const camera = new PerspectiveCamera(50, 1, 1, 10000);
+  const camera = new THREE.PerspectiveCamera(50, 1, 1, 10000);
   camera.position.set(0, 400, 300);
-  camera.lookAt(new Vector3(0, 0, 0));
+  camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-  const directionalLightA = new DirectionalLight(0xa2a2a2);
+  const directionalLightA = new THREE.DirectionalLight(0xa2a2a2);
   directionalLightA.position.set(1, 1, 1);
   scene.add(directionalLightA);
 
-  const directionalLightB = new DirectionalLight(0xa2a2a2);
+  const directionalLightB = new THREE.DirectionalLight(0xa2a2a2);
   directionalLightB.position.set(-1, 1, -1);
   scene.add(directionalLightB);
 
-  const light = new AmbientLight(0x656565);
+  const light = new THREE.AmbientLight(0x656565);
   scene.add(light);
 
-  const material = new MeshPhongMaterial({ color: muiTheme.palette.primary2Color, side: DoubleSide, specular: 0xc5c5c5, shininess: 5 });
-  const mesh = new Mesh(new THREE.Geometry(), material);
+  const material = new THREE.MeshPhongMaterial({ color: muiTheme.palette.primary2Color, side: THREE.DoubleSide, specular: 0xc5c5c5, shininess: 5 });
+  const mesh = new THREE.Mesh(new THREE.Geometry(), material);
   scene.add(mesh);
 
-  const box = new BoxHelper(new Mesh(new BoxGeometry(1, 1, 1).applyMatrix(new Matrix4().makeTranslation(0, 0.5, 0))), muiTheme.palette.primary2Color);
+  const box = new THREE.BoxHelper(new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1).applyMatrix(new THREE.Matrix4().makeTranslation(0, 0.5, 0))), muiTheme.palette.primary2Color);
   scene.add(box);
 
-  let renderer = new WebGLRenderer({ alpha: true, antialias: true });
+  let renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
   let editorControls = new THREE.EditorControls(camera, renderer.domElement);
 
   box.scale.set(1., 1., 1.);
@@ -80,7 +67,7 @@ export function createScene({ pixelRatio, muiTheme }) {
   const updateCanvas = (canvas) => {
     if (!renderer || renderer.domElement !== canvas) {
       if (renderer) renderer.dispose();
-      renderer = new WebGLRenderer({ canvas, alpha: true, antialias: true });
+      renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
       renderer.setClearColor(0xffffff, 0);
     }
     if (!editorControls || editorControls.domElement !== canvas) {
@@ -138,7 +125,7 @@ export async function slice(target, name, mesh, settings, updateProgress) {
   const centerX = dimensions.x / 2;
   const centerY = dimensions.y / 2;
 
-  const matrix = new Matrix4().makeTranslation(centerY, 0, centerX).multiply(mesh.matrix);
+  const matrix = new THREE.Matrix4().makeTranslation(centerY, 0, centerX).multiply(mesh.matrix);
   const { gcode } = await sliceGeometry(settings, mesh.geometry, mesh.material, matrix, false, false, ({ progress }) => {
     updateProgress({
       action: progress.action,
