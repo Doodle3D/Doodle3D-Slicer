@@ -11,9 +11,9 @@ export default function shapesToSlices(shapes, settings) {
 
     fillShapes = new Shape(fillShapes, true, true, true, true)
       .fixOrientation()
-      .thresholdArea(MIN_AREA / Math.pow(PRECISION, 2))
       .simplify('pftNonZero')
       .clean(1)
+      .thresholdArea(MIN_AREA / Math.pow(PRECISION, 2))
       .seperateShapes();
 
     lineShapesClosed = new Shape(lineShapesClosed, true, true, true, true)
