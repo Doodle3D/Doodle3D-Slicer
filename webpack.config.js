@@ -1,8 +1,9 @@
 const path = require('path');
-// const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const HTMLWebpackPlugin = require('html-webpack-plugin');
 
-const devMode = true;
+const devMode = process.env.NODE_ENV !== 'production';
+const analyzeBundle = process.env.ANALYZE_BUNDLE;
 
 const babelLoader = {
   loader: 'babel-loader',
@@ -61,13 +62,13 @@ module.exports = {
       }
     ]
   },
-  plugins: [
+  plugins: analyzeBundle ? [new BundleAnalyzerPlugin()] : [
     new HTMLWebpackPlugin({
       title: 'Doodle3D Slicer',
       template: require('html-webpack-template'),
       inject: false,
       appMountId: 'app'
-    }),
+    })
   ],
   devtool: "source-map",
   devServer: {

@@ -8,6 +8,7 @@
   "scripts": {
     "start": "webpack-dev-server -w",
     "prepare": "npm run build",
+    "analyze": "ANALYZE_BUNDLE=true webpack -p",
     "build": "npm run build:main && npm run build:main:settings && npm run build:module && npm run build:module:settings ",
     "build:main": "BABEL_ENV=main babel src -s -d lib",
     "build:module": "BABEL_ENV=module babel src -s -d module",
@@ -31,7 +32,8 @@
     "react-jss": "^7.2.0",
     "react-resize-detector": "^1.1.0",
     "shortid": "^2.2.8",
-    "three": "^0.88.0"
+    "three": "^0.88.0",
+    "webpack-bundle-analyzer": "^2.9.2"
   },
   "devDependencies": {
     "babel-cli": "6.24.1",
