@@ -84,20 +84,33 @@ export function createScene({ pixelRatio, muiTheme }) {
   return { editorControls, scene, mesh, camera, renderer, render, box, setSize, updateCanvas, focus };
 }
 
-export function fetchProgress(url, { method = 'get', headers = {}, body = {} } = {}, onProgress) {
+export function fetchProgress(url, data = {}, onProgress) {
   return new Promise((resolve, reject) => {
+    const request = new Request(url, data);
     const xhr = new XMLHttpRequest();
-    xhr.open(method, url);
-    if (headers) {
-      for (const key in headers) {
-        const header = headers[key];
-        xhr.setRequestHeader(key, header);
-      }
+
+    xhr.onload = () => {
+      const { status, statusText, responseURL: url } = xhr;
+      resolve(new Response(xhr.response, { status, statusText, url }));
     }
-    xhr.onload = event => resolve(event.target.responseText);
-    xhr.onerror = reject;
+    xhr.onerror = () => reject(new TypeError('Network request failed'));
+    xhr.ontimeout = () => reject(new TypeError('Network request failed'));
+
+    xhr.open(request.method, url);
+
+    if (request.credentials === 'include') {
+      xhr.withCredentials = true
+    } else if (request.credentials === 'omit') {
+      xhr.withCredentials = false
+    }
     if (xhr.upload && onProgress) xhr.upload.onprogress = onProgress;
-    xhr.send(body);
+    if (xhr.responseType) xhr.responseType = 'blob';
+
+    request.headers.forEach((value, name) => {
+      xhr.setRequestHeader(name, value)
+    });
+
+    xhr.send(data.body);
   });
 }
 

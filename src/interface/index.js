@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import _ from 'lodash';
 import React from 'react';
 import PropTypes from 'proptypes';
-import { centerGeometry, placeOnGround, createScene, fetchProgress, slice, TabTemplate } from './utils.js';
+import { centerGeometry, placeOnGround, createScene, slice, TabTemplate } from './utils.js';
 import injectSheet from 'react-jss';
 import RaisedButton from 'material-ui/RaisedButton';
 import FlatButton from 'material-ui/FlatButton';
