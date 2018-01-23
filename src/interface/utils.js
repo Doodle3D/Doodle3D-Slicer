@@ -161,10 +161,11 @@ export async function slice(target, name, mesh, settings, updateProgress) {
       const file = new File([gcode], 'doodle.gcode', { type: 'plain/text' });
       body.append('file', file);
 
-      await fetchProgress(`http://${settings.ip}/upload`, { method: 'POST', body }, (progess) => {
+      await fetchProgress(`http://${settings.ip}/set?code=M563 S4`, { method: 'GET' });
+      await fetchProgress(`http://${settings.ip}/upload`, { method: 'POST', body }, (progress) => {
         updateProgress({
           action: 'Uploading',
-          percentage: currentStep / steps + progess.loaded / progess.total / steps
+          percentage: currentStep / steps + progress.loaded / progress.total / steps
         });
       });
       currentStep ++;
@@ -193,10 +194,10 @@ export async function slice(target, name, mesh, settings, updateProgress) {
       }).trim()}\n${gcode}`;
       body.append('file', file);
 
-      await fetchProgress(reservation.url, { method: 'POST', body }, (progess) => {
+      await fetchProgress(reservation.url, { method: 'POST', body }, (progress) => {
         updateProgress({
           action: 'Uploading',
-          percentage: currentStep / steps + progess.loaded / progess.total / steps
+          percentage: currentStep / steps + progress.loaded / progress.total / steps
         });
       });
       currentStep ++;
