@@ -208,7 +208,7 @@ class Settings extends React.Component {
       ...defaultSettings,
       printer,
       material,
-      quality
+      quality,
       ip
     };
 
