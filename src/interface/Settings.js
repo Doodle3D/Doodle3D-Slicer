@@ -18,6 +18,7 @@ import materialSettings from '../settings/material.yml';
 import qualitySettings from '../settings/quality.yml';
 import update from 'react-addons-update';
 import SettingsIcon from 'material-ui-icons/Settings';
+import validateIp from 'validate-ip';
 
 const styles = {
   textFieldRow: {
@@ -79,6 +80,7 @@ class Settings extends React.Component {
       open: false,
       name: '',
       printer: '',
+      ip: '',
       error: null
     },
     managePrinter: {
@@ -102,25 +104,22 @@ class Settings extends React.Component {
 
     let state = _.cloneDeep(this.state);
 
-    const removeAddPrinterError = () => {
-      state = update(state, { addPrinter: { error: { $set: null } } });
-    };
-
     switch (fieldName) {
       case 'managePrinter.printer':
       case 'managePrinter.name':
+      case 'managePrinter.ip':
         state = _.set(state, fieldName, value);
+        state = update(state, { managePrinter: { error: { $set: null } } });
         break;
 
       case 'addPrinter.printer':
-        state = update(state, { addPrinter: { printer: { $set: value } } });
-        state = update(state, { addPrinter: { name: { $set: printerSettings[value].title } } });
-        removeAddPrinterError();
-        break;
-
       case 'addPrinter.name':
-        state = update(state, { addPrinter: { name: { $set: value } } });
-        removeAddPrinterError();
+      case 'addPrinter.ip':
+        state = _.set(state, fieldName, value);
+        if (fieldName === 'addPrinter.printer') {
+          state = update(state, { addPrinter: { name: { $set: printerSettings[value].title } } });
+        }
+        state = update(state, { addPrinter: { error: { $set: null } } });
         break;
 
       case 'activePrinter':
@@ -204,12 +203,13 @@ class Settings extends React.Component {
   constructSettings(localStorage) {
     if (!localStorage.active) return defaultSettings;
 
-    const { printer, material, quality, advanced } = localStorage.printers[localStorage.active].settings;
+    const { ip, settings: { printer, material, quality, advanced } } = localStorage.printers[localStorage.active];
     let settings = {
       ...defaultSettings,
       printer,
       material,
       quality
+      ip
     };
 
     settings = _.merge({}, settings, printerSettings[printer]);
@@ -225,10 +225,14 @@ class Settings extends React.Component {
   }
 
   addPrinter = () => {
-    const { name, printer } = this.state.addPrinter;
+    const { name, printer, ip } = this.state.addPrinter;
 
     if (!name || !printer) {
-      this.setState({ addPrinter: { ...this.state.addPrinter, error: 'Please enter a name and printer' } });
+      this.setState(update(this.state, { addPrinter: { error: { $set: 'Please enter a name and printer' } } }));
+      return;
+    }
+    if (printer === 'doodle3d_printer' && !validateIp(ip)) {
+      this.setState(update(this.state, { addPrinter: { error: { $set: 'Please enter a valid IP adress' } } }));
       return;
     }
 
@@ -237,7 +241,7 @@ class Settings extends React.Component {
       active: id,
       printers: {
         ...this.state.localStorage.printers,
-        [id]: { name, settings: { printer, material: 'pla', quality: 'medium', advanced: {} } }
+        [id]: { name, ip, settings: { printer, material: 'pla', quality: 'medium', advanced: {} } }
       }
     };
     this.setState({ localStorage });
@@ -250,11 +254,22 @@ class Settings extends React.Component {
   };
 
   editPrinter = () => {
-    const { localStorage: { active, printers }, managePrinter: { printer, name } } = this.state;
+    const { localStorage: { active, printers }, managePrinter: { printer, name, ip } } = this.state;
+
+    if (!name) {
+      this.setState(update(this.state, { managePrinter: { error: { $set: 'Please enter a name' } } }));
+      return;
+    }
+    if (printer === 'doodle3d_printer' && !validateIp(ip)) {
+      this.setState(update(this.state, { managePrinter: { error: { $set: 'Please enter a valid IP adress' } } }));
+      return;
+    }
+
     const localStorage = update(this.state.localStorage, {
       printers: {
         [active]: {
           name: { $set: name },
+          ip: { $set: ip },
           settings: {
             printer: { $set: printer }
           }
@@ -288,7 +303,7 @@ class Settings extends React.Component {
 
   closeAddPrinterDialog = () => this.setAddPrinterDialog(false);
   openAddPrinterDialog = () => this.setAddPrinterDialog(true);
-  setAddPrinterDialog = (open) => this.setState({ addPrinter: { name: '', printer: '', error: null, open } });
+  setAddPrinterDialog = (open) => this.setState({ addPrinter: { ip: '', name: '', printer: '', error: null, open } });
 
   closeManagePrinterDialog = () => this.setManagePrinterDialog(false);
   openManagePrinterDialog = () => this.setManagePrinterDialog(true);
@@ -299,7 +314,9 @@ class Settings extends React.Component {
       managePrinter: {
         open,
         name: printers[active].name,
-        printer: printers[active].settings.printer
+        ip: printers[active].ip,
+        printer: printers[active].settings.printer,
+        error: null
       }
     });
   }
@@ -415,6 +432,7 @@ class Settings extends React.Component {
             ))}
           </SelectField>
           <TextField name="addPrinter.name" floatingLabelText="Name" fullWidth />
+          {(addPrinter.printer === 'doodle3d_printer') && <TextField name="addPrinter.ip" floatingLabelText="IP Adress" fullWidth />}
           {addPrinter.error && <p className={classes.error}>{addPrinter.error}</p>}
         </Dialog>
         <Dialog
@@ -444,6 +462,8 @@ class Settings extends React.Component {
             ))}
           </SelectField>
           <TextField name="managePrinter.name" floatingLabelText="Name" fullWidth />
+          {(managePrinter.printer === 'doodle3d_printer') && <TextField name="managePrinter.ip" floatingLabelText="IP Adress" fullWidth />}
+          {managePrinter.error && <p className={classes.error}>{managePrinter.error}</p>}
         </Dialog>
       </div>
     );

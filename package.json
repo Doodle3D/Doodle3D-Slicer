@@ -33,6 +33,7 @@
     "react-resize-detector": "^1.1.0",
     "shortid": "^2.2.8",
     "three": "^0.88.0",
+    "validate-ip": "^1.0.1",
     "webpack-bundle-analyzer": "^2.9.2"
   },
   "devDependencies": {
