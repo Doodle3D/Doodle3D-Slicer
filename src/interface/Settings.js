@@ -165,6 +165,14 @@ class Settings extends React.Component {
       case 'settings.brim.flowRate':
       case 'settings.firstLayer.speed':
       case 'settings.firstLayer.flowRate':
+      case 'settings.support.enabled':
+      case 'settings.support.speed':
+      case 'settings.support.distanceY':
+      case 'settings.support.density':
+      case 'settings.support.minArea':
+      case 'settings.support.margin':
+      case 'settings.support.speed':
+      case 'settings.support.flowRate':
         if (!localStorage.active) return this.openAddPrinterDialog();
 
         if (value === null) {
@@ -374,6 +382,15 @@ class Settings extends React.Component {
               <NumberField name="settings.brim.size" min={0} max={20} fullWidth floatingLabelText="Size" />
               <NumberField name="settings.brim.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
               <NumberField name="settings.brim.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
+              <p>Support</p>
+              <Checkbox name="settings.support.enabled" label="Enabled" />
+              <NumberField name="settings.support.speed" min={0.1} fullWidth floatingLabelText="Accaptance Margin" />
+              <NumberField name="settings.support.distanceY" min={0.1} fullWidth floatingLabelText="Distance Y" />
+              <NumberField name="settings.support.density" min={0} max={100} fullWidth floatingLabelText="Density" />
+              <NumberField name="settings.support.margin" min={0.1} fullWidth floatingLabelText="Margin" />
+              <NumberField name="settings.support.minArea" min={1} fullWidth floatingLabelText="Min Area" />
+              <NumberField name="settings.support.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+              <NumberField name="settings.support.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
               <p>First layer</p>
               <NumberField name="settings.firstLayer.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
               <NumberField name="settings.firstLayer.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />

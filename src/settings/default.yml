@@ -22,11 +22,10 @@ travel:
   speed: 200.0
 support:
   enabled: false
-  acceptanceMargin: 1.5
+  minArea: 2
   distanceY: 0.4
-  gridSize: 6.0
+  density: 5.0
   margin: 2.0
-  plateSize: 4.0
   flowRate: 0.8
   speed: 40.0
 innerShell:

@@ -62,11 +62,11 @@ export default function slicesToGCode(slices, settings) {
 
           const unRetract = isOuterShell;
           const profile = isOuterShell ? profiles.outerShell : profiles.innerShell;
-          pathToGCode(outline, combing && true, gcode, shell, false, unRetract, z, profile);
+          pathToGCode(outline, combing, gcode, shell, false, unRetract, z, profile);
         }
 
-        pathToGCode(outline, combing && true, gcode, part.outerFill, false, false, z, profiles.outerInfill);
-        pathToGCode(outline, combing && true, gcode, part.innerFill, true, false, z, profiles.innerInfill);
+        pathToGCode(outline, combing, gcode, part.outerFill, false, false, z, profiles.outerInfill);
+        pathToGCode(outline, combing, gcode, part.innerFill, true, false, z, profiles.innerInfill);
       } else {
         const retract = !(slice.parts.length === 1 && typeof slice.support === 'undefined');
         pathToGCode(null, false, gcode, part.shape, retract, retract, z, profiles.outerShell);
@@ -74,7 +74,7 @@ export default function slicesToGCode(slices, settings) {
     }
 
     if (typeof slice.support !== 'undefined') {
-      pathToGCode(null, false, gcode, slice.support, true, true, z, profiles.support);
+      pathToGCode(slice.supportOutline, combing, gcode, slice.support, true, true, z, profiles.support);
     }
   }
 
