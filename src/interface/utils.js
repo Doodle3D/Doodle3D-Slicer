@@ -106,9 +106,10 @@ export function fetchProgress(url, data = {}, onProgress) {
     if (xhr.upload && onProgress) xhr.upload.onprogress = onProgress;
     if (xhr.responseType) xhr.responseType = 'blob';
 
-    request.headers.forEach((value, name) => {
-      xhr.setRequestHeader(name, value)
-    });
+    // Malyan printer doesn't like headers...
+    // request.headers.forEach((value, name) => {
+    //   xhr.setRequestHeader(name, value)
+    // });
 
     xhr.send(data.body);
   });
@@ -118,8 +119,6 @@ const GCODE_SERVER_URL = 'https://gcodeserver.doodle3d.com';
 const CONNECT_URL = 'http://connect.doodle3d.com/';
 
 export async function slice(target, name, mesh, settings, updateProgress) {
-  if (!settings) throw { message: 'please select a printer first', code: 0 };
-
   let steps;
   let currentStep = 0;
   switch (target) {
@@ -127,6 +126,7 @@ export async function slice(target, name, mesh, settings, updateProgress) {
       steps = 1;
       break;
     case 'WIFI':
+    case 'DOODLE3D-WIFI-BOX':
       steps = 2;
       break;
     default:
@@ -151,12 +151,30 @@ export async function slice(target, name, mesh, settings, updateProgress) {
 
   switch (target) {
     case 'DOWNLOAD': {
-      const blob = new File([gcode], `${name}.gcode`, { type: 'text/plain;charset=utf-8' });
+      const blob = new File([gcode], `${name}.gcode`, { type: 'text/plain' });
       fileSaver.saveAs(blob);
       break;
     }
 
     case 'WIFI': {
+      const body = new FormData();
+      const file = new File([gcode], 'doodle.gcode', { type: 'plain/text' });
+      body.append('file', file);
+
+      await fetchProgress(`http://${settings.ip}/set?code=M563 S4`, { method: 'GET' });
+      await fetchProgress(`http://${settings.ip}/upload`, { method: 'POST', body }, (progress) => {
+        updateProgress({
+          action: 'Uploading',
+          percentage: currentStep / steps + progress.loaded / progress.total / steps
+        });
+      });
+      currentStep ++;
+      await fetchProgress(`http://${settings.ip}/set?code=M566 ${name}.gcode`, { method: 'GET' });
+      await fetchProgress(`http://${settings.ip}/set?code=M565`, { method: 'GET' });
+      break;
+    }
+
+    case 'DOODLE3D-WIFI-BOX': {
       // upload G-code file to AWS S3
       const { data: { reservation, id } } = await fetch(`${GCODE_SERVER_URL}/upload`, { method: 'POST' })
         .then(response => response.json());
@@ -176,10 +194,10 @@ export async function slice(target, name, mesh, settings, updateProgress) {
       }).trim()}\n${gcode}`;
       body.append('file', file);
 
-      await fetchProgress(reservation.url, { method: 'POST', body }, (progess) => {
+      await fetchProgress(reservation.url, { method: 'POST', body }, (progress) => {
         updateProgress({
           action: 'Uploading',
-          percentage: currentStep / steps + progess.loaded / progess.total / steps
+          percentage: currentStep / steps + progress.loaded / progress.total / steps
         });
       });
       currentStep ++;

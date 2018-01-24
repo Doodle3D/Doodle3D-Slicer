@@ -209,6 +209,13 @@ class Interface extends React.Component {
     const { name } = this.props;
 
     if (isSlicing) return;
+    if (!settings) {
+      this.setState({ error: 'please select a printer first' });
+    }
+    if (target === 'WIFI' && !settings.ip) {
+      this.setState({ error: 'please connect to a WiFi enabled printer' });
+      return;
+    }
     if (!mesh) {
       this.setState({ error: 'there is no file to slice' });
       return;
@@ -311,7 +318,7 @@ class Interface extends React.Component {
 
   render() {
     const { classes, onCancel } = this.props;
-    const { isSlicing, progress, showFullScreen, error, objectDimensions, openUrlDialog } = this.state;
+    const { isSlicing, progress, showFullScreen, error, objectDimensions, openUrlDialog, settings } = this.state;
 
     const style = { ...(showFullScreen ? {} : { maxWidth: 'inherit', width: '100%', height: '100%' }) };
 
@@ -349,7 +356,7 @@ class Interface extends React.Component {
               onRequestClose={this.closePopover}
             >
             <Menu>
-              <MenuItem primaryText="Send over WiFi" onTouchTap={() => this.slice('WIFI')} />
+              <MenuItem disabled={!Boolean(settings && settings.ip)} primaryText="Send over WiFi" onTouchTap={() => this.slice('WIFI')} />
               <MenuItem primaryText="Download GCode" onTouchTap={() => this.slice('DOWNLOAD')} />
             </Menu>
             </Popover>
