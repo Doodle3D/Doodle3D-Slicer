@@ -115,6 +115,32 @@ export function fetchProgress(url, data = {}, onProgress) {
   });
 }
 
+export function getMalyanStatus(ip) {
+  return fetch(`http://${ip}/inquiry`, { method: 'GET' })
+    .then(response => response.text())
+    .then(statusText => {
+      const [nozzleTemperature, nozzleTargetTemperature, bedTemperature, bedTargetTemperature, progress] = statusText.match(/\d+/g);
+      const status = { nozzleTemperature, nozzleTargetTemperature, bedTemperature, bedTargetTemperature, progress };
+
+      switch (statusText.charAt(statusText.length - 1)) {
+        case 'I':
+          status.state = 'idle';
+          break;
+        case 'P':
+          status.state = 'printing';
+          break;
+        default:
+          status.state = 'unknown';
+          break;
+      }
+      return status;
+    })
+}
+
+export function sleep(time) {
+  return new Promise(resolve => setTimeout(resolve, time));
+}
+
 const GCODE_SERVER_URL = 'https://gcodeserver.doodle3d.com';
 const CONNECT_URL = 'http://connect.doodle3d.com/';
 
@@ -127,6 +153,10 @@ export async function slice(target, name, mesh, settings, updateProgress) {
       break;
     case 'WIFI':
     case 'DOODLE3D-WIFI-BOX':
+      if (settings.printer === 'doodle3d_printer') {
+        const { state } = await getMalyanStatus(settings.ip);
+        if (state !== 'idle') throw { message: 'printer must be idle before starting a print', code: 1 };
+      }
       steps = 2;
       break;
     default:
@@ -161,7 +191,7 @@ export async function slice(target, name, mesh, settings, updateProgress) {
       const file = new File([gcode], 'doodle.gcode', { type: 'plain/text' });
       body.append('file', file);
 
-      await fetchProgress(`http://${settings.ip}/set?code=M563 S4`, { method: 'GET' });
+      // await fetchProgress(`http://${settings.ip}/set?code=M563 S4`, { method: 'GET' });
       await fetchProgress(`http://${settings.ip}/upload`, { method: 'POST', body }, (progress) => {
         updateProgress({
           action: 'Uploading',

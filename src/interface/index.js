@@ -14,6 +14,7 @@ import Menu from 'material-ui/Menu';
 import MenuItem from 'material-ui/MenuItem';
 import { Tabs, Tab } from 'material-ui/Tabs';
 import Settings from './Settings.js';
+import MalyanControl from './MalyanControl.js';
 import ReactResizeDetector from 'react-resize-detector';
 import JSONToSketchData from 'doodle3d-core/shape/JSONToSketchData';
 import createSceneData from 'doodle3d-core/d3/createSceneData.js';
@@ -334,6 +335,7 @@ class Interface extends React.Component {
             {isSlicing && <p>{progress.action}</p>}
             {isSlicing && <LinearProgress mode="determinate" value={progress.percentage * 100.0} />}
           </div>
+          {settings && settings.printer === 'doodle3d_printer' && <MalyanControl ip={settings.ip} />}
           <div className={classes.sliceButtons}>
             {onCancel && <RaisedButton
               label="Cancel"
