@@ -2,6 +2,8 @@ import getFillTemplate from './getFillTemplate.js';
 import Shape from 'clipper-js';
 import { PRECISION } from '../constants.js';
 
+const PRECISION_SQUARED = Math.pow(PRECISION, 2);
+
 export default function generateSupport(slices, settings) {
   if (!settings.support.enabled) return;
 
@@ -27,7 +29,7 @@ export default function generateSupport(slices, settings) {
 
     const neededSupportArea = upSkin.outline.difference(currentLayer.outline.offset(margin));
 
-    if (neededSupportArea.totalArea() * Math.pow(PRECISION, 2) > minArea) {
+    if (neededSupportArea.totalArea() * PRECISION_SQUARED > minArea) {
       supportArea = supportArea.union(neededSupportArea);
     }
     if (downSkin) supportArea = supportArea.difference(downSkin.outline.offset(margin));
