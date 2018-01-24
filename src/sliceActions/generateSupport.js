@@ -15,7 +15,6 @@ export default function generateSupport(slices, settings) {
   margin /= PRECISION;
   nozzleDiameter /= PRECISION;
 
-  const bidirectionalInfill = density < 0.8;
   const infillGridSize = nozzleDiameter *  2 / density;
   const supportDistanceLayers = Math.max(Math.ceil(distanceY / layerHeight), 1);
 
@@ -33,9 +32,8 @@ export default function generateSupport(slices, settings) {
     }
     if (downSkin) supportArea = supportArea.difference(downSkin.outline.offset(margin));
 
-    const even = (layer % 2 === 0);
     const bounds = supportArea.shapeBounds();
-    const innerFillTemplate = getFillTemplate(bounds, infillGridSize, bidirectionalInfill || even, bidirectionalInfill || !even);
+    const innerFillTemplate = getFillTemplate(bounds, infillGridSize, true, true);
 
     slices[layer].support = supportArea.clone().join(supportArea.intersect(innerFillTemplate));
     slices[layer].supportOutline = supportArea;
