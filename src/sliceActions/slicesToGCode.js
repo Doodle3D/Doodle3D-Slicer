@@ -74,7 +74,7 @@ export default function slicesToGCode(slices, settings) {
     }
 
     if (typeof slice.support !== 'undefined') {
-      pathToGCode(null, false, gcode, slice.support, true, true, z, profiles.support);
+      pathToGCode(slice.supportOutline, combing, gcode, slice.support, true, true, z, profiles.support);
     }
   }
 

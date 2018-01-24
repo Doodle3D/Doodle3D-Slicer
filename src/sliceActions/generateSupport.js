@@ -7,70 +7,37 @@ export default function generateSupport(slices, settings) {
 
   let {
     layerHeight,
-    support: {
-      gridSize: supportGridSize,
-      margin: supportMargin,
-      plateSize: plateSize,
-      distanceY: supportDistanceY
-    },
+    support: { density, margin, minArea, distanceY },
     nozzleDiameter
   } = settings;
 
-  supportGridSize /= PRECISION;
-  supportMargin /= PRECISION;
-  plateSize /= PRECISION;
+  density /= 100;
+  margin /= PRECISION;
   nozzleDiameter /= PRECISION;
-  var supportDistanceLayers = Math.max(Math.ceil(supportDistanceY / layerHeight), 1);
 
-  var supportAreas = new Shape([], true);
+  const bidirectionalInfill = density < 0.8;
+  const infillGridSize = nozzleDiameter *  2 / density;
+  const supportDistanceLayers = Math.max(Math.ceil(distanceY / layerHeight), 1);
 
-  for (var layer = slices.length - 1 - supportDistanceLayers; layer >= 0; layer --) {
-    var currentSlice = slices[layer];
+  let supportArea = new Shape([], true);
 
-    if (supportAreas.length > 0) {
+  for (let layer = slices.length - 1 - supportDistanceLayers; layer >= supportDistanceLayers; layer --) {
+    const currentLayer = slices[layer + supportDistanceLayers - 1];
+    const upSkin = slices[layer + supportDistanceLayers];
+    const downSkin = slices[layer - supportDistanceLayers];
 
-      if (layer >= supportDistanceLayers) {
-        var sliceSkin = slices[layer - supportDistanceLayers].outline;
-        sliceSkin = sliceSkin;
+    const neededSupportArea = upSkin.outline.difference(currentLayer.outline.offset(margin));
 
-        var supportAreasSlimmed = supportAreas.difference(sliceSkin.offset(supportMargin));
-        if (supportAreasSlimmed.area() < 100.0) {
-          supportAreas = supportAreas.difference(sliceSkin);
-        }
-        else {
-          supportAreas = supportAreasSlimmed;
-        }
-      }
-
-      var supportTemplate = getFillTemplate(supportAreas.bounds(), supportGridSize, true, true);
-      var supportFill = supportTemplate.intersect(supportAreas);
-      if (supportFill.length === 0) {
-        currentSlice.support = supportAreas.clone();
-      }
-      else {
-        currentSlice.support = supportFill;
-      }
+    if (neededSupportArea.totalArea() * Math.pow(PRECISION, 2) > minArea) {
+      supportArea = supportArea.union(neededSupportArea);
     }
+    if (downSkin) supportArea = supportArea.difference(downSkin.outline.offset(margin));
 
-    var supportSkin = slices[layer + supportDistanceLayers - 1].outline;
+    const even = (layer % 2 === 0);
+    const bounds = supportArea.shapeBounds();
+    const innerFillTemplate = getFillTemplate(bounds, infillGridSize, bidirectionalInfill || even, bidirectionalInfill || !even);
 
-    var slice = slices[layer + supportDistanceLayers];
-    for (var i = 0; i < slice.parts.length; i ++) {
-      var slicePart = slice.parts[i];
-
-      if (slicePart.intersect.closed) {
-        var outerLine = slicePart.outerLine;
-      }
-      else {
-        var outerLine = slicePart.intersect.offset(supportMargin);
-      }
-
-      var overlap = supportSkin.offset(supportMargin).intersect(outerLine);
-      var overhang = outerLine.difference(overlap);
-
-      if (overlap.length === 0 || overhang.length > 0) {
-        supportAreas = supportAreas.join(overhang);
-      }
-    }
+    slices[layer].support = supportArea.clone().join(supportArea.intersect(innerFillTemplate));
+    slices[layer].supportOutline = supportArea;
   }
 }

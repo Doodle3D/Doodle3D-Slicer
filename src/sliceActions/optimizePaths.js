@@ -74,7 +74,7 @@ export default function optimizePaths(slices, settings) {
 
     slice.parts = parts;
 
-    if (typeof slice.support !== 'undefined' && slice.support.length > 0) {
+    if (typeof slice.support !== 'undefined' && slice.support.paths.length > 0) {
       slice.support = optimizeShape(slice.support, start);
       start.copy(slice.support.lastPoint(true));
     }
