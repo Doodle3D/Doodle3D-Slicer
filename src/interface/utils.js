@@ -152,7 +152,6 @@ export async function slice(target, name, mesh, settings, updateProgress) {
       steps = 1;
       break;
     case 'WIFI':
-    case 'DOODLE3D-WIFI-BOX':
       if (settings.printer === 'doodle3d_printer') {
         const { state } = await getMalyanStatus(settings.ip);
         if (state !== 'idle') throw { message: 'printer must be idle before starting a print', code: 1 };
@@ -187,54 +186,54 @@ export async function slice(target, name, mesh, settings, updateProgress) {
     }
 
     case 'WIFI': {
-      const body = new FormData();
-      const file = new File([gcode], 'doodle.gcode', { type: 'plain/text' });
-      body.append('file', file);
+      if (settings.printer === 'doodle3d_printer') {
+        const body = new FormData();
+        const file = new File([gcode], 'doodle.gcode', { type: 'plain/text' });
+        body.append('file', file);
 
-      // await fetchProgress(`http://${settings.ip}/set?code=M563 S4`, { method: 'GET' });
-      await fetchProgress(`http://${settings.ip}/upload`, { method: 'POST', body }, (progress) => {
-        updateProgress({
-          action: 'Uploading',
-          percentage: currentStep / steps + progress.loaded / progress.total / steps
+        // await fetchProgress(`http://${settings.ip}/set?code=M563 S4`, { method: 'GET' });
+        await fetchProgress(`http://${settings.ip}/upload`, { method: 'POST', body }, (progress) => {
+          updateProgress({
+            action: 'Uploading',
+            percentage: currentStep / steps + progress.loaded / progress.total / steps
+          });
         });
-      });
-      currentStep ++;
-      await fetchProgress(`http://${settings.ip}/set?code=M566 ${name}.gcode`, { method: 'GET' });
-      await fetchProgress(`http://${settings.ip}/set?code=M565`, { method: 'GET' });
-      break;
-    }
+        await fetchProgress(`http://${settings.ip}/set?code=M566 ${name}.gcode`, { method: 'GET' });
+        await fetchProgress(`http://${settings.ip}/set?code=M565`, { method: 'GET' });
 
-    case 'DOODLE3D-WIFI-BOX': {
-      // upload G-code file to AWS S3
-      const { data: { reservation, id } } = await fetch(`${GCODE_SERVER_URL}/upload`, { method: 'POST' })
-        .then(response => response.json());
+        currentStep ++;
+      } else {
+        // upload G-code file to AWS S3
+        const { data: { reservation, id } } = await fetch(`${GCODE_SERVER_URL}/upload`, { method: 'POST' })
+          .then(response => response.json());
 
-      const body = new FormData();
-      const { fields } = reservation;
-      for (const key in fields) {
-        body.append(key, fields[key]);
+        const body = new FormData();
+        const { fields } = reservation;
+        for (const key in fields) {
+          body.append(key, fields[key]);
+        }
+
+        const file = `;${JSON.stringify({
+          ...settings,
+          name: `${name}.gcode`,
+          printer: { type: settings.printers, title: printerSettings[settings.printer].title },
+          material: { type: settings.material, title: materialSettings[settings.material].title },
+          quality: { type: settings.quality, title: qualitySettings[settings.quality].title }
+        }).trim()}\n${gcode}`;
+        body.append('file', file);
+
+        await fetchProgress(reservation.url, { method: 'POST', body }, (progress) => {
+          updateProgress({
+            action: 'Uploading',
+            percentage: currentStep / steps + progress.loaded / progress.total / steps
+          });
+        });
+        currentStep ++;
+
+        const url = `${CONNECT_URL}?uuid=${id}`;
+        const popup = window.open(url, '_blank');
+        if (!popup) throw { message: 'popup was blocked by browser', code: 3, url };
       }
-
-      const file = `;${JSON.stringify({
-        ...settings,
-        name: `${name}.gcode`,
-        printer: { type: settings.printers, title: printerSettings[settings.printer].title },
-        material: { type: settings.material, title: materialSettings[settings.material].title },
-        quality: { type: settings.quality, title: qualitySettings[settings.quality].title }
-      }).trim()}\n${gcode}`;
-      body.append('file', file);
-
-      await fetchProgress(reservation.url, { method: 'POST', body }, (progress) => {
-        updateProgress({
-          action: 'Uploading',
-          percentage: currentStep / steps + progress.loaded / progress.total / steps
-        });
-      });
-      currentStep ++;
-
-      const url = `${CONNECT_URL}?uuid=${id}`;
-      const popup = window.open(url, '_blank');
-      if (!popup) throw { message: 'popup was blocked by browser', code: 3, url };
       break;
     }
 
