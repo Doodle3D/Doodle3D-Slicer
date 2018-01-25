@@ -8,6 +8,7 @@ import { grey800, red500 } from 'material-ui/styles/colors';
 import React from 'react';
 import PropTypes from 'prop-types';
 import fileSaver from 'file-saver';
+import { Doodle3DBox } from 'doodle3d-api';
 
 export function placeOnGround(mesh) {
   const boundingBox = new THREE.Box3().setFromObject(mesh);
@@ -90,8 +91,9 @@ export function fetchProgress(url, data = {}, onProgress) {
     const xhr = new XMLHttpRequest();
 
     xhr.onload = () => {
-      const { status, statusText, responseURL: url } = xhr;
-      resolve(new Response(xhr.response, { status, statusText, url }));
+      resolve(new Response(xhr.response));
+      // const { status, statusText, responseURL: url } = xhr;
+      // resolve(new Response(xhr.response, { status, statusText, url }));
     }
     xhr.onerror = () => reject(new TypeError('Network request failed'));
     xhr.ontimeout = () => reject(new TypeError('Network request failed'));
@@ -147,15 +149,22 @@ const CONNECT_URL = 'http://connect.doodle3d.com/';
 export async function slice(target, name, mesh, settings, updateProgress) {
   let steps;
   let currentStep = 0;
+  let wifiBox;
   switch (target) {
     case 'DOWNLOAD':
       steps = 1;
       break;
     case 'WIFI':
-      // if (settings.printer === 'doodle3d_printer') {
+      if (settings.printer === 'doodle3d_printer') {
       //   const { state } = await getMalyanStatus(settings.ip);
-      //   if (state !== 'idle') throw { message: 'printer must be idle before starting a print', code: 1 };
-      // }
+      //   if (state !== 'idle') throw { message: 'printer must be idle before starting a print', code: 0 };
+      } else {
+        wifiBox = new Doodle3DBox(settings.ip);
+        if (!await wifiBox.checkAlive()) throw { message: `can't connect to printer`, code: 4 }
+
+        const { state } = await wifiBox.info.status();
+        if (state !== 'idle') throw { message: 'printer must be idle before starting a print', code: 0 };
+      }
       steps = 2;
       break;
     default:
@@ -241,9 +250,7 @@ export async function slice(target, name, mesh, settings, updateProgress) {
         });
         currentStep ++;
 
-        const url = `${CONNECT_URL}?uuid=${id}`;
-        const popup = window.open(url, '_blank');
-        if (!popup) throw { message: 'popup was blocked by browser', code: 3, url };
+        const result = await wifiBox.printer.fetch(id);
       }
       break;
     }

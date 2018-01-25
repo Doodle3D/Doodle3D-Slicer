@@ -15,6 +15,7 @@ import MenuItem from 'material-ui/MenuItem';
 import { Tabs, Tab } from 'material-ui/Tabs';
 import Settings from './Settings.js';
 import MalyanControl from './MalyanControl.js';
+import WifiBoxControl from './WifiBoxControl.js';
 import ReactResizeDetector from 'react-resize-detector';
 import JSONToSketchData from 'doodle3d-core/shape/JSONToSketchData';
 import createSceneData from 'doodle3d-core/d3/createSceneData.js';
@@ -119,8 +120,7 @@ class Interface extends React.Component {
       error: null,
       mesh: null,
       objectDimensions: '0x0x0mm',
-      popover: { open: false, element: null },
-      openUrlDialog: { open: false, url: '' }
+      popover: { open: false, element: null }
     };
   }
 
@@ -212,6 +212,7 @@ class Interface extends React.Component {
     if (isSlicing) return;
     if (!settings) {
       this.setState({ error: 'please select a printer first' });
+      return;
     }
     if (target === 'WIFI' && !settings.ip) {
       this.setState({ error: 'please connect to a WiFi enabled printer' });
@@ -232,12 +233,8 @@ class Interface extends React.Component {
       const updateProgres = progress => this.setState({ progress: { ...this.state.progress, ...progress } });
       await slice(target, name, exportMesh, settings, updateProgres);
     } catch (error) {
-      if (error.code === 3) {
-        this.setState({ openUrlDialog: { open: true, url: error.url } });
-      } else {
-        this.setState({ error: error.message });
-        throw error;
-      }
+      this.setState({ error: error.message });
+      throw error;
     } finally {
       this.setState({ isSlicing: false });
     }
@@ -319,7 +316,7 @@ class Interface extends React.Component {
 
   render() {
     const { classes, onCancel } = this.props;
-    const { isSlicing, progress, showFullScreen, error, objectDimensions, openUrlDialog, settings } = this.state;
+    const { isSlicing, progress, showFullScreen, error, objectDimensions, settings } = this.state;
 
     const style = { ...(showFullScreen ? {} : { maxWidth: 'inherit', width: '100%', height: '100%' }) };
 
@@ -341,7 +338,10 @@ class Interface extends React.Component {
               className={`${classes.button}`}
               onTouchTap={onCancel}
             />}
-            {settings && settings.printer === 'doodle3d_printer' && <MalyanControl ip={settings.ip} />}
+            {(settings && settings.ip) && ((settings.printer === 'doodle3d_printer') ?
+              <MalyanControl ip={settings.ip} /> :
+              <WifiBoxControl ip={settings.ip} />
+            )}
             <RaisedButton
               label="Print"
               ref="button"
@@ -385,32 +385,6 @@ class Interface extends React.Component {
       </div>
     );
 
-    const closeDialog = () => this.setState({ openUrlDialog: { open: false, url: '' } });
-
-    const dialog = (
-      <Dialog
-        open={openUrlDialog.open}
-        title="Open with Doodle3D Connect"
-        contentStyle={{ maxWidth: '400px' }}
-        actions={[
-          <FlatButton
-            label="Cancel"
-            onTouchTap={closeDialog}
-          />,
-          <RaisedButton
-            label="Open"
-            primary
-            onTouchTap={() => {
-              window.open(openUrlDialog.url, '_blank');
-              closeDialog();
-            }}
-          />
-        ]}
-      >
-        <p>Click 'Open' to continue to Doodle3D Connect</p>
-      </Dialog>
-    )
-
     if (showFullScreen) {
       return (
         <div
@@ -426,7 +400,6 @@ class Interface extends React.Component {
           <h1 className={classes.title}>Doodle3D Slicer</h1>
           {d3Panel}
           {settingsPanel}
-          {dialog}
         </div>
       );
     } else {
@@ -455,7 +428,6 @@ class Interface extends React.Component {
               {d3Panel}
             </Tab>
           </Tabs>
-          {dialog}
         </div>
       );
     }
