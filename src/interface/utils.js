@@ -171,7 +171,7 @@ export async function slice(target, name, mesh, settings, updateProgress) {
   const { gcode } = await sliceGeometry(settings, mesh.geometry, mesh.material, matrix, false, false, ({ progress }) => {
     updateProgress({
       action: progress.action,
-      percentage: currentStep / steps + progress.done / progress.total / steps
+      percentage: (currentStep + progress.done / progress.total) / steps
     });
   }).catch(error => {
     throw { message: `error during slicing: ${error.message}`, code: 2 };
@@ -204,7 +204,7 @@ export async function slice(target, name, mesh, settings, updateProgress) {
         await fetch(`http://${settings.ip}/upload`, { method: 'POST', body, mode: 'no-cors' }, (progress) => {
           updateProgress({
             action: 'Uploading',
-            percentage: currentStep / steps + progress.loaded / progress.total / steps
+            percentage: (currentStep + progress.loaded / progress.total) / steps
           });
         });
         clearInterval(interval);
@@ -235,7 +235,7 @@ export async function slice(target, name, mesh, settings, updateProgress) {
         await fetchProgress(reservation.url, { method: 'POST', body }, (progress) => {
           updateProgress({
             action: 'Uploading',
-            percentage: currentStep / steps + progress.loaded / progress.total / steps
+            percentage: (currentStep + progress.loaded / progress.total) / steps
           });
         });
         currentStep ++;
