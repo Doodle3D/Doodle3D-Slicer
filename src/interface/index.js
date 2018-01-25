@@ -14,8 +14,8 @@ import Menu from 'material-ui/Menu';
 import MenuItem from 'material-ui/MenuItem';
 import { Tabs, Tab } from 'material-ui/Tabs';
 import Settings from './Settings.js';
-import MalyanControl from './MalyanControl.js';
-import WifiBoxControl from './WifiBoxControl.js';
+// import MalyanControl from './MalyanControl.js';
+// import WifiBoxControl from './WifiBoxControl.js';
 import ReactResizeDetector from 'react-resize-detector';
 import JSONToSketchData from 'doodle3d-core/shape/JSONToSketchData';
 import createSceneData from 'doodle3d-core/d3/createSceneData.js';
@@ -338,10 +338,10 @@ class Interface extends React.Component {
               className={`${classes.button}`}
               onTouchTap={onCancel}
             />}
-            {(settings && settings.ip) && ((settings.printer === 'doodle3d_printer') ?
+            {/* (settings && settings.ip) && ((settings.printer === 'doodle3d_printer') ?
               <MalyanControl ip={settings.ip} /> :
               <WifiBoxControl ip={settings.ip} />
-            )}
+            ) */}
             <RaisedButton
               label="Print"
               ref="button"
