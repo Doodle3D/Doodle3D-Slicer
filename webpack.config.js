@@ -35,6 +35,7 @@ module.exports = {
       'clipper-lib': '@doodle3d/clipper-lib',
       'clipper-js': '@doodle3d/clipper-js',
       'doodle3d-core': `@doodle3d/doodle3d-core/${devMode ? 'module' : 'lib'}`,
+      'doodle3d-api': `@doodle3d/doodle3d-api/${devMode ? 'module' : 'lib'}`,
       'cal': '@doodle3d/cal'
     }
   },
