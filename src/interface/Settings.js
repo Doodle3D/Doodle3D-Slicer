@@ -29,14 +29,20 @@ const styles = {
     width: '100%',
     flexGrow: 1,
     overflowY: 'auto',
-    '& p, h3': {
+    '& p': {
       fontWeight: 'bold',
       margin: '30px 0 0 0'
+    },
+    '& h3': {
+      fontWeight: 'bold',
+      marginTop: '20px',
+      marginBottom: '20px',
     }
   },
   error: {
     color: red500
-  }
+  },
+  
 };
 
 const getLocalStorage = () => {
@@ -353,7 +359,7 @@ class Settings extends React.Component {
             <MenuItem key={value} value={value} primaryText={title} />
           ))}
         </SelectField>
-        <h3>Printer Setup</h3>
+        <h3>Print Setup</h3>
         <Tabs>
           <Tab buttonStyle={{ color: grey800, backgroundColor: 'white' }} label="Basic">
             <div>
