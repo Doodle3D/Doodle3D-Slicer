@@ -191,6 +191,7 @@ export async function slice(target, name, mesh, settings, updateProgress) {
         const file = new File([gcode], 'doodle.gcode', { type: 'plain/text' });
         body.append('file', file);
 
+        // because fetch has no way of retrieving progress we fake progress
         let loaded = 0;
         const interval = setInterval(() => {
           loaded += 15 * 1024;
