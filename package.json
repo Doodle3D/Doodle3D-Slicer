@@ -7,8 +7,9 @@
   "esnext": "src/index.js",
   "scripts": {
     "start": "webpack-dev-server -w",
+    "dist": "NODE_ENV=production webpack -p",
     "prepare": "npm run build",
-    "analyze": "ANALYZE_BUNDLE=true webpack -p",
+    "analyze": "NODE_ENV=production ANALYZE_BUNDLE=true webpack -p",
     "build": "npm run build:main && npm run build:main:settings && npm run build:module && npm run build:module:settings ",
     "build:main": "BABEL_ENV=main babel src -s -d lib",
     "build:module": "BABEL_ENV=module babel src -s -d module",
