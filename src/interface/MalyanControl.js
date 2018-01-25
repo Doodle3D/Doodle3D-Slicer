@@ -19,23 +19,23 @@ class MalyanControl extends React.Component {
     mounted: true
   };
 
-  componentDidMount = async () => {
-    const { ip } = this.props;
-    while (this.state.mounted) {
-      const status = await getMalyanStatus(ip).catch(() => null);
-      this.setState({ status });
-      await sleep(1000);
-    }
-  };
+  // componentDidMount = async () => {
+  //   const { ip } = this.props;
+  //   while (this.state.mounted) {
+  //     const status = await getMalyanStatus(ip).catch(() => null);
+  //     this.setState({ status });
+  //     await sleep(1000);
+  //   }
+  // };
 
   home = () => {
     const { ip } = this.props;
-    fetch(`http://${ip}/set?code=G28`, { method: 'GET' });
+    fetch(`http://${ip}/set?code=G28`, { method: 'GET', mode: 'no-cors' });
   };
 
   stop = () => {
     const { ip } = this.props;
-    fetch(`http://${ip}/set?cmd={P:X}`, { method: 'GET' });
+    fetch(`http://${ip}/set?cmd={P:X}`, { method: 'GET', mode: 'no-cors' });
   };
 
   componentWillUnmount() {

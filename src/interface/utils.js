@@ -152,10 +152,10 @@ export async function slice(target, name, mesh, settings, updateProgress) {
       steps = 1;
       break;
     case 'WIFI':
-      if (settings.printer === 'doodle3d_printer') {
-        const { state } = await getMalyanStatus(settings.ip);
-        if (state !== 'idle') throw { message: 'printer must be idle before starting a print', code: 1 };
-      }
+      // if (settings.printer === 'doodle3d_printer') {
+      //   const { state } = await getMalyanStatus(settings.ip);
+      //   if (state !== 'idle') throw { message: 'printer must be idle before starting a print', code: 1 };
+      // }
       steps = 2;
       break;
     default:
@@ -191,15 +191,25 @@ export async function slice(target, name, mesh, settings, updateProgress) {
         const file = new File([gcode], 'doodle.gcode', { type: 'plain/text' });
         body.append('file', file);
 
+        let loaded = 0;
+        const interval = setInterval(() => {
+          loaded += 15 * 1024;
+          updateProgress({
+            action: 'Uploading',
+            percentage: (currentStep + loaded / file.size) / steps
+          });
+        }, 1000);
+
         // await fetchProgress(`http://${settings.ip}/set?code=M563 S4`, { method: 'GET' });
-        await fetchProgress(`http://${settings.ip}/upload`, { method: 'POST', body }, (progress) => {
+        await fetch(`http://${settings.ip}/upload`, { method: 'POST', body, mode: 'no-cors' }, (progress) => {
           updateProgress({
             action: 'Uploading',
             percentage: currentStep / steps + progress.loaded / progress.total / steps
           });
         });
-        await fetchProgress(`http://${settings.ip}/set?code=M566 ${name}.gcode`, { method: 'GET' });
-        await fetchProgress(`http://${settings.ip}/set?code=M565`, { method: 'GET' });
+        clearInterval(interval);
+        await fetch(`http://${settings.ip}/set?code=M566 ${name}.gcode`, { method: 'GET', mode: 'no-cors' });
+        await fetch(`http://${settings.ip}/set?code=M565`, { method: 'GET', mode: 'no-cors' });
 
         currentStep ++;
       } else {
