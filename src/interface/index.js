@@ -335,13 +335,13 @@ class Interface extends React.Component {
             {isSlicing && <p>{progress.action}</p>}
             {isSlicing && <LinearProgress mode="determinate" value={progress.percentage * 100.0} />}
           </div>
-          {settings && settings.printer === 'doodle3d_printer' && <MalyanControl ip={settings.ip} />}
           <div className={classes.sliceButtons}>
             {onCancel && <RaisedButton
               label="Cancel"
               className={`${classes.button}`}
               onTouchTap={onCancel}
             />}
+            {settings && settings.printer === 'doodle3d_printer' && <MalyanControl ip={settings.ip} />}
             <RaisedButton
               label="Print"
               ref="button"
