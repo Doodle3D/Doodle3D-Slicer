@@ -43,7 +43,7 @@ const styles = {
   error: {
     color: red500
   },
-  
+
 };
 
 const getLocalStorage = () => {
@@ -407,7 +407,6 @@ class Settings extends React.Component {
               <NumberField name="settings.brim.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
               <p>Support</p>
               <Checkbox name="settings.support.enabled" label="Enabled" />
-              <NumberField name="settings.support.speed" min={0.1} fullWidth floatingLabelText="Accaptance Margin" />
               <NumberField name="settings.support.distanceY" min={0.1} fullWidth floatingLabelText="Distance Y" />
               <NumberField name="settings.support.density" min={0} max={100} fullWidth floatingLabelText="Density" />
               <NumberField name="settings.support.margin" min={0.1} fullWidth floatingLabelText="Margin" />
