@@ -115,7 +115,7 @@ class Interface extends React.Component {
     this.state = {
       scene,
       settings: null,
-      showFullScreen: false,
+      showFullScreen: window.innerWidth > MAX_FULLSCREEN_WIDTH,
       isSlicing: false,
       error: null,
       mesh: null,

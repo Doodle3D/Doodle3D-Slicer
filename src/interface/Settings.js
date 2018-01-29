@@ -21,6 +21,10 @@ import SettingsIcon from 'material-ui-icons/Settings';
 import validateIp from 'validate-ip';
 import { Doodle3DManager } from 'doodle3d-api';
 
+const DOODLE_3D_MANAGER = new Doodle3DManager();
+DOODLE_3D_MANAGER.checkNonServerBoxes = false;
+DOODLE_3D_MANAGER.setAutoUpdate(true, 5000);
+
 const styles = {
   textFieldRow: {
     display: 'flex',
@@ -105,20 +109,15 @@ class Settings extends React.Component {
       this.openAddPrinterDialog();
     }
 
-    const doodle3DManager = new Doodle3DManager();
-    doodle3DManager.checkNonServerBoxes = false;
-    doodle3DManager.setAutoUpdate(true, 1000);
-
-    doodle3DManager.addEventListener('boxeschanged', ({ boxes: wifiBoxes }) => {
-      this.setState({ wifiBoxes });
-    });
-
-    this.setState({ doodle3DManager })
+    const eventListener = ({ boxes }) => this.setState({ wifiBoxes: boxes });
+    this.setState({ wifiBoxes: DOODLE_3D_MANAGER.boxes, eventListener });
+    DOODLE_3D_MANAGER.addEventListener('boxeschanged', eventListener);
   }
 
-  componentWillUnMount() {
-    const { doodle3DManager } = this.state;
-    if (doodle3DManager) doodle3DManager.setAutoUpdate(false);
+  componentWillUnmount() {
+    console.log('remove');
+    const { eventListener } = this.state;
+    DOODLE_3D_MANAGER.removeEventListener('boxeschanged', eventListener);
   }
 
   changeSettings = (fieldName, value) => {
