@@ -10,6 +10,11 @@ export const POSITION_X = 'X';
 export const POSITION_Y = 'Y';
 export const POSITION_Z = 'Z';
 
+const PRECISION_INVERSE = 1 / PRECISION;
+function toFixedTrimmed(value) {
+  return (Math.round(value * PRECISION_INVERSE) / PRECISION_INVERSE).toString();
+}
+
 export default class {
   constructor(layerHeight) {
     this._nozzleToFilamentRatio = 1;
@@ -59,10 +64,10 @@ export default class {
 
     this._addGCode({
       [MOVE]: 0,
-      [POSITION_X]: newNozzlePosition.x.toFixed(3),
-      [POSITION_Y]: newNozzlePosition.y.toFixed(3),
-      [POSITION_Z]: z.toFixed(3),
-      [SPEED]: (speed * 60).toFixed(3)
+      [POSITION_X]: toFixedTrimmed(newNozzlePosition.x),
+      [POSITION_Y]: toFixedTrimmed(newNozzlePosition.y),
+      [POSITION_Z]: toFixedTrimmed(z),
+      [SPEED]: toFixedTrimmed(speed * 60)
     });
 
     this._nozzlePosition.copy(newNozzlePosition);
@@ -79,11 +84,11 @@ export default class {
 
     this._addGCode({
       [MOVE]: 1,
-      [POSITION_X]: newNozzlePosition.x.toFixed(3),
-      [POSITION_Y]: newNozzlePosition.y.toFixed(3),
-      [POSITION_Z]: z.toFixed(3),
-      [SPEED]: (speed * 60).toFixed(3),
-      [EXTRUDER]: this._extruder.toFixed(3)
+      [POSITION_X]: toFixedTrimmed(newNozzlePosition.x),
+      [POSITION_Y]: toFixedTrimmed(newNozzlePosition.y),
+      [POSITION_Z]: toFixedTrimmed(z),
+      [SPEED]: toFixedTrimmed(speed * 60),
+      [EXTRUDER]: toFixedTrimmed(this._extruder)
     });
 
     this._nozzlePosition.copy(newNozzlePosition);
@@ -100,8 +105,8 @@ export default class {
 
         this._addGCode({
           [MOVE]: 0,
-          [EXTRUDER]: this._extruder.toFixed(3),
-          [SPEED]: (speed * 60).toFixed(3)
+          [EXTRUDER]: toFixedTrimmed(this._extruder),
+          [SPEED]: toFixedTrimmed(speed * 60)
         });
       }
     }
@@ -118,8 +123,8 @@ export default class {
 
         this._addGCode({
           [MOVE]: 0,
-          [EXTRUDER]: (this._extruder - amount).toFixed(3),
-          [SPEED]: (speed * 60).toFixed(3)
+          [EXTRUDER]: toFixedTrimmed(this._extruder - amount),
+          [SPEED]: toFixedTrimmed(speed * 60)
         });
       }
     }
