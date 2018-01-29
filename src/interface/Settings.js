@@ -241,12 +241,13 @@ class Settings extends React.Component {
       printer,
       material,
       quality,
+      infill,
       ip
     };
 
     settings = _.merge({}, settings, printerSettings[printer]);
     settings = _.merge({}, settings, qualitySettings[quality]);
-    settings = _.merge({}, settings, infillSettings[quality]);
+    settings = _.merge({}, settings, infillSettings[infill]);
     settings = _.merge({}, settings, materialSettings[material]);
 
     for (const key in advanced) {
