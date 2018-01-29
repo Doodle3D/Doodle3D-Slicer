@@ -16,6 +16,7 @@ import defaultSettings from '../settings/default.yml';
 import printerSettings from '../settings/printer.yml';
 import materialSettings from '../settings/material.yml';
 import qualitySettings from '../settings/quality.yml';
+import infillSettings from '../settings/infill.yml';
 import update from 'react-addons-update';
 import SettingsIcon from 'material-ui-icons/Settings';
 import validateIp from 'validate-ip';
@@ -148,6 +149,7 @@ class Settings extends React.Component {
         if (value !== 'add_printer') state = update(state, { localStorage: { active: { $set: value } } });
         break;
 
+      case 'settings.infill':
       case 'settings.quality':
       case 'settings.material':
         if (!localStorage.active) return this.openAddPrinterDialog();
@@ -233,7 +235,7 @@ class Settings extends React.Component {
   constructSettings(localStorage) {
     if (!localStorage.active) return defaultSettings;
 
-    const { ip, settings: { printer, material, quality, advanced } } = localStorage.printers[localStorage.active];
+    const { ip, settings: { printer, material, quality, infill, advanced } } = localStorage.printers[localStorage.active];
     let settings = {
       ...defaultSettings,
       printer,
@@ -244,6 +246,7 @@ class Settings extends React.Component {
 
     settings = _.merge({}, settings, printerSettings[printer]);
     settings = _.merge({}, settings, qualitySettings[quality]);
+    settings = _.merge({}, settings, infillSettings[quality]);
     settings = _.merge({}, settings, materialSettings[material]);
 
     for (const key in advanced) {
@@ -271,7 +274,7 @@ class Settings extends React.Component {
       active: id,
       printers: {
         ...this.state.localStorage.printers,
-        [id]: { name, ip, settings: { printer, material: 'pla', quality: 'medium', advanced: {} } }
+        [id]: { name, ip, settings: { printer, material: 'pla', infill: '20pct', quality: 'medium', advanced: {} } }
       }
     };
     this.setState({ localStorage });
@@ -381,6 +384,11 @@ class Settings extends React.Component {
             <div>
               <SelectField name="settings.quality" floatingLabelText="Quality" fullWidth>
                 {Object.entries(qualitySettings).map(([value, { title }]) => (
+                  <MenuItem key={value} value={value} primaryText={title} />
+                ))}
+              </SelectField>
+              <SelectField name="settings.infill" floatingLabelText="Infill" fullWidth>
+                {Object.entries(infillSettings).map(([value, { title }]) => (
                   <MenuItem key={value} value={value} primaryText={title} />
                 ))}
               </SelectField>
