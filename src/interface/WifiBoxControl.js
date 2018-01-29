@@ -26,7 +26,7 @@ class WifiBoxControl extends React.Component {
     const box = new Doodle3DBox(ip);
     window.d3dbox = box;
     box.addEventListener('update', ({ state }) => this.setState({ status: state }));
-    box.setAutoUpdate(true, 1000);
+    box.setAutoUpdate(true, 5000);
 
     this.setState({ box });
 
