@@ -22,6 +22,7 @@ import createSceneData from 'doodle3d-core/d3/createSceneData.js';
 import { generateExportMesh } from 'doodle3d-core/utils/exportUtils.js';
 import muiThemeable from 'material-ui/styles/muiThemeable';
 import Dialog from 'material-ui/Dialog';
+import logo from '../../img/logo.png';
 
 const MAX_FULLSCREEN_WIDTH = 720;
 
@@ -73,7 +74,7 @@ const styles = {
     margin: '5px 0 5px 5px'
   },
   controlButton: {
-    marginRight: '2px'
+    marginRight: '5px'
   },
   buttonContainer: {
     width: '100%',
@@ -89,6 +90,7 @@ const styles = {
   },
   detail: {
     userSelect: 'none',
+    marginTop: '10px',
     marginBottom: '10px'
   }
 };
@@ -400,7 +402,7 @@ class Interface extends React.Component {
           }}
         >
           <ReactResizeDetector handleWidth handleHeight onResize={this.onResizeContainer} />
-          <h1 className={classes.title}>Doodle3D Slicer</h1>
+          <img src={logo} style={{ position: 'absolute', left: '20px', top: '20px', width: '150px', height: '51px' }} />
           {d3Panel}
           {settingsPanel}
         </div>
