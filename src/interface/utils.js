@@ -91,14 +91,14 @@ export function fetchProgress(url, data = {}, onProgress) {
     const xhr = new XMLHttpRequest();
 
     xhr.onload = () => {
-      resolve(new Response(xhr.response));
-      // const { status, statusText, responseURL: url } = xhr;
-      // resolve(new Response(xhr.response, { status, statusText, url }));
+      const headers = new Headers(xhr.getAllResponseHeaders());
+      const { status, statusText, response, responseText, responseURL: url = headers.get('X-Request-URL') } = xhr;
+      resolve(new Response(response || responseText, { headers, status, statusText, url }));
     }
     xhr.onerror = () => reject(new TypeError('Network request failed'));
     xhr.ontimeout = () => reject(new TypeError('Network request failed'));
 
-    xhr.open(request.method, url);
+    xhr.open(request.method, url, true);
 
     if (request.credentials === 'include') {
       xhr.withCredentials = true
@@ -108,10 +108,9 @@ export function fetchProgress(url, data = {}, onProgress) {
     if (xhr.upload && onProgress) xhr.upload.onprogress = onProgress;
     if (xhr.responseType) xhr.responseType = 'blob';
 
-    // Malyan printer doesn't like headers...
-    // request.headers.forEach((value, name) => {
-    //   xhr.setRequestHeader(name, value)
-    // });
+    request.headers.forEach((value, name) => {
+      xhr.setRequestHeader(name, value)
+    });
 
     xhr.send(data.body);
   });
