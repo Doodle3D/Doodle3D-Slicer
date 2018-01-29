@@ -156,8 +156,8 @@ export async function slice(target, name, mesh, settings, updateProgress) {
       break;
     case 'WIFI':
       if (settings.printer === 'doodle3d_printer') {
-      //   const { state } = await getMalyanStatus(settings.ip);
-      //   if (state !== 'idle') throw { message: 'printer must be idle before starting a print', code: 0 };
+        const { state } = await getMalyanStatus(settings.ip);
+        if (state !== 'idle') throw { message: 'printer must be idle before starting a print', code: 0 };
       } else {
         wifiBox = new Doodle3DBox(settings.ip);
         if (!await wifiBox.checkAlive()) throw { message: `can't connect to printer`, code: 4 }
