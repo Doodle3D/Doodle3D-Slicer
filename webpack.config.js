@@ -71,8 +71,8 @@ module.exports = {
       appMountId: 'app'
     })
   ],
-  devtool: false,
-  devtool: devMode ? 'source-map' : false,
+  devtool: 'source-map',
+  // devtool: devMode ? 'source-map' : false,
   devServer: {
     contentBase: 'dist'
   }
