@@ -60,7 +60,10 @@ const styles = {
     flexShrink: 0,
   },
   sliceInfo: {
-    margin: '10px 0'
+    margin: '10px 0',
+    '& p': {
+      marginBottom: '5px'
+    }
   },
   sliceButtons: {
     justifyContent: 'flex-end',
