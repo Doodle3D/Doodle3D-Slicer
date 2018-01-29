@@ -91,9 +91,10 @@ export function fetchProgress(url, data = {}, onProgress) {
     const xhr = new XMLHttpRequest();
 
     xhr.onload = () => {
-      const headers = new Headers(xhr.getAllResponseHeaders());
-      const { status, statusText, response, responseText, responseURL: url = headers.get('X-Request-URL') } = xhr;
-      resolve(new Response(response || responseText, { headers, status, statusText, url }));
+      resolve(new Response(xhr.response));
+      // const headers = new Headers(xhr.getAllResponseHeaders() || '');
+      // const { status, statusText, response, responseText, responseURL: url = headers.get('X-Request-URL') } = xhr;
+      // resolve(new Response(response || responseText, { headers, status, statusText, url }));
     }
     xhr.onerror = () => reject(new TypeError('Network request failed'));
     xhr.ontimeout = () => reject(new TypeError('Network request failed'));
@@ -108,9 +109,7 @@ export function fetchProgress(url, data = {}, onProgress) {
     if (xhr.upload && onProgress) xhr.upload.onprogress = onProgress;
     if (xhr.responseType) xhr.responseType = 'blob';
 
-    request.headers.forEach((value, name) => {
-      xhr.setRequestHeader(name, value)
-    });
+    // request.headers.forEach((value, name) => xhr.setRequestHeader(name, value));
 
     xhr.send(data.body);
   });
@@ -223,25 +222,24 @@ export async function slice(target, name, mesh, settings, updateProgress) {
         currentStep ++;
       } else {
         // upload G-code file to AWS S3
-        const { data: { reservation, id } } = await fetch(`${GCODE_SERVER_URL}/upload`, { method: 'POST' })
+        const { data: { reservation: { fields, url }, id } } = await fetch(`${GCODE_SERVER_URL}/upload`, { method: 'POST' })
           .then(response => response.json());
 
         const body = new FormData();
-        const { fields } = reservation;
         for (const key in fields) {
           body.append(key, fields[key]);
         }
 
-        const file = `;${JSON.stringify({
+        const file = new File([`;${JSON.stringify({
           ...settings,
           name: `${name}.gcode`,
           printer: { type: settings.printers, title: printerSettings[settings.printer].title },
           material: { type: settings.material, title: materialSettings[settings.material].title },
           quality: { type: settings.quality, title: qualitySettings[settings.quality].title }
-        }).trim()}\n${gcode}`;
+        }).trim()}\n${gcode}`], 'doodle.gcode');
         body.append('file', file);
 
-        await fetchProgress(reservation.url, { method: 'POST', body }, (progress) => {
+        await fetchProgress(url, { method: 'POST', body }, progress => {
           updateProgress({
             action: 'Uploading',
             percentage: (currentStep + progress.loaded / progress.total) / steps
