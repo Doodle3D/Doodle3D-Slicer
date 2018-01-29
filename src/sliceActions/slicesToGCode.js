@@ -15,11 +15,8 @@ export default function slicesToGCode(slices, settings) {
     combing
   } = settings;
 
-  const filamentSurfaceArea = Math.pow((filamentThickness / 2), 2) * Math.PI;
-  const lineSurfaceArea = nozzleDiameter * layerHeight;
-  const nozzleToFilamentRatio = lineSurfaceArea / filamentSurfaceArea;
-
-  const gcode = new GCode(nozzleToFilamentRatio);
+  const gcode = new GCode();
+  gcode.updateLayerHeight(Z_OFFSET, nozzleDiameter, filamentThickness)
 
   if (settings.startCode) gcode.addGCode(settings.startCode, settings);
 
@@ -34,6 +31,7 @@ export default function slicesToGCode(slices, settings) {
     const z = layer * layerHeight + Z_OFFSET;
 
     if (layer === 1) {
+      gcode.updateLayerHeight(layerHeight, nozzleDiameter, filamentThickness);
       gcode.turnFanOn();
       isFirstLayer = false;
     }

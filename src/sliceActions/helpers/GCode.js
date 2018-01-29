@@ -11,9 +11,8 @@ export const POSITION_Y = 'Y';
 export const POSITION_Z = 'Z';
 
 export default class {
-  constructor(nozzleToFilamentRatio) {
-    this._nozzleToFilamentRatio = nozzleToFilamentRatio;
-
+  constructor(layerHeight) {
+    this._nozzleToFilamentRatio = 1;
     this._gcode = [`; Generated with Doodle3D Slicer V${VERSION}`];
     this._currentValues = {};
     this._nozzlePosition = new THREE.Vector2(0, 0);
@@ -25,6 +24,12 @@ export default class {
 
   _addGCode(command) {
     this._gcode.push(command);
+  }
+
+  updateLayerHeight(layerHeight, nozzleDiameter, filamentThickness) {
+    const filamentSurfaceArea = Math.pow((filamentThickness / 2), 2) * Math.PI;
+    const lineSurfaceArea = nozzleDiameter * layerHeight;
+    this._nozzleToFilamentRatio = lineSurfaceArea / filamentSurfaceArea;
   }
 
   turnFanOn(fanSpeed) {
