@@ -169,7 +169,7 @@ class Interface extends React.Component {
   }
 
   componentWillUnmount() {
-    const { scene: { editorControls, mesh: { material } }, renderer } = this.state;
+    const { scene: { editorControls, mesh: { material }, renderer } } = this.state;
     editorControls.dispose();
     material.dispose();
     renderer.dispose();
