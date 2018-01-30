@@ -116,7 +116,6 @@ class Settings extends React.Component {
   }
 
   componentWillUnmount() {
-    console.log('remove');
     const { eventListener } = this.state;
     DOODLE_3D_MANAGER.removeEventListener('boxeschanged', eventListener);
   }
