@@ -92,6 +92,13 @@ const styles = {
     userSelect: 'none',
     marginTop: '10px',
     marginBottom: '10px'
+  },
+  logo: {
+    position: 'absolute',
+    left: '20px',
+    top: '20px',
+    width: '150px',
+    height: '51px'
   }
 };
 
@@ -402,7 +409,7 @@ class Interface extends React.Component {
           }}
         >
           <ReactResizeDetector handleWidth handleHeight onResize={this.onResizeContainer} />
-          <img src={logo} style={{ position: 'absolute', left: '20px', top: '20px', width: '150px', height: '51px' }} />
+          <img src={logo} className={classes.logo} />
           {d3Panel}
           {settingsPanel}
         </div>
