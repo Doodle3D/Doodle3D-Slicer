@@ -3,7 +3,6 @@ import PropTypes from 'proptypes';
 import muiThemeable from 'material-ui/styles/muiThemeable';
 import injectSheet from 'react-jss';
 import FlatButton from 'material-ui/FlatButton';
-import { sleep, getMalyanStatus } from './utils.js';
 import { Doodle3DBox } from 'doodle3d-api';
 
 const styles = {
