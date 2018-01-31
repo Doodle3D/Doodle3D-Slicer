@@ -19,12 +19,15 @@ import qualitySettings from '../settings/quality.yml';
 import infillSettings from '../settings/infill.yml';
 import update from 'react-addons-update';
 import SettingsIcon from 'material-ui-icons/Settings';
+import ExitToAppIcon from 'material-ui-icons/ExitToApp';
 import validateIp from 'validate-ip';
 import { Doodle3DManager } from 'doodle3d-api';
 
 const DOODLE_3D_MANAGER = new Doodle3DManager();
 DOODLE_3D_MANAGER.checkNonServerBoxes = false;
 DOODLE_3D_MANAGER.setAutoUpdate(true, 5000);
+
+const CONNECT_URL = 'http://connect.doodle3d.com/';
 
 const styles = {
   textFieldRow: {
@@ -455,77 +458,61 @@ class Settings extends React.Component {
             </div>
           </Tab>
         </Tabs>
-        <Dialog
-          title="Add Printer"
-          open={addPrinter.open}
-          onRequestClose={this.closeAddPrinterDialog}
-          contentStyle={{ maxWidth: '400px' }}
-          autoScrollBodyContent
-          actions={[
-            <FlatButton
-              label="Cancel"
-              onTouchTap={this.closeAddPrinterDialog}
-            />,
-            <RaisedButton
-              label="Add"
-              primary
-              onTouchTap={this.addPrinter}
-            />
-          ]}
-        >
-          <SelectField name="addPrinter.printer" floatingLabelText="Printer" fullWidth>
-            {Object.entries(printerSettings).map(([value, { title }]) => (
-              <MenuItem key={value} value={value} primaryText={title} />
-            ))}
-          </SelectField>
-          <TextField name="addPrinter.name" floatingLabelText="Name" fullWidth />
-          {(addPrinter.printer === 'doodle3d_printer') ?
-            <TextField name="addPrinter.ip" floatingLabelText="IP Adress" fullWidth /> :
-            <SelectField name="addPrinter.ip" floatingLabelText="Doodle3D WiFi-Box" fullWidth>
-              {wifiBoxes.map(({ localip, id, wifiboxid }) => (<MenuItem key={id} value={localip} primaryText={wifiboxid} />))}
-            </SelectField>
-          }
-          {addPrinter.error && <p className={classes.error}>{addPrinter.error}</p>}
-        </Dialog>
-        <Dialog
-          title="Manage Printer"
-          open={managePrinter.open}
-          onRequestClose={this.closeManagePrinterDialog}
-          contentStyle={{ maxWidth: '400px' }}
-          autoScrollBodyContent
-          actions={[
-            <FlatButton
-              label="Cancel"
-              onTouchTap={this.closeManagePrinterDialog}
-            />,
-            <FlatButton
-              label="Remove Printer"
-              onTouchTap={this.removeActivePrinter}
-            />,
-            <RaisedButton
-              label="Save"
-              primary
-              onTouchTap={this.editPrinter}
-            />
-          ]}
-        >
-          <SelectField name="managePrinter.printer" floatingLabelText="Printer" fullWidth>
-            {Object.entries(printerSettings).map(([value, { title }]) => (
-              <MenuItem key={value} value={value} primaryText={title} />
-            ))}
-          </SelectField>
-          <TextField name="managePrinter.name" floatingLabelText="Name" fullWidth />
-          {(managePrinter.printer === 'doodle3d_printer') ?
-            <TextField name="managePrinter.ip" floatingLabelText="IP Adress" fullWidth /> :
-            <SelectField name="managePrinter.ip" floatingLabelText="Doodle3D WiFi-Box" fullWidth>
-              {wifiBoxes.map(({ localip, id, wifiboxid }) => (<MenuItem key={id} value={localip} primaryText={wifiboxid} />))}
-            </SelectField>
-          }
-          {managePrinter.error && <p className={classes.error}>{managePrinter.error}</p>}
-        </Dialog>
+        {printDialog(this.props, this.state, 'Add Printer', 'addPrinter', 'Add', addPrinter, this.closeAddPrinterDialog, null, this.addPrinter)}
+        {printDialog(this.props, this.state, 'Manage Printer', 'managePrinter', 'Save', managePrinter, this.closeManagePrinterDialog, this.removeActivePrinter, this.editPrinter)}
       </div>
     );
   }
+}
+
+function printDialog(props, state, title, form, submitText, data, closeDialog, removeActivePrinter, save) {
+  const { classes } = props;
+  const { wifiBoxes } = state;
+
+  return (
+    <Dialog
+      title={title}
+      open={data.open}
+      onRequestClose={closeDialog}
+      contentStyle={{ maxWidth: '400px' }}
+      autoScrollBodyContent
+      actions={[
+        <FlatButton
+          label="Cancel"
+          onTouchTap={closeDialog}
+        />,
+        removeActivePrinter && <FlatButton
+          label="Remove Printer"
+          onTouchTap={removeActivePrinter}
+        />,
+        <RaisedButton
+          label={submitText}
+          primary
+          onTouchTap={save}
+        />
+      ]}
+    >
+      <SelectField name={`${form}.printer`} floatingLabelText="Printer" fullWidth>
+        {Object.entries(printerSettings).map(([value, { title }]) => (
+          <MenuItem key={value} value={value} primaryText={title} />
+        ))}
+      </SelectField>
+      <TextField name={`${form}.name`} floatingLabelText="Name" fullWidth />
+      {(data.printer === 'doodle3d_printer') ?
+        <TextField name={`${form}.ip`} floatingLabelText="IP Adress" fullWidth /> :
+        <div className={classes.textFieldRow}>
+          <SelectField name={`${form}.ip`} floatingLabelText="Doodle3D WiFi-Box" fullWidth>
+            {wifiBoxes.map(({ localip, id, wifiboxid }) => (<MenuItem key={id} value={localip} primaryText={wifiboxid} />))}
+          </SelectField>
+          {data.ip && <ExitToAppIcon
+            onTouchTap={() => window.open(`${CONNECT_URL}#box?localip=${data.ip}`, '_blank')}
+            style={{ fill: grey800, marginLeft: '10px', cursor: 'pointer' }}
+          />}
+        </div>
+      }
+      {data.error && <p className={classes.error}>{data.error}</p>}
+    </Dialog>
+  );
 }
 
 export default injectSheet(styles)(Settings);
