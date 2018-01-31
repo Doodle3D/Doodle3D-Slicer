@@ -156,7 +156,7 @@ export async function slice(target, name, mesh, settings, updateProgress) {
       if (settings.printer === 'doodle3d_printer') {
         const { state } = await getMalyanStatus(settings.ip);
         if (state !== 'idle') throw { message: 'printer is busy', code: 0 };
-        
+
       } else {
         wifiBox = new Doodle3DBox(settings.ip);
         if (!await wifiBox.checkAlive()) throw { message: `can't connect to printer`, code: 4 }
@@ -231,14 +231,14 @@ export async function slice(target, name, mesh, settings, updateProgress) {
           body.append(key, fields[key]);
         }
 
-        const file = new File([`;${JSON.stringify({
+        const file = new Blob([`;${JSON.stringify({
           ...settings,
           name: `${name}.gcode`,
           printer: { type: settings.printers, title: printerSettings[settings.printer].title },
           material: { type: settings.material, title: materialSettings[settings.material].title },
           quality: { type: settings.quality, title: qualitySettings[settings.quality].title }
-        }).trim()}\n${gcode}`], 'doodle.gcode');
-        body.append('file', file);
+        }).trim()}\n${gcode}`]);
+        body.append('file', file, 'doodle.gcode');
 
         await fetchProgress(url, { method: 'POST', body }, progress => {
           updateProgress({
