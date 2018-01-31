@@ -188,16 +188,16 @@ export async function slice(target, name, mesh, settings, updateProgress) {
 
   switch (target) {
     case 'DOWNLOAD': {
-      const blob = new File([gcode], `${name}.gcode`, { type: 'text/plain' });
-      fileSaver.saveAs(blob);
+      const file = new Blob([gcode], { type: 'text/plain' });
+      fileSaver.saveAs(file, `${name}.gcode`);
       break;
     }
 
     case 'WIFI': {
       if (settings.printer === 'doodle3d_printer') {
         const body = new FormData();
-        const file = new File([gcode], 'doodle.gcode', { type: 'plain/text' });
-        body.append('file', file);
+        const file = new Blob([gcode], { type: 'plain/text' });
+        body.append('file', file, 'doodle.gcode');
 
         // because fetch has no way of retrieving progress we fake progress
         let loaded = 0;
