@@ -1,4 +1,4 @@
-import { divide, distanceTo } from './VectorUtils.js';
+import { scale, distanceTo } from './VectorUtils.js';
 import { PRECISION, VERSION } from '../../constants.js';
 
 export const MOVE = 'G';
@@ -9,8 +9,6 @@ export const EXTRUDER = 'E';
 export const POSITION_X = 'X';
 export const POSITION_Y = 'Y';
 export const POSITION_Z = 'Z';
-
-const PRECISION_INVERSE = 1 / PRECISION;
 
 export default class {
   constructor(layerHeight) {
@@ -54,7 +52,7 @@ export default class {
   }
 
   moveTo(x, y, z, { speed }) {
-    const newNozzlePosition = divide({ x, y }, PRECISION_INVERSE);
+    const newNozzlePosition = scale({ x, y }, PRECISION);
     const lineLength = distanceTo(this._nozzlePosition, newNozzlePosition);
 
     this._duration += lineLength / speed;
@@ -73,7 +71,7 @@ export default class {
   }
 
   lineTo(x, y, z, { speed, flowRate }) {
-    const newNozzlePosition = divide({ x, y }, PRECISION_INVERSE);
+    const newNozzlePosition = scale({ x, y }, PRECISION);
     const lineLength = distanceTo(this._nozzlePosition, newNozzlePosition);
 
     this._extruder += this._nozzleToFilamentRatio * lineLength * flowRate;
