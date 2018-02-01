@@ -1,4 +1,4 @@
-import { subtract, normal, normalize, dot, distanceTo, clone } from './helpers/VectorUtils.js';
+import { subtract, normal, normalize, dot, almostEquals } from './helpers/VectorUtils.js';
 
 export default function intersectionsToShapes(intersectionLayers, faces, openObjectIndexes, settings) {
   const layers = [];
@@ -86,84 +86,56 @@ export default function intersectionsToShapes(intersectionLayers, faces, openObj
       const shape = shapes[objectIndex].map(lineSegment => lineSegment.map(pointIndex => points[pointIndex]));
       const openShape = openObjectIndexes[objectIndex];
 
-      const lines = [shape.pop()];
+      const lines = [];
 
-      loop: while (shape.length !== 0) {
-        for (let i = 0; i < lines.length; i ++) {
-          const line = lines[i];
+      const connectPoints = [];
+      for (let pathIndex = 0; pathIndex < shape.length; pathIndex ++) {
+        const path = shape[pathIndex];
 
-          const lastPoint = line[line.length - 1];
-
-          let closestSegmentEnd;
-          let endHit = false;
-          const distanceEnd = new WeakMap();
-          for (let i = 0; i < shape.length; i ++) {
-            const lineSegment = shape[i];
-            if (lastPoint === lineSegment[0]) {
-              closestSegmentEnd = lineSegment;
-              endHit = true;
-              break;
-            }
-            const distance = distanceTo(lastPoint, lineSegment[0]);
-            distanceEnd.set(lineSegment, distance);
-          }
-
-          if (!endHit) {
-            closestSegmentEnd = shape.sort((a, b) => {
-              const distanceA = distanceEnd.get(a);
-              const distanceB = distanceEnd.get(b);
-              if (distanceA === distanceB) return distanceTo(a[0], a[1]) - distanceTo(b[0], b[1]);
-              return distanceA - distanceB;
-            })[0];
-
-            if (distanceTo(closestSegmentEnd[0], lastPoint) < .001) endHit = true;
-          }
-
-          if (endHit) {
-            shape.splice(shape.indexOf(closestSegmentEnd), 1);
-            line.splice(line.length, 0, closestSegmentEnd[1]);
-            continue loop;
-          }
-
-          const firstPoint = line[0];
-
-          let closestSegmentStart;
-          let hitStart = false;
-          const distanceStart = new WeakMap();
-          for (let i = 0; i < shape.length; i ++) {
-            const lineSegment = shape[i];
-            if (firstPoint === lineSegment[1]) {
-              closestSegmentStart = lineSegment;
-              hitStart = true;
-              break;
-            }
-            const distance = distanceTo(firstPoint, lineSegment[1]);
-            distanceStart.set(lineSegment, distance);
-          }
-
-          if (!hitStart) {
-            closestSegmentStart = shape.sort((a, b) => {
-              const distanceA = distanceStart.get(a);
-              const distanceB = distanceStart.get(b);
-              if (distanceA === distanceB) return distanceTo(a[0], a[1]) - distanceTo(b[0], b[1]);
-              return distanceA - distanceB;
-            })[0];
-
-            if (distanceTo(closestSegmentStart[1], firstPoint) < .001) hitStart = true;
-          }
-
-          if (hitStart) {
-            shape.splice(shape.indexOf(closestSegmentStart), 1);
-            line.splice(0, 0, closestSegmentStart[0]);
-            continue loop;
+        let shapeStartPoint = path[0];
+        for (const point of connectPoints) {
+          if (almostEquals(point.point, shapeStartPoint)) {
+            point.start = pathIndex;
+            shapeStartPoint = null;
+            break;
           }
         }
-        lines.push(shape.pop());
+        if (shapeStartPoint) connectPoints.push({ point: shapeStartPoint, start: pathIndex, end: null });
+
+        let shapeEndPoint = path[path.length - 1];
+        for (const point of connectPoints) {
+          if (almostEquals(point.point, shapeEndPoint)) {
+            point.end = pathIndex;
+            shapeEndPoint = null;
+            break;
+          }
+        }
+        if (shapeEndPoint) connectPoints.push({ point: shapeEndPoint, start: null, end: pathIndex });
+      }
+
+      while (connectPoints.length !== 0) {
+        let { start, end } = connectPoints.pop();
+
+        const line = [];
+        if (start !== null) line.push(...shape[start]);
+
+        let newPoint;
+        while (end !== null && (newPoint = connectPoints.find(point => point.start === end))) {
+          line.push(...shape[newPoint.start]);
+          connectPoints.splice(connectPoints.indexOf(newPoint), 1);
+
+          if (newPoint.end === start) break;
+
+          end = newPoint.end;
+          start = newPoint.start;
+        }
+
+        lines.push(line);
       }
 
       if (openShape) {
         for (const line of lines) {
-          const closed = distanceTo(line[0], line[line.length - 1]) < .001;
+          const closed = almostEquals(line[0], line[line.length - 1]);
           if (closed) {
             lineShapesClosed.push(line);
           } else {

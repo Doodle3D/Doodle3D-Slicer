@@ -18,6 +18,8 @@ export const normal = (a) => ({
   x: -a.y,
   y: a.x
 });
+export const equals = (a, b) => a.x === b.x && a.y === b.y;
+export const almostEquals = (a, b) => Math.abs(a.x - b.x) < 0.001 && Math.abs(a.y - b.y) < 0.001;
 export const dot = (a, b) => a.x * b.x + a.y * b.y;
 export const length = (v) => Math.sqrt(v.x * v.x + v.y * v.y);
 export const distanceTo = (a, b) => length(subtract(a, b));
