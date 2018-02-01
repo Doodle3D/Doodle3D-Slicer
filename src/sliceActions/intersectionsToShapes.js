@@ -50,33 +50,45 @@ export default function intersectionsToShapes(intersectionLayers, faces, openObj
 
       if (endConnects[pointA]) {
         const lineSegment = endConnects[pointA];
-        lineSegment.push(points[pointB]);
         delete endConnects[pointA];
-        endConnects[pointB] = lineSegment;
+        if (startConnects[pointB]) {
+          if (startConnects[pointB] === lineSegment) {
+            delete startConnects[pointB];
+          } else {
+            lineSegment.push(...startConnects[pointB]);
+            endConnects[lineSegment[lineSegment.length - 1]] = lineSegment;
+          }
+        } else {
+          lineSegment.push(pointB);
+          endConnects[pointB] = lineSegment;
+        }
       } else if (startConnects[pointB]) {
         const lineSegment = startConnects[pointB];
-        lineSegment.unshift(points[pointA]);
         delete startConnects[pointB];
-        startConnects[pointA] = lineSegment;
+        if (endConnects[pointA]) {
+          lineSegment.unshift(...endConnects[pointA]);
+          startConnects[lineSegment[0]] = lineSegment;
+        } else {
+          lineSegment.unshift(pointA);
+          startConnects[pointA] = lineSegment;
+        }
       } else {
-        const lineSegment = [points[pointA], points[pointB]];
+        const lineSegment = [pointA, pointB];
         startConnects[pointA] = lineSegment;
         endConnects[pointB] = lineSegment;
 
-        if (!shapes[objectIndex]) shapes[objectIndex] = { lineSegments: [] };
-        const shape = shapes[objectIndex];
-
-        shape.lineSegments.push(lineSegment)
+        if (!shapes[objectIndex]) shapes[objectIndex] = [];
+        const shape = shapes[objectIndex].push(lineSegment);
       }
     }
 
     for (const objectIndex in shapes) {
-      const shape = shapes[objectIndex];
+      const shape = shapes[objectIndex].map(lineSegment => lineSegment.map(pointIndex => points[pointIndex]));
       const openShape = openObjectIndexes[objectIndex];
 
-      const lines = [shape.lineSegments.pop()];
+      const lines = [shape.pop()];
 
-      loop: while (shape.lineSegments.length !== 0) {
+      loop: while (shape.length !== 0) {
         for (let i = 0; i < lines.length; i ++) {
           const line = lines[i];
 
@@ -85,8 +97,8 @@ export default function intersectionsToShapes(intersectionLayers, faces, openObj
           let closestSegmentEnd;
           let endHit = false;
           const distanceEnd = new WeakMap();
-          for (let i = 0; i < shape.lineSegments.length; i ++) {
-            const lineSegment = shape.lineSegments[i];
+          for (let i = 0; i < shape.length; i ++) {
+            const lineSegment = shape[i];
             if (lastPoint === lineSegment[0]) {
               closestSegmentEnd = lineSegment;
               endHit = true;
@@ -97,7 +109,7 @@ export default function intersectionsToShapes(intersectionLayers, faces, openObj
           }
 
           if (!endHit) {
-            closestSegmentEnd = shape.lineSegments.sort((a, b) => {
+            closestSegmentEnd = shape.sort((a, b) => {
               const distanceA = distanceEnd.get(a);
               const distanceB = distanceEnd.get(b);
               if (distanceA === distanceB) return distanceTo(a[0], a[1]) - distanceTo(b[0], b[1]);
@@ -108,7 +120,7 @@ export default function intersectionsToShapes(intersectionLayers, faces, openObj
           }
 
           if (endHit) {
-            shape.lineSegments.splice(shape.lineSegments.indexOf(closestSegmentEnd), 1);
+            shape.splice(shape.indexOf(closestSegmentEnd), 1);
             line.splice(line.length, 0, closestSegmentEnd[1]);
             continue loop;
           }
@@ -118,8 +130,8 @@ export default function intersectionsToShapes(intersectionLayers, faces, openObj
           let closestSegmentStart;
           let hitStart = false;
           const distanceStart = new WeakMap();
-          for (let i = 0; i < shape.lineSegments.length; i ++) {
-            const lineSegment = shape.lineSegments[i];
+          for (let i = 0; i < shape.length; i ++) {
+            const lineSegment = shape[i];
             if (firstPoint === lineSegment[1]) {
               closestSegmentStart = lineSegment;
               hitStart = true;
@@ -130,7 +142,7 @@ export default function intersectionsToShapes(intersectionLayers, faces, openObj
           }
 
           if (!hitStart) {
-            closestSegmentStart = shape.lineSegments.sort((a, b) => {
+            closestSegmentStart = shape.sort((a, b) => {
               const distanceA = distanceStart.get(a);
               const distanceB = distanceStart.get(b);
               if (distanceA === distanceB) return distanceTo(a[0], a[1]) - distanceTo(b[0], b[1]);
@@ -141,12 +153,12 @@ export default function intersectionsToShapes(intersectionLayers, faces, openObj
           }
 
           if (hitStart) {
-            shape.lineSegments.splice(shape.lineSegments.indexOf(closestSegmentStart), 1);
+            shape.splice(shape.indexOf(closestSegmentStart), 1);
             line.splice(0, 0, closestSegmentStart[0]);
             continue loop;
           }
         }
-        lines.push(shape.lineSegments.pop());
+        lines.push(shape.pop());
       }
 
       if (openShape) {
