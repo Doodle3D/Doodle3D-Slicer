@@ -14,31 +14,60 @@ export default function intersectionsToShapes(intersectionLayers, faces, openObj
 
     const shapes = {};
 
+    const startConnects = {};
+    const endConnects = {};
+
     for (let i = 0; i < faceIndexes.length; i ++) {
-      const { lineIndexes, objectIndex, flatNormal } = faces[faceIndexes[i]];
+      const faceIndex = faceIndexes[i];
+      const { lineIndexes, flatNormal, objectIndex } = faces[faceIndex];
 
-      const a = points[lineIndexes[0]];
-      const b = points[lineIndexes[1]];
-      const c = points[lineIndexes[2]];
+      const a = lineIndexes[0];
+      const b = lineIndexes[1];
+      const c = lineIndexes[2];
 
-      const lineSegment = [];
-      if (a && b) {
-        lineSegment.push(a, b);
-      } else if (b && c) {
-        lineSegment.push(b, c);
-      } else if (c && a) {
-        lineSegment.push(c, a);
+      let pointA;
+      let pointB;
+      if (points[a] && points[b]) {
+        pointA = a;
+        pointB = b;
+      } else if (points[b] && points[c]) {
+        pointA = b;
+        pointB = c;
+      } else if (points[c] && points[a]) {
+        pointA = c;
+        pointB = a;
       } else {
+        // should never happen
         continue;
       }
 
-      const segmentNormal = normalize(normal(subtract(lineSegment[1], lineSegment[0])));
-      if (dot(segmentNormal, flatNormal) < 0) lineSegment.reverse();
+      const segmentNormal = normalize(normal(subtract(points[pointA], points[pointB])));
+      if (dot(segmentNormal, flatNormal) < 0) {
+        const temp = pointB;
+        pointB = pointA;
+        pointA = temp;
+      }
 
-      if (!shapes[objectIndex]) shapes[objectIndex] = { lineSegments: [] };
-      const shape = shapes[objectIndex];
+      if (endConnects[pointA]) {
+        const lineSegment = endConnects[pointA];
+        lineSegment.push(points[pointB]);
+        delete endConnects[pointA];
+        endConnects[pointB] = lineSegment;
+      } else if (startConnects[pointB]) {
+        const lineSegment = startConnects[pointB];
+        lineSegment.unshift(points[pointA]);
+        delete startConnects[pointB];
+        startConnects[pointA] = lineSegment;
+      } else {
+        const lineSegment = [points[pointA], points[pointB]];
+        startConnects[pointA] = lineSegment;
+        endConnects[pointB] = lineSegment;
 
-      shape.lineSegments.push(lineSegment)
+        if (!shapes[objectIndex]) shapes[objectIndex] = { lineSegments: [] };
+        const shape = shapes[objectIndex];
+
+        shape.lineSegments.push(lineSegment)
+      }
     }
 
     for (const objectIndex in shapes) {
