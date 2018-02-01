@@ -1,4 +1,4 @@
-import { devide } from './helpers/VectorUtils.js';
+import { divide } from './helpers/VectorUtils.js';
 import { PRECISION } from '../constants.js'
 
 export default function applyPrecision(layers) {
@@ -16,7 +16,7 @@ function scaleUpShape(shape) {
     const path = shape[i];
 
     for (let i = 0; i < path.length; i ++) {
-      path[i] = devide(path[i], PRECISION);
+      path[i] = divide(path[i], PRECISION);
     }
   }
 }

@@ -10,7 +10,7 @@ export const scale = (a, factor) => ({
   x: a.x * factor,
   y: a.y * factor
 });
-export const devide = (a, factor) => ({
+export const divide = (a, factor) => ({
   x: a.x / factor,
   y: a.y / factor
 });
