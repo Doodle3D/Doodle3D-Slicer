@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import { divide, distanceTo } from './VectorUtils.js';
 import { PRECISION, VERSION } from '../../constants.js';
 
 export const MOVE = 'G';
@@ -20,7 +20,7 @@ export default class {
     this._nozzleToFilamentRatio = 1;
     this._gcode = [`; Generated with Doodle3D Slicer V${VERSION}`];
     this._currentValues = {};
-    this._nozzlePosition = new THREE.Vector2(0, 0);
+    this._nozzlePosition = { x: 0, y: 0 };
     this._extruder = 0.0;
     this._duration = 0.0;
     this._isRetracted = false;
@@ -57,8 +57,8 @@ export default class {
   }
 
   moveTo(x, y, z, { speed }) {
-    const newNozzlePosition = new THREE.Vector2(x, y).multiplyScalar(PRECISION);
-    const lineLength = this._nozzlePosition.distanceTo(newNozzlePosition);
+    const newNozzlePosition = divide({ x, y }, PRECISION_INVERSE);
+    const lineLength = distanceTo(this._nozzlePosition, newNozzlePosition);
 
     this._duration += lineLength / speed;
 
@@ -70,14 +70,14 @@ export default class {
       [SPEED]: toFixedTrimmed(speed * 60)
     });
 
-    this._nozzlePosition.copy(newNozzlePosition);
+    this._nozzlePosition = newNozzlePosition;
 
     return this;
   }
 
   lineTo(x, y, z, { speed, flowRate }) {
-    const newNozzlePosition = new THREE.Vector2(x, y).multiplyScalar(PRECISION);
-    const lineLength = this._nozzlePosition.distanceTo(newNozzlePosition);
+    const newNozzlePosition = divide({ x, y }, PRECISION_INVERSE);
+    const lineLength = distanceTo(this._nozzlePosition, newNozzlePosition);
 
     this._extruder += this._nozzleToFilamentRatio * lineLength * flowRate;
     this._duration += lineLength / speed;
@@ -91,7 +91,7 @@ export default class {
       [EXTRUDER]: toFixedTrimmed(this._extruder)
     });
 
-    this._nozzlePosition.copy(newNozzlePosition);
+    this._nozzlePosition = newNozzlePosition;
 
     return this;
   }

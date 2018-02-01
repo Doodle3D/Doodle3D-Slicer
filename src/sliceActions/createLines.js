@@ -1,4 +1,3 @@
-import * as THREE from 'three';
 import { normalize } from './helpers/VectorUtils.js';
 
 function addLine(geometry, lineLookup, lines, a, b, faceIndex) {
@@ -9,7 +8,7 @@ function addLine(geometry, lineLookup, lines, a, b, faceIndex) {
     index = lines.length;
     lineLookup[`${a}_${b}`] = index;
 
-    const line = new THREE.Line3(geometry.vertices[a], geometry.vertices[b]);
+    const line = { start: geometry.vertices[a], end: geometry.vertices[b] };
     const faces = [];
     lines.push({ line, faces });
   }

@@ -1,15 +1,15 @@
-import * as THREE from 'three';
+import { length, distanceTo } from './helpers/VectorUtils.js';
 import Shape from 'clipper-js';
 
 export default function optimizePaths(slices, settings) {
-  const start = new THREE.Vector2(0, 0);
+  let start = { x: 0, y: 0 };
 
   for (let layer = 0; layer < slices.length; layer ++) {
     const slice = slices[layer];
 
     if (typeof slice.brim !== 'undefined' && slice.brim.paths.length > 0) {
       slice.brim = optimizeShape(slice.brim, start);
-      start.copy(slice.brim.lastPoint(true));
+      start = slice.brim.lastPoint(true);
     }
 
     const parts = [];
@@ -54,21 +54,21 @@ export default function optimizePaths(slices, settings) {
           if (shell.paths.length === 0) continue;
 
           part.shell[i] = optimizeShape(shell, start);
-          start.copy(part.shell[i].lastPoint(true));
+          start = part.shell[i].lastPoint(true);
         }
 
         if (part.outerFill.paths.length > 0) {
           part.outerFill = optimizeShape(part.outerFill, start);
-          start.copy(part.outerFill.lastPoint(true));
+          start = part.outerFill.lastPoint(true);
         }
 
         if (part.innerFill.paths.length > 0) {
           part.innerFill = optimizeShape(part.innerFill, start);
-          start.copy(part.innerFill.lastPoint(true));
+          start = part.innerFill.lastPoint(true);
         }
       } else {
         part.shape = optimizeShape(part.shape, start);
-        start.copy(part.shape.lastPoint(true));
+        start = part.shape.lastPoint(true);
       }
     }
 
@@ -76,14 +76,12 @@ export default function optimizePaths(slices, settings) {
 
     if (typeof slice.support !== 'undefined' && slice.support.paths.length > 0) {
       slice.support = optimizeShape(slice.support, start);
-      start.copy(slice.support.lastPoint(true));
+      start = slice.support.lastPoint(true);
     }
   }
 }
 
 function optimizeShape(shape, start) {
-  start = start.clone();
-
   const inputPaths = shape.mapToLower();
   const optimizedPaths = [];
   const donePaths = [];
@@ -102,8 +100,7 @@ function optimizeShape(shape, start) {
 
       if (shape.closed) {
         for (let j = 0; j < path.length; j += 1) {
-          const point = new THREE.Vector2().copy(path[j]);
-          const length = point.sub(start).length();
+          const length = distanceTo(path[j], start);
           if (minLength === false || length < minLength) {
             minPath = path;
             minLength = length;
@@ -112,8 +109,7 @@ function optimizeShape(shape, start) {
           }
         }
       } else {
-        const startPoint = new THREE.Vector2().copy(path[0]);
-        const lengthToStart = startPoint.sub(start).length();
+        const lengthToStart = distanceTo(path[0], start);
         if (minLength === false || lengthToStart < minLength) {
           minPath = path;
           minLength = lengthToStart;
@@ -121,8 +117,7 @@ function optimizeShape(shape, start) {
           pathIndex = i;
         }
 
-        const endPoint = new THREE.Vector2().copy(path[path.length - 1]);
-        const lengthToEnd = endPoint.sub(start).length();
+        const lengthToEnd = distanceTo(path[path.length - 1], start);
         if (lengthToEnd < minLength) {
           minPath = path;
           minLength = lengthToEnd;
@@ -132,20 +127,15 @@ function optimizeShape(shape, start) {
       }
     }
 
-    let point;
     if (shape.closed) {
       minPath = minPath.concat(minPath.splice(0, offset));
-      point = minPath[0];
+      start = minPath[0];
     } else {
-      if (reverse) {
-        minPath.reverse();
-      }
-      point = minPath[minPath.length - 1];
+      if (reverse) minPath.reverse();
+      start = minPath[minPath.length - 1];
     }
 
     donePaths.push(pathIndex);
-    start.copy(point);
-
     optimizedPaths.push(minPath);
   }
 
