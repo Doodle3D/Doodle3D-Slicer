@@ -4,6 +4,8 @@ doodle3d_printer:
     M104 S{temperature}
     G28
     M109 S{temperature}
+    M190 S{bedTemperature}
+    G90
     M82
     G1 Z10.0 F6000
     G92 E0
