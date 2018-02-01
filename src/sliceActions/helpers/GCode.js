@@ -11,9 +11,6 @@ export const POSITION_Y = 'Y';
 export const POSITION_Z = 'Z';
 
 const PRECISION_INVERSE = 1 / PRECISION;
-function toFixedTrimmed(value) {
-  return (Math.round(value * PRECISION_INVERSE) / PRECISION_INVERSE).toString();
-}
 
 export default class {
   constructor(layerHeight) {
@@ -64,10 +61,10 @@ export default class {
 
     this._addGCode({
       [MOVE]: 0,
-      [POSITION_X]: toFixedTrimmed(newNozzlePosition.x),
-      [POSITION_Y]: toFixedTrimmed(newNozzlePosition.y),
-      [POSITION_Z]: toFixedTrimmed(z),
-      [SPEED]: toFixedTrimmed(speed * 60)
+      [POSITION_X]: newNozzlePosition.x,
+      [POSITION_Y]: newNozzlePosition.y,
+      [POSITION_Z]: z,
+      [SPEED]: speed * 60
     });
 
     this._nozzlePosition = newNozzlePosition;
@@ -84,11 +81,11 @@ export default class {
 
     this._addGCode({
       [MOVE]: 1,
-      [POSITION_X]: toFixedTrimmed(newNozzlePosition.x),
-      [POSITION_Y]: toFixedTrimmed(newNozzlePosition.y),
-      [POSITION_Z]: toFixedTrimmed(z),
-      [SPEED]: toFixedTrimmed(speed * 60),
-      [EXTRUDER]: toFixedTrimmed(this._extruder)
+      [POSITION_X]: newNozzlePosition.x,
+      [POSITION_Y]: newNozzlePosition.y,
+      [POSITION_Z]: z,
+      [SPEED]: speed * 60,
+      [EXTRUDER]: this._extruder
     });
 
     this._nozzlePosition = newNozzlePosition;
@@ -105,8 +102,8 @@ export default class {
 
         this._addGCode({
           [MOVE]: 0,
-          [EXTRUDER]: toFixedTrimmed(this._extruder),
-          [SPEED]: toFixedTrimmed(speed * 60)
+          [EXTRUDER]: this._extruder,
+          [SPEED]: speed * 60
         });
       }
     }
@@ -123,8 +120,8 @@ export default class {
 
         this._addGCode({
           [MOVE]: 0,
-          [EXTRUDER]: toFixedTrimmed(this._extruder - amount),
-          [SPEED]: toFixedTrimmed(speed * 60)
+          [EXTRUDER]: this._extruder - amount,
+          [SPEED]: speed * 60
         });
       }
     }

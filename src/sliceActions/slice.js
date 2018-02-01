@@ -11,6 +11,7 @@ import optimizePaths from './optimizePaths.js';
 import shapesToSlices from './shapesToSlices.js';
 import slicesToGCode from './slicesToGCode.js';
 import applyPrecision from './applyPrecision.js';
+import { PRECISION } from '../constants.js';
 // // import removePrecision from './removePrecision.js';
 
 export default function(settings, geometry, openObjectIndexes, constructLinePreview, onProgress) {
@@ -68,6 +69,11 @@ export default function(settings, geometry, openObjectIndexes, constructLinePrev
   return gcode;
 }
 
+const PRECISION_INVERSE = 1 / PRECISION;
+function toFixedTrimmed(value) {
+  return (Math.round(value * PRECISION_INVERSE) / PRECISION_INVERSE).toString();
+}
+
 function gcodeToString(gcode) {
   const currentValues = {};
   return gcode.reduce((string, command) => {
@@ -76,7 +82,7 @@ function gcodeToString(gcode) {
     } else {
       let first = true;
       for (const action in command) {
-        const value = command[action];
+        const value = toFixedTrimmed(command[action]);
         const currentValue = currentValues[action];
         if (first) {
           string += `${action}${value}`;
