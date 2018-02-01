@@ -2,7 +2,7 @@ import Shape from 'clipper-js';
 import { subtract, add, scale, normalize, dot, length, distanceTo } from './VectorUtils.js';
 import { PRECISION } from '../../constants.js';
 
-const TOLERANCE = 5 / PRECISION;
+const TOLERANCE = 1 / PRECISION;
 
 export default function comb(outline, start, end) {
   if (distanceTo(start, end) < TOLERANCE) {
