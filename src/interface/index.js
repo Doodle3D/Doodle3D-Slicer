@@ -150,7 +150,11 @@ class Interface extends React.Component {
   }
 
   loadFile = (fileUrl) => {
-    fetch(fileUrl)
+    const { origin, pathname, password, username, port } = new URL(fileUrl);
+    const headers = {};
+    if (password && username) headers.Authorization = `Basic ${btoa(`${username}:${password}`)}`;
+
+    fetch(`${origin}${port}${pathname}`, { headers })
       .then(resonse => resonse.json())
       .then(json => JSONToSketchData(json))
       .then(file => createSceneData(file))
