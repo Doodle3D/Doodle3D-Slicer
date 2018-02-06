@@ -142,7 +142,6 @@ export function sleep(time) {
 }
 
 const GCODE_SERVER_URL = 'https://gcodeserver.doodle3d.com';
-const CONNECT_URL = 'http://connect.doodle3d.com/';
 
 export async function slice(target, name, mesh, settings, updateProgress) {
   let steps;

@@ -505,7 +505,7 @@ function printDialog(props, state, title, form, submitText, data, closeDialog, r
             {wifiBoxes.map(({ localip, id, wifiboxid }) => (<MenuItem key={id} value={localip} primaryText={wifiboxid} />))}
           </SelectField>
           {data.ip && <ExitToAppIcon
-            onTouchTap={() => window.open(`${CONNECT_URL}#box?localip=${data.ip}`, '_blank')}
+            onTouchTap={() => window.open(`${CONNECT_URL}/?uuid=0#control?localip=${data.ip}`, '_blank')}
             style={{ fill: grey800, marginLeft: '10px', cursor: 'pointer' }}
           />}
         </div>
