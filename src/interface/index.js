@@ -350,7 +350,7 @@ class Interface extends React.Component {
           </div>
           <div className={classes.sliceButtons}>
             {onCancel && <RaisedButton
-              label="Cancel"
+              label="Close"
               className={`${classes.button}`}
               onTouchTap={onCancel}
             />}

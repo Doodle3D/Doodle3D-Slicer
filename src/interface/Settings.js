@@ -478,7 +478,7 @@ function printDialog(props, state, title, form, submitText, data, closeDialog, r
       autoScrollBodyContent
       actions={[
         closeDialog && <FlatButton
-          label="Cancel"
+          label="Close"
           onTouchTap={closeDialog}
         />,
         removeActivePrinter && <FlatButton
