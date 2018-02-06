@@ -458,7 +458,7 @@ class Settings extends React.Component {
             </div>
           </Tab>
         </Tabs>
-        {printDialog(this.props, this.state, 'Add Printer', 'addPrinter', 'Add', addPrinter, this.closeAddPrinterDialog, null, this.addPrinter)}
+        {printDialog(this.props, this.state, 'Add Printer', 'addPrinter', 'Add', addPrinter, localStorage.active && this.closeAddPrinterDialog, null, this.addPrinter)}
         {printDialog(this.props, this.state, 'Manage Printer', 'managePrinter', 'Save', managePrinter, this.closeManagePrinterDialog, this.removeActivePrinter, this.editPrinter)}
       </div>
     );
@@ -473,11 +473,11 @@ function printDialog(props, state, title, form, submitText, data, closeDialog, r
     <Dialog
       title={title}
       open={data.open}
-      onRequestClose={closeDialog}
+      onRequestClose={closeDialog ? closeDialog : null}
       contentStyle={{ maxWidth: '400px' }}
       autoScrollBodyContent
       actions={[
-        <FlatButton
+        closeDialog && <FlatButton
           label="Cancel"
           onTouchTap={closeDialog}
         />,
