@@ -65,8 +65,9 @@ export default function(settings, geometry, openObjectIndexes, constructLinePrev
   updateProgress('Finished');
 
   // if (constructLinePreview) gcode.linePreview = createGcodeGeometry(gcode.gcode);
-  // gcode.gcode = gcodeToString(gcode.gcode);
-  // return gcode;
+
+  gcode.gcode = gcodeToString(gcode.gcode);
+  return gcode;
 }
 
 const PRECISION_INVERSE = 1 / PRECISION;

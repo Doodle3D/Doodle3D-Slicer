@@ -1,6 +1,5 @@
 import 'core-js'; // polyfills
 import slice from './sliceActions/slice.js';
-import * as THREE from 'three';
 
 const onProgress = progress => {
   self.postMessage({
@@ -9,14 +8,11 @@ const onProgress = progress => {
   });
 }
 
-const loader = new THREE.JSONLoader();
-
 self.addEventListener('message', (event) => {
   const { message, data } = event.data;
   switch (message) {
     case 'SLICE': {
-      const { settings, geometry: JSONGeometry, constructLinePreview, openObjectIndexes } = data;
-      const { geometry } = loader.parse(JSONGeometry.data);
+      const { settings, geometry, constructLinePreview, openObjectIndexes } = data;
 
       const gcode = slice(settings, geometry, openObjectIndexes, constructLinePreview, onProgress);
 

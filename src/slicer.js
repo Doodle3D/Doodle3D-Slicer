@@ -23,13 +23,38 @@ export function sliceGeometry(settings, geometry, materials, matrix, sync = fals
     throw new Error('Geometry is not an instance of BufferGeometry or Geometry');
   }
 
-  if (geometry.faces.length === 0) {
-    throw new Error('Geometry does not contain any data');
-  }
+  if (matrix && matrix.isMatrix4) geometry.applyMatrix(matrix);
+  geometry.computeFaceNormals();
 
-  if (matrix && matrix.isMatrix4) {
-    geometry.applyMatrix(matrix);
-  }
+  const vertices = geometry.vertices.reduce((array, { x, y, z }, i) => {
+    const i3 = i * 3;
+    array[i3] = x;
+    array[i3 + 1] = y;
+    array[i3 + 2] = z;
+    return array;
+  }, new Float32Array(geometry.vertices.length * 3));
+  const faces = geometry.faces.reduce((array, { a, b, c }, i) => {
+    const i3 = i * 3;
+    array[i3] = a;
+    array[i3 + 1] = b;
+    array[i3 + 2] = c;
+    return array;
+  }, new Uint32Array(geometry.faces.length * 3));
+  const faceNormals = geometry.faces.reduce((array, { normal: { x, y, z } }, i) => {
+    const i3 = i * 3;
+    array[i3] = x;
+    array[i3 + 1] = y;
+    array[i3 + 2] = z;
+    return array;
+  }, new Float32Array(geometry.faces.length * 3));
+  const objectIndexes = geometry.faces.reduce((array, { materialIndex }, i) => {
+    array[i] = materialIndex;
+    return array;
+  }, new Uint8Array(geometry.faces.length));
+
+  if (faces.length === 0) throw new Error('Geometry does not contain any data');
+
+  geometry = { vertices, faces, objectIndexes, faceNormals };
 
   const openObjectIndexes = materials instanceof Array ? materials.map(({ side }) => {
     switch (side) {
@@ -95,11 +120,12 @@ function sliceAsync(settings, geometry, openObjectIndexes, constructLinePreview,
       }
     });
 
-    // send geometry and settings to worker to start the slicing progress
-    geometry = geometry.toJSON();
+    const { vertices, faces, objectIndexes, faceNormals } = geometry;
+    const buffers = [vertices.buffer, faces.buffer, objectIndexes.buffer, faceNormals.buffer];
+
     slicerWorker.postMessage({
       message: 'SLICE',
       data: { settings, geometry, openObjectIndexes, constructLinePreview }
-    });
+    }, buffers);
   });
 }
