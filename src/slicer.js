@@ -70,18 +70,18 @@ function sliceAsync(settings, geometry, openObjectIndexes, constructLinePreview,
         case 'SLICE': {
           slicerWorker.terminate();
 
-          if (data.gcode.linePreview) {
-            const geometry = new THREE.BufferGeometry();
-
-            const { position, color } = data.gcode.linePreview;
-            geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(position), 3));
-            geometry.addAttribute('color', new THREE.BufferAttribute(new Float32Array(color), 3));
-
-            const material = new THREE.LineBasicMaterial({ vertexColors: THREE.VertexColors });
-            const linePreview = new THREE.LineSegments(geometry, material);
-
-            data.gcode.linePreview = linePreview;
-          }
+          // if (data.gcode.linePreview) {
+          //   const geometry = new THREE.BufferGeometry();
+          //
+          //   const { position, color } = data.gcode.linePreview;
+          //   geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(position), 3));
+          //   geometry.addAttribute('color', new THREE.BufferAttribute(new Float32Array(color), 3));
+          //
+          //   const material = new THREE.LineBasicMaterial({ vertexColors: THREE.VertexColors });
+          //   const linePreview = new THREE.LineSegments(geometry, material);
+          //
+          //   data.gcode.linePreview = linePreview;
+          // }
 
           resolve(data.gcode);
           break;
