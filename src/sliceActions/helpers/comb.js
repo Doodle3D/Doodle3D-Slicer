@@ -1,5 +1,5 @@
 import Shape from 'clipper-js';
-import { subtract, add, scale, normalize, dot, length, distanceTo } from './VectorUtils.js';
+import { subtract, add, scale, normalize, dot, length, distanceTo } from './vector2D.js';
 import { PRECISION } from '../../constants.js';
 
 const TOLERANCE = 1 / PRECISION;

@@ -30,5 +30,4 @@ export const normalize = (v) => {
     x: v.x / l,
     y: v.y / l
   };
-}
-export const clone = (v) => ({ x: v.x, y: v.y });
+};
