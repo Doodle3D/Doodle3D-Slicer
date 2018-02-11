@@ -8,10 +8,8 @@ export default function calculateLayersIntersections(lines, settings) {
 
   const numLayers = Math.floor((dimensionsZ - Z_OFFSET) / layerHeight);
 
-  const layers = Array.from(Array(numLayers)).map(() => ({
-    points: {},
-    faceIndexes: []
-  }));
+  const layerPoints = Array.from(Array(numLayers)).map(() => []);
+  const layerFaceIndexes = Array.from(Array(numLayers)).map(() => []);
 
   for (let lineIndex = 0; lineIndex < lines.length; lineIndex ++) {
     const { line, faces } = lines[lineIndex];
@@ -34,20 +32,18 @@ export default function calculateLayersIntersections(lines, settings) {
           z = line.end.z * alpha + line.start.z * alpha1;
         }
 
-        layers[layerIndex].points[lineIndex] = { x: z, y: x };
-        layers[layerIndex].faceIndexes.push(...faces);
+        layerPoints[layerIndex][lineIndex] = { x: z, y: x };
+        layerFaceIndexes[layerIndex].push(...faces);
       }
     }
   }
 
-  for (let i = 0; i < layers.length; i ++) {
-    const layer = layers[i];
-
-    layer.faceIndexes = layer.faceIndexes.reduce((result, faceIndex) => {
+  for (let i = 0; i < layerFaceIndexes.length; i ++) {
+    layerFaceIndexes[i] = layerFaceIndexes[i].reduce((result, faceIndex) => {
       if (!result.includes(faceIndex)) result.push(faceIndex);
       return result;
     }, []);
   }
 
-  return layers;
+  return { layerPoints, layerFaceIndexes };
 }

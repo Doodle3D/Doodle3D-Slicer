@@ -1,14 +1,15 @@
 import { subtract, normal, normalize, dot, almostEquals } from './helpers/vector2D.js';
 
-export default function intersectionsToShapes(intersectionLayers, faces, openObjectIndexes, settings) {
+export default function intersectionsToShapes(layerPoints, layerFaceIndexes, faces, openObjectIndexes, settings) {
   const layers = [];
 
-  for (let layer = 0; layer < intersectionLayers.length; layer ++) {
+  for (let layer = 0; layer < layerPoints.length; layer ++) {
     const fillShapes = [];
     const lineShapesOpen = [];
     const lineShapesClosed = [];
 
-    const { points, faceIndexes } = intersectionLayers[layer];
+    const points = layerPoints[layer];
+    const faceIndexes = layerFaceIndexes[layer];
 
     if (faceIndexes.length === 0) continue;
 

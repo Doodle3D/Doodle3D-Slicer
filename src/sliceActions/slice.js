@@ -34,10 +34,10 @@ export default function(settings, geometry, openObjectIndexes, constructLinePrev
   const { lines, faces } = createLines(geometry, settings);
 
   updateProgress('Calculating layer intersections');
-  const layers = calculateLayersIntersections(lines, settings);
+  const { layerPoints, layerFaceIndexes } = calculateLayersIntersections(lines, settings);
 
   updateProgress('Constructing shapes from intersections');
-  const shapes = intersectionsToShapes(layers, faces, openObjectIndexes, settings);
+  const shapes = intersectionsToShapes(layerPoints, layerFaceIndexes, faces, openObjectIndexes, settings);
 
   applyPrecision(shapes);
 
