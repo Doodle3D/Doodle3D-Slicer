@@ -267,7 +267,7 @@ class Settings extends React.Component {
       this.setState(update(this.state, { addPrinter: { error: { $set: 'Please enter a name and printer' } } }));
       return;
     }
-    if (printer === 'doodle3d_printer' && !validateIp(ip) && ip !== '') {
+    if (printer === 'doodle3d_printer' && ip !== '' && !validateIp(ip)) {
       this.setState(update(this.state, { addPrinter: { error: { $set: 'Please enter a valid IP adress' } } }));
       return;
     }
