@@ -78,7 +78,7 @@ _NumberField.contextTypes = contextTypes;
 _NumberField.propTypes = propTypes;
 export const NumberField = muiThemeable()(_NumberField);
 
-export const _Checkbox = ({ name, muiTheme: { palette }, ...props }, context) => (
+const _Checkbox = ({ name, muiTheme: { palette }, ...props }, context) => (
   <span style={{ display: 'flex', position: 'relative' }}>
     <MaterialUICheckbox
       {...props}
