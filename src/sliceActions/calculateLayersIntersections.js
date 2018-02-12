@@ -8,7 +8,7 @@ export default function calculateLayersIntersections(lines, settings) {
 
   const numLayers = Math.floor((dimensionsZ - Z_OFFSET) / layerHeight);
 
-  const layerPoints = Array.from(Array(numLayers)).map(() => {});
+  const layerPoints = Array.from(Array(numLayers)).map(() => ({}));
   const layerFaceIndexes = Array.from(Array(numLayers)).map(() => []);
 
   for (let lineIndex = 0; lineIndex < lines.length; lineIndex ++) {
