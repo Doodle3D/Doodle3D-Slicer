@@ -1,24 +1,5 @@
-import { normalize } from './helpers/vector2.js';
-
-function addLine(vertices, lineLookup, lines, a, b, faceIndex) {
-  let index;
-  if (typeof lineLookup[`${b}_${a}`] !== 'undefined') {
-    index = lineLookup[`${b}_${a}`];
-  } else {
-    index = lines.length;
-    lineLookup[`${a}_${b}`] = index;
-
-    const start = { x: vertices[a * 3], y: vertices[a * 3 + 1], z: vertices[a * 3 + 2] };
-    const end = { x: vertices[b * 3], y: vertices[b * 3 + 1], z: vertices[b * 3 + 2] };
-
-    const line = { start, end };
-    const faces = [];
-    lines.push({ line, faces });
-  }
-  lines[index].faces.push(faceIndex);
-
-  return index;
-}
+import * as vector2 from './helpers/vector2.js';
+import * as vector3 from './helpers/vector3.js';
 
 export default function createLines(geometry, settings) {
   const faces = [];
@@ -26,16 +7,9 @@ export default function createLines(geometry, settings) {
   const lineLookup = {};
 
   for (let i = 0; i < geometry.objectIndexes.length; i ++) {
-    const i3 = i * 3;
     const objectIndex = geometry.objectIndexes[i];
-    const normal = {
-      x: geometry.faceNormals[i3],
-      y: geometry.faceNormals[i3 + 1],
-      z: geometry.faceNormals[i3 + 2]
-    };
-    const a = geometry.faces[i3];
-    const b = geometry.faces[i3 + 1];
-    const c = geometry.faces[i3 + 2];
+    const { x: a, y: b, z: c } = getVertex(geometry.faces, i);
+    const normal = calculateNormal(geometry.vertices, a, b, c);
 
     // skip faces that point up or down
     if (normal.y > .999 || normal.y < -.999) {
@@ -47,11 +21,52 @@ export default function createLines(geometry, settings) {
     const indexB = addLine(geometry.vertices, lineLookup, lines, b, c, i);
     const indexC = addLine(geometry.vertices, lineLookup, lines, c, a, i);
 
-    const flatNormal = normalize({ x: normal.z, y: normal.x });
+    const flatNormal = vector2.normalize({ x: normal.z, y: normal.x });
     const lineIndexes = [indexA, indexB, indexC];
 
     faces.push({ lineIndexes, flatNormal, objectIndex });
   }
 
   return { lines, faces };
+}
+
+function addLine(vertices, lineLookup, lines, a, b, faceIndex) {
+  let index;
+  if (typeof lineLookup[`${b}_${a}`] !== 'undefined') {
+    index = lineLookup[`${b}_${a}`];
+  } else {
+    index = lines.length;
+    lineLookup[`${a}_${b}`] = index;
+
+    const start = getVertex(vertices, a);
+    const end = getVertex(vertices, b);
+
+    const line = { start, end };
+    const faces = [];
+    lines.push({ line, faces });
+  }
+  lines[index].faces.push(faceIndex);
+
+  return index;
+}
+
+function calculateNormal(vertices, a, b, c) {
+  a = getVertex(vertices, a);
+  b = getVertex(vertices, b);
+  c = getVertex(vertices, c);
+
+  const cb = vector3.subtract(c, b);
+  const ab = vector3.subtract(a, b);
+  const normal = vector3.normalize(vector3.cross(cb, ab));
+
+  return normal;
+}
+
+function getVertex(vertices, i) {
+  const i3 = i * 3;
+  return {
+    x: vertices[i3],
+    y: vertices[i3 + 1],
+    z: vertices[i3 + 2]
+  };
 }

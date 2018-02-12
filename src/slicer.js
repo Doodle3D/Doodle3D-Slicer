@@ -25,7 +25,6 @@ export function sliceGeometry(settings, geometry, materials, matrix, sync = fals
   }
 
   if (matrix && matrix.isMatrix4) geometry.applyMatrix(matrix);
-  geometry.computeFaceNormals();
 
   const vertices = geometry.vertices.reduce((array, { x, y, z }, i) => {
     const i3 = i * 3;
@@ -41,13 +40,6 @@ export function sliceGeometry(settings, geometry, materials, matrix, sync = fals
     array[i3 + 2] = c;
     return array;
   }, new Uint32Array(geometry.faces.length * 3));
-  const faceNormals = geometry.faces.reduce((array, { normal: { x, y, z } }, i) => {
-    const i3 = i * 3;
-    array[i3] = x;
-    array[i3 + 1] = y;
-    array[i3 + 2] = z;
-    return array;
-  }, new Float32Array(geometry.faces.length * 3));
   const objectIndexes = geometry.faces.reduce((array, { materialIndex }, i) => {
     array[i] = materialIndex;
     return array;
@@ -55,7 +47,7 @@ export function sliceGeometry(settings, geometry, materials, matrix, sync = fals
 
   if (faces.length === 0) throw new Error('Geometry does not contain any data');
 
-  geometry = { vertices, faces, objectIndexes, faceNormals };
+  geometry = { vertices, faces, objectIndexes };
 
   const openObjectIndexes = materials instanceof Array ? materials.map(({ side }) => {
     switch (side) {
@@ -114,8 +106,8 @@ function sliceAsync(settings, geometry, openObjectIndexes, constructLinePreview,
       }
     });
 
-    const { vertices, faces, objectIndexes, faceNormals } = geometry;
-    const buffers = [vertices.buffer, faces.buffer, objectIndexes.buffer, faceNormals.buffer];
+    const { vertices, faces, objectIndexes } = geometry;
+    const buffers = [vertices.buffer, faces.buffer, objectIndexes.buffer];
 
     slicerWorker.postMessage({
       message: 'SLICE',
