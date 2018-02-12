@@ -35,18 +35,16 @@ function addLine(vertices, lineLookup, lines, a, b, faceIndex) {
   if (typeof lineLookup[`${b}_${a}`] !== 'undefined') {
     index = lineLookup[`${b}_${a}`];
   } else {
-    index = lines.length;
-    lineLookup[`${a}_${b}`] = index;
-
     const start = getVertex(vertices, a);
     const end = getVertex(vertices, b);
-
     const line = { start, end };
     const faces = [];
+
+    index = lines.length;
+    lineLookup[`${a}_${b}`] = index;
     lines.push({ line, faces });
   }
   lines[index].faces.push(faceIndex);
-
   return index;
 }
 

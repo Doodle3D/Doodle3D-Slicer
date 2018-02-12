@@ -79,15 +79,13 @@ export default function intersectionsToShapes(layerPoints, layerFaceIndexes, fac
         endConnects[pointB] = lineSegment;
 
         if (!shapes[objectIndex]) shapes[objectIndex] = [];
-        const shape = shapes[objectIndex].push(lineSegment);
+        shapes[objectIndex].push(lineSegment);
       }
     }
 
     for (const objectIndex in shapes) {
       const shape = shapes[objectIndex].map(lineSegment => lineSegment.map(pointIndex => points[pointIndex]));
       const openShape = openObjectIndexes[objectIndex];
-
-      const lines = [];
 
       const connectPoints = [];
       for (let pathIndex = 0; pathIndex < shape.length; pathIndex ++) {
@@ -114,6 +112,7 @@ export default function intersectionsToShapes(layerPoints, layerFaceIndexes, fac
         if (shapeEndPoint) connectPoints.push({ point: shapeEndPoint, start: null, end: pathIndex });
       }
 
+      const lines = [];
       while (connectPoints.length !== 0) {
         let { start, end } = connectPoints.pop();
 

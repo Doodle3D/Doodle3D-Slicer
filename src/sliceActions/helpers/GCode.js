@@ -10,7 +10,7 @@ export const POSITION_X = 'X';
 export const POSITION_Y = 'Y';
 export const POSITION_Z = 'Z';
 
-export default class {
+export default class GCode {
   constructor(layerHeight) {
     this._nozzleToFilamentRatio = 1;
     this._gcode = [`; Generated with Doodle3D Slicer V${VERSION}`];

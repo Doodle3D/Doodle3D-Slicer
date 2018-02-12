@@ -63,7 +63,8 @@ const styles = {
   sliceInfo: {
     margin: '10px 0',
     '& p': {
-      marginBottom: '5px'
+      marginBottom: '5px',
+      fontSize: '11px'
     }
   },
   sliceButtons: {

@@ -1,7 +1,7 @@
 import Shape from 'clipper-js';
 import { PRECISION } from '../constants.js';
 
-const offsetOptions = {
+const OFFSET_OPTIONS = {
   jointType: 'jtRound',
   miterLimit: 2.0,
   roundPrecision: 0.25,
@@ -22,7 +22,7 @@ export default function addBrim(slices, settings) {
 
   const brim = firstLayer.parts.reduce((brim, { shape }) => (
     brim.join(shape.offset(nozzleRadius, {
-      ...offsetOptions,
+      ...OFFSET_OPTIONS,
       endType: shape.closed ? 'etClosedPolygon' : 'etOpenRound'
     }))
   ), new Shape([], true)).simplify('pftNonZero');
@@ -30,7 +30,7 @@ export default function addBrim(slices, settings) {
   firstLayer.brim = new Shape([], true);
 
   for (let offset = 0; offset < brimSize; offset += nozzleDiameter) {
-    const brimPart = brim.offset(offset, offsetOptions);
+    const brimPart = brim.offset(offset, OFFSET_OPTIONS);
     firstLayer.brim = firstLayer.brim.join(brimPart);
   }
 }

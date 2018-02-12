@@ -32,21 +32,12 @@ export default function shapesToSlices(shapes, settings) {
 
       slice.add(fillShape, true);
 
-      if (lineShapesClosed.paths.length > 0) {
-        lineShapesClosed = lineShapesClosed.difference(fillShape);
-      }
-      if (lineShapesOpen.paths.length > 0) {
-        lineShapesOpen = lineShapesOpen.difference(fillShape);
-      }
+      if (lineShapesClosed.paths.length > 0) lineShapesClosed = lineShapesClosed.difference(fillShape);
+      if (lineShapesOpen.paths.length > 0) lineShapesOpen = lineShapesOpen.difference(fillShape);
     }
 
-    if (lineShapesClosed.paths.length > 0) {
-      slice.add(lineShapesClosed, false);
-    }
-
-    if (lineShapesOpen.paths.length > 0) {
-      slice.add(lineShapesOpen, false);
-    }
+    if (lineShapesClosed.paths.length > 0) slice.add(lineShapesClosed, false);
+    if (lineShapesOpen.paths.length > 0) slice.add(lineShapesOpen, false);
 
     sliceLayers.push(slice);
   }

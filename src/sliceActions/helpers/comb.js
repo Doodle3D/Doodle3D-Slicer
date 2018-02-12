@@ -45,9 +45,9 @@ export default function comb(outline, start, end) {
 
     if (snappedCombPaths.length === 0) {
       snappedCombPaths.push([start], [end]);
-    } else if (distanceTo(firstPath[0], start) > 1.0) {
+    } else if (distanceTo(firstPath[0], start) > 1.) {
       snappedCombPaths.unshift([start]);
-    } else if (distanceTo(lastPath[lastPath.length - 1], end) > 1.0) {
+    } else if (distanceTo(lastPath[lastPath.length - 1], end) > 1.) {
       snappedCombPaths.push([end]);
     }
 

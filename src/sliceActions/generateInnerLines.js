@@ -1,6 +1,6 @@
 import { PRECISION } from '../constants.js'
 
-const offsetOptions = {
+const OFFSET_OPTIONS = {
   jointType: 'jtSquare',
   endType: 'etClosedPolygon',
   miterLimit: 2.0,
@@ -29,7 +29,7 @@ export default function generateInnerLines(slices, settings) {
 
       if (!part.closed) continue;
 
-      const outerLine = part.shape.offset(-nozzleRadius, offsetOptions);
+      const outerLine = part.shape.offset(-nozzleRadius, OFFSET_OPTIONS);
 
       if (outerLine.paths.length === 0) continue;
 
@@ -39,7 +39,7 @@ export default function generateInnerLines(slices, settings) {
       for (let inset = 1; inset < numShells; inset += 1) {
         const offset = inset * nozzleDiameter;
 
-        const shell = outerLine.offset(-offset, offsetOptions);
+        const shell = outerLine.offset(-offset, OFFSET_OPTIONS);
 
         if (shell.paths.length === 0) {
           break;
