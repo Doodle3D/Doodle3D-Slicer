@@ -19,13 +19,10 @@ self.addEventListener('message', (event) => {
       gcode.gcode = stringToTypedArray(gcode.gcode);
 
       const buffers = [gcode.gcode.buffer];
-
-      // if (gcode.linePreview) {
-      //   const position = gcode.linePreview.geometry.getAttribute('position').array;
-      //   const color = gcode.linePreview.geometry.getAttribute('color').array;
-      //   buffers.push(position.buffer, color.buffer);
-      //   gcode.linePreview = { position, color };
-      // }
+      if (gcode.linePreview) {
+        buffers.push(gcode.linePreview.positions.buffer);
+        buffers.push(gcode.linePreview.colors.buffer);
+      }
 
       self.postMessage({
         message: 'SLICE',

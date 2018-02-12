@@ -76,7 +76,9 @@ export function sliceGeometry(settings, geometry, materials, matrix, sync = fals
 }
 
 function sliceSync(settings, geometry, openObjectIndexes, constructLinePreview, onProgress) {
-  return slice(settings, geometry, openObjectIndexes, constructLinePreview, onProgress);
+  const gcode = slice(settings, geometry, openObjectIndexes, constructLinePreview, onProgress);
+  if (gcode.linePreview) gcode.linePreview = constructLineGeometry(gcode.linePreview);
+  return gcode;
 }
 
 function sliceAsync(settings, geometry, openObjectIndexes, constructLinePreview, onProgress) {
@@ -98,19 +100,7 @@ function sliceAsync(settings, geometry, openObjectIndexes, constructLinePreview,
 
           const { gcode } = data;
           gcode.gcode = typedArrayToString(gcode.gcode);
-
-          // if (data.gcode.linePreview) {
-          //   const geometry = new THREE.BufferGeometry();
-          //
-          //   const { position, color } = data.gcode.linePreview;
-          //   geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(position), 3));
-          //   geometry.addAttribute('color', new THREE.BufferAttribute(new Float32Array(color), 3));
-          //
-          //   const material = new THREE.LineBasicMaterial({ vertexColors: THREE.VertexColors });
-          //   const linePreview = new THREE.LineSegments(geometry, material);
-          //
-          //   data.gcode.linePreview = linePreview;
-          // }
+          if (gcode.linePreview) gcode.linePreview = constructLineGeometry(gcode.linePreview);
 
           resolve(gcode);
           break;
@@ -132,4 +122,15 @@ function sliceAsync(settings, geometry, openObjectIndexes, constructLinePreview,
       data: { settings, geometry, openObjectIndexes, constructLinePreview }
     }, buffers);
   });
+}
+
+function constructLineGeometry(linePreview) {
+  const geometry = new THREE.BufferGeometry();
+
+  geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(linePreview.positions), 3));
+  geometry.addAttribute('color', new THREE.BufferAttribute(new Float32Array(linePreview.colors), 3));
+
+  const material = new THREE.LineBasicMaterial({ vertexColors: THREE.VertexColors });
+  const mesh = new THREE.LineSegments(geometry, material);
+  return mesh;
 }
