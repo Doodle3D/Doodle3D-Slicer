@@ -175,7 +175,7 @@ export async function slice(target, name, mesh, settings, updateProgress) {
   const centerY = dimensions.y / 2;
 
   const matrix = new THREE.Matrix4().makeTranslation(centerY, 0, centerX).multiply(mesh.matrix);
-  const { gcode } = await sliceGeometry(settings, mesh.geometry, mesh.material, matrix, true, false, ({ progress }) => {
+  const { gcode } = await sliceGeometry(settings, mesh.geometry, mesh.material, matrix, false, false, ({ progress }) => {
     updateProgress({
       action: progress.action,
       percentage: (currentStep + progress.done / progress.total) / steps
