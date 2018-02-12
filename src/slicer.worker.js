@@ -1,5 +1,6 @@
 import 'core-js'; // polyfills
 import slice from './sliceActions/slice.js';
+import { stringToTypedArray } from './sliceActions/helpers/binary.js';
 
 const onProgress = progress => {
   self.postMessage({
@@ -15,8 +16,10 @@ self.addEventListener('message', (event) => {
       const { settings, geometry, constructLinePreview, openObjectIndexes } = data;
 
       const gcode = slice(settings, geometry, openObjectIndexes, constructLinePreview, onProgress);
+      gcode.gcode = stringToTypedArray(gcode.gcode);
 
-      const buffers = [];
+      const buffers = [gcode.gcode.buffer];
+
       // if (gcode.linePreview) {
       //   const position = gcode.linePreview.geometry.getAttribute('position').array;
       //   const color = gcode.linePreview.geometry.getAttribute('color').array;

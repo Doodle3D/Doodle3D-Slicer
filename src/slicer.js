@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import slice from './sliceActions/slice.js';
 import SlicerWorker from './slicer.worker.js';
+import { typedArrayToString } from './sliceActions/helpers/binary.js';
 
 export function sliceMesh(settings, mesh, sync = false, constructLinePreview = false, onProgress) {
   if (!mesh || !mesh.isMesh) {
@@ -95,6 +96,9 @@ function sliceAsync(settings, geometry, openObjectIndexes, constructLinePreview,
         case 'SLICE': {
           slicerWorker.terminate();
 
+          const { gcode } = data;
+          gcode.gcode = typedArrayToString(gcode.gcode);
+
           // if (data.gcode.linePreview) {
           //   const geometry = new THREE.BufferGeometry();
           //
@@ -108,7 +112,7 @@ function sliceAsync(settings, geometry, openObjectIndexes, constructLinePreview,
           //   data.gcode.linePreview = linePreview;
           // }
 
-          resolve(data.gcode);
+          resolve(gcode);
           break;
         }
         case 'PROGRESS': {
