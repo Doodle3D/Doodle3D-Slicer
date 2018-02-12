@@ -1,4 +1,4 @@
-import { normalize } from './helpers/vector2D.js';
+import { normalize } from './helpers/vector2.js';
 
 function addLine(vertices, lineLookup, lines, a, b, faceIndex) {
   let index;

@@ -1,4 +1,4 @@
-import { scale, distanceTo } from './vector2D.js';
+import { scale, distanceTo } from './vector2.js';
 import { PRECISION, VERSION } from '../../constants.js';
 
 export const MOVE = 'G';

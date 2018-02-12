@@ -1,4 +1,4 @@
-import { divide } from './helpers/vector2D.js';
+import { divide } from './helpers/vector2.js';
 import { PRECISION } from '../constants.js'
 
 export default function applyPrecision(layers) {

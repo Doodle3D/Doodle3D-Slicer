@@ -1,4 +1,4 @@
-import { subtract, normal, normalize, dot, almostEquals } from './helpers/vector2D.js';
+import { subtract, normal, normalize, dot, almostEquals } from './helpers/vector2.js';
 
 export default function intersectionsToShapes(layerPoints, layerFaceIndexes, faces, openObjectIndexes, settings) {
   const layers = [];
