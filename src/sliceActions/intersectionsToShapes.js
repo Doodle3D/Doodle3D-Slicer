@@ -91,6 +91,8 @@ export default function intersectionsToShapes(layerPoints, layerFaceIndexes, fac
       for (let pathIndex = 0; pathIndex < shape.length; pathIndex ++) {
         const path = shape[pathIndex];
 
+        if (path.length === 2 && almostEquals(path[0], path[1])) continue;
+
         let shapeStartPoint = path[0];
         for (const point of connectPoints) {
           if (almostEquals(point.point, shapeStartPoint)) {
