@@ -22,16 +22,14 @@ export default function generateSupport(slices, settings) {
 
   let supportArea = new Shape([], true);
 
-  for (let layer = slices.length - 1 - supportDistanceLayers; layer >= supportDistanceLayers; layer --) {
+  for (let layer = slices.length - 1 - supportDistanceLayers; layer >= 0; layer --) {
     const currentLayer = slices[layer + supportDistanceLayers - 1];
     const upSkin = slices[layer + supportDistanceLayers];
     const downSkin = slices[layer - supportDistanceLayers];
 
     const neededSupportArea = upSkin.outline.difference(currentLayer.outline.offset(margin));
 
-    if (neededSupportArea.totalArea() * PRECISION_SQUARED > minArea) {
-      supportArea = supportArea.union(neededSupportArea);
-    }
+    if (neededSupportArea.totalArea() * PRECISION_SQUARED > minArea) supportArea = supportArea.union(neededSupportArea);
     if (downSkin) supportArea = supportArea.difference(downSkin.outline.offset(margin));
 
     const bounds = supportArea.shapeBounds();
