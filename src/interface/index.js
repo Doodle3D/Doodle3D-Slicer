@@ -311,7 +311,7 @@ class Interface extends React.Component {
   calculateDimensions = () => {
     const { scene: { mesh } } = this.state;
     const { x, y, z } = new THREE.Box3().setFromObject(mesh).getSize();
-    this.setState({ objectDimensions: `${Math.round(x)}x${Math.round(y)}x${Math.round(z)}mm` });
+    this.setState({ objectDimensions: `${Math.round(y)}x${Math.round(z)}x${Math.round(x)}mm` });
   };
 
   onDrop = (event) => {
