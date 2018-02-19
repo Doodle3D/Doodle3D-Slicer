@@ -11,7 +11,7 @@ export const add = (a, b) => ({
 export const scale = (v, factor) => ({
   x: v.x * factor,
   y: v.y * factor,
-  z: v.z * factor,
+  z: v.z * factor
 });
 export const divide = (v, factor) => ({
   x: v.x / factor,
