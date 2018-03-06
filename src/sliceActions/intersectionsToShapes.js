@@ -55,6 +55,7 @@ export default function intersectionsToShapes(layerPoints, layerFaceIndexes, fac
         if (startConnects[pointB]) {
           if (startConnects[pointB] === lineSegment) {
             delete startConnects[pointB];
+            lineSegment.push(pointB);
           } else {
             lineSegment.push(...startConnects[pointB]);
             endConnects[lineSegment[lineSegment.length - 1]] = lineSegment;
@@ -91,7 +92,10 @@ export default function intersectionsToShapes(layerPoints, layerFaceIndexes, fac
       for (let pathIndex = 0; pathIndex < shape.length; pathIndex ++) {
         const path = shape[pathIndex];
 
-        if (almostEquals(path[0], path[path.length - 1])) continue;
+        if (almostEquals(path[0], path[path.length - 1])) {
+          if (path.some(point => !almostEquals(point, path[0]))) lineShapesClosed.push(path);
+          continue;
+        }
 
         let shapeStartPoint = path[0];
         for (const point of connectPoints) {
@@ -114,7 +118,6 @@ export default function intersectionsToShapes(layerPoints, layerFaceIndexes, fac
         if (shapeEndPoint) connectPoints.push({ point: shapeEndPoint, start: null, end: pathIndex });
       }
 
-      const lines = [];
       while (connectPoints.length !== 0) {
         let { start, end } = connectPoints.pop();
 
@@ -126,26 +129,21 @@ export default function intersectionsToShapes(layerPoints, layerFaceIndexes, fac
           line.push(...shape[newPoint.start]);
           connectPoints.splice(connectPoints.indexOf(newPoint), 1);
 
-          if (newPoint.end === start) break;
+          if (newPoint.end !== null && newPoint.end === start) break;
 
           end = newPoint.end;
           start = newPoint.start;
         }
 
-        lines.push(line);
-      }
-
-      if (openShape) {
-        for (const line of lines) {
-          const closed = almostEquals(line[0], line[line.length - 1]);
-          if (closed) {
+        if (openShape) {
+          if (almostEquals(line[0], line[line.length - 1])) {
             lineShapesClosed.push(line);
           } else {
             lineShapesOpen.push(line);
           }
+        } else {
+          fillShapes.push(line);
         }
-      } else {
-        fillShapes.push(...lines);
       }
     }
 
