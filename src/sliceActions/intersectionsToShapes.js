@@ -100,44 +100,43 @@ export default function intersectionsToShapes(layerPoints, layerFaceIndexes, fac
         }
 
         let shapeStartPoint = path[0];
-        const connectStart = connectPoints.find(({ point }) => almostEquals(point, shapeStartPoint));
-        if (connectStart) {
-          connectStart.start = pathIndex;
+        const connectNext = connectPoints.find(({ point }) => almostEquals(point, shapeStartPoint));
+        if (connectNext) {
+          connectNext.next = pathIndex;
         } else {
-          connectPoints.push({ point: shapeStartPoint, start: pathIndex, end: -1 });
+          connectPoints.push({ point: shapeStartPoint, next: pathIndex, previous: -1 });
         }
 
         let shapeEndPoint = path[path.length - 1];
-        const connectEnd = connectPoints.find(({ point }) => almostEquals(point, shapeEndPoint));
-        if (connectEnd) {
-          connectEnd.end = pathIndex;
+        const connectPrevious = connectPoints.find(({ point }) => almostEquals(point, shapeEndPoint));
+        if (connectPrevious) {
+          connectPrevious.previous = pathIndex;
         } else {
-          connectPoints.push({ point: shapeEndPoint, start: -1, end: pathIndex });
+          connectPoints.push({ point: shapeEndPoint, next: -1, previous: pathIndex });
         }
       }
 
-      connectPoints.sort(({ start }) => start);
+      connectPoints.sort(({ previous }) => previous);
 
       while (connectPoints.length !== 0) {
-        const { start, end } = connectPoints.pop();
+        let { next, previous } = connectPoints.pop();
 
         const line = [];
-        if (end !== -1) line.push(...shape[end]);
+        if (previous !== -1) line.push(...shape[previous]);
 
-        let next = start;
         while (true) {
-          const pointIndex = connectPoints.findIndex(point => point.end === next);
+          const pointIndex = connectPoints.findIndex(point => point.previous === next);
           if (pointIndex === -1) break;
 
           const point = connectPoints[pointIndex];
-          line.push(...shape[point.end]);
+          line.push(...shape[point.previous]);
 
           connectPoints.splice(pointIndex, 1);
 
-          if (point.start === -1) break;
-          if (point.start === end) break;
+          if (point.next === -1) break;
+          if (point.next === previous) break;
 
-          next = point.start;
+          next = point.next;
         }
 
         if (openShape) {
