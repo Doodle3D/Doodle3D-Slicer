@@ -10,7 +10,6 @@ import optimizePaths from './optimizePaths.js';
 import shapesToSlices from './shapesToSlices.js';
 import slicesToGCode from './slicesToGCode.js';
 import applyPrecision from './applyPrecision.js';
-import { PRECISION } from '../constants.js';
 import { hslToRgb } from './helpers/color.js';
 // // import removePrecision from './removePrecision.js';
 
@@ -70,7 +69,7 @@ export default function(settings, geometry, openObjectIndexes, constructLinePrev
   return gcode;
 }
 
-const PRECISION_INVERSE = 1 / PRECISION;
+const PRECISION_INVERSE = 1000;
 function toFixedTrimmed(value) {
   return (Math.round(value * PRECISION_INVERSE) / PRECISION_INVERSE).toString();
 }
