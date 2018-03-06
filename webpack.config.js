@@ -53,7 +53,13 @@ module.exports = {
         use: 'yml-loader'
       }, {
         test: /\.worker\.js$/,
-        use: ['worker-loader', babelLoader]
+        use: [{
+          loader: 'worker-loader',
+          options: {
+            inline: false,
+            name: '[name].js'
+          }
+        }, babelLoader],
       }, {
         test: /\.(png|jpg|gif)$/,
         use: ['url-loader?name=images/[name].[ext]']
