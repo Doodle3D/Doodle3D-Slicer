@@ -42,7 +42,7 @@ export function createScene({ pixelRatio, muiTheme }) {
   const light = new THREE.AmbientLight(0x656565);
   scene.add(light);
 
-  const material = new THREE.MeshPhongMaterial({ color: muiTheme.palette.primary2Color, side: THREE.DoubleSide, specular: 0xc5c5c5, shininess: 5 });
+  const material = new THREE.MeshPhongMaterial({ color: muiTheme.palette.primary2Color, side: THREE.DoubleSide, specular: 0xc5c5c5, shininess: 5, flatShading: true });
   const mesh = new THREE.Mesh(new THREE.Geometry(), material);
   scene.add(mesh);
 
