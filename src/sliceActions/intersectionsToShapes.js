@@ -95,7 +95,11 @@ export default function intersectionsToShapes(layerPoints, layerFaceIndexes, fac
         const path = shape[pathIndex];
 
         if (almostEquals(path[0], path[path.length - 1])) {
-          lineShapesClosed.push(path);
+          if (openShape) {
+            lineShapesClosed.push(path);
+          } else {
+            fillShapes.push(path);
+          }
           continue;
         }
 
