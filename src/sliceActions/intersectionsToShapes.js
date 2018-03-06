@@ -85,7 +85,9 @@ export default function intersectionsToShapes(layerPoints, layerFaceIndexes, fac
     }
 
     for (const objectIndex in shapes) {
-      const shape = shapes[objectIndex].map(lineSegment => lineSegment.map(pointIndex => points[pointIndex]));
+      const shape = shapes[objectIndex]
+        .map(lineSegment => lineSegment.map(pointIndex => points[pointIndex]))
+        .filter(lineSegment => lineSegment.some(i => !almostEquals(lineSegment[0], lineSegment[1])));
       const openShape = openObjectIndexes[objectIndex];
 
       const connectPoints = [];
@@ -93,46 +95,49 @@ export default function intersectionsToShapes(layerPoints, layerFaceIndexes, fac
         const path = shape[pathIndex];
 
         if (almostEquals(path[0], path[path.length - 1])) {
-          if (path.some(point => !almostEquals(point, path[0]))) lineShapesClosed.push(path);
+          lineShapesClosed.push(path);
           continue;
         }
 
         let shapeStartPoint = path[0];
-        for (const point of connectPoints) {
-          if (almostEquals(point.point, shapeStartPoint)) {
-            point.start = pathIndex;
-            shapeStartPoint = null;
-            break;
-          }
+        const connectStart = connectPoints.find(({ point }) => almostEquals(point, shapeStartPoint));
+        if (connectStart) {
+          connectStart.start = pathIndex;
+        } else {
+          connectPoints.push({ point: shapeStartPoint, start: pathIndex, end: -1 });
         }
-        if (shapeStartPoint) connectPoints.push({ point: shapeStartPoint, start: pathIndex, end: null });
 
         let shapeEndPoint = path[path.length - 1];
-        for (const point of connectPoints) {
-          if (almostEquals(point.point, shapeEndPoint)) {
-            point.end = pathIndex;
-            shapeEndPoint = null;
-            break;
-          }
+        const connectEnd = connectPoints.find(({ point }) => almostEquals(point, shapeEndPoint));
+        if (connectEnd) {
+          connectEnd.end = pathIndex;
+        } else {
+          connectPoints.push({ point: shapeEndPoint, start: -1, end: pathIndex });
         }
-        if (shapeEndPoint) connectPoints.push({ point: shapeEndPoint, start: null, end: pathIndex });
       }
 
+      connectPoints.sort(({ start }) => start);
+
       while (connectPoints.length !== 0) {
-        let { start, end } = connectPoints.pop();
+        const { start, end } = connectPoints.pop();
 
         const line = [];
-        if (start !== null) line.push(...shape[start]);
+        if (end !== -1) line.push(...shape[end]);
 
-        let newPoint;
-        while (end !== null && (newPoint = connectPoints.find(point => point.start === end))) {
-          line.push(...shape[newPoint.start]);
-          connectPoints.splice(connectPoints.indexOf(newPoint), 1);
+        let next = start;
+        while (true) {
+          const pointIndex = connectPoints.findIndex(point => point.end === next);
+          if (pointIndex === -1) break;
 
-          if (newPoint.end !== null && newPoint.end === start) break;
+          const point = connectPoints[pointIndex];
+          line.push(...shape[point.end]);
 
-          end = newPoint.end;
-          start = newPoint.start;
+          connectPoints.splice(pointIndex, 1);
+
+          if (point.start === -1) break;
+          if (point.start === end) break;
+
+          next = point.start;
         }
 
         if (openShape) {
