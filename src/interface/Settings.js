@@ -90,46 +90,41 @@ class Settings extends React.Component {
     advancedFields: PropTypes.array.isRequired
   };
 
-  constructor(props) {
-    super(props);
+  state = {
+    localStorage: getLocalStorage(),
+    wifiBoxes: [],
+    addPrinter: {
+      open: false,
+      name: '',
+      printer: '',
+      ip: '',
+      error: null
+    },
+    managePrinter: {
+      open: false
+    }
+  };
 
-    const { selectedPrinter } = this.props;
+  componentDidMount() {
+    const { onChange, selectedPrinter } = this.props;
+    const { localStorage } = this.state;
 
-    const localStorage = getLocalStorage();
-
-    if (selectedPrinter) {
-      const active = Object.entries(localStorage.printers)
+    if (selectedPrinter && localStorage.active) {
+      const activePrinter = selectedPrinter && Object.entries(localStorage.printers)
         .map(([key, value]) => ({ key, value }))
         .find(({ key, value: { ip } }) => ip === selectedPrinter);
 
-      if (active) {
-        localStorage.active = active.key;
-        updateLocalStorage(localStorage);
+      if (activePrinter) {
+        const state = this.changeSettings('activePrinter', activePrinter.key);
+        if (onChange) onChange(this.constructSettings(state.localStorage));
+      } else {
+        this.openAddPrinterDialog({ ip: selectedPrinter });
       }
-    }
-    this.state = {
-      localStorage,
-      wifiBoxes: [],
-      addPrinter: {
-        open: false,
-        name: '',
-        printer: '',
-        ip: '',
-        error: null
-      },
-      managePrinter: {
-        open: false
-      }
-    };
-  }
-
-
-  componentDidMount() {
-    const { onChange } = this.props;
-    const { localStorage } = this.state;
-    if (localStorage.active) {
+    } else if (!selectedPrinter && localStorage.active) {
       if (onChange) onChange(this.constructSettings(localStorage));
-    } else {
+    } else if (selectedPrinter && !localStorage.active) {
+      this.openAddPrinterDialog({ ip: selectedPrinter });
+    } else if (!selectedPrinter && !localStorage.active) {
       this.openAddPrinterDialog();
     }
 
@@ -238,6 +233,8 @@ class Settings extends React.Component {
       if (onChange) onChange(this.constructSettings(state.localStorage));
       updateLocalStorage(state.localStorage);
     }
+
+    return state;
   }
 
   getChildContext() {
@@ -357,9 +354,18 @@ class Settings extends React.Component {
     if (onChange) onChange(this.constructSettings(localStorage));
   };
 
-  closeAddPrinterDialog = () => this.setAddPrinterDialog(false);
-  openAddPrinterDialog = () => this.setAddPrinterDialog(true);
-  setAddPrinterDialog = (open) => this.setState({ addPrinter: { ip: '', name: '', printer: '', error: null, open } });
+  closeAddPrinterDialog = (override) => this.setAddPrinterDialog(false, override);
+  openAddPrinterDialog = (override) => this.setAddPrinterDialog(true, override);
+  setAddPrinterDialog = (open, override = {}) => this.setState({
+    addPrinter: {
+      ip: '',
+      name: '',
+      printer: '',
+      error: null,
+      open,
+      ...override
+    }
+  });
 
   closeManagePrinterDialog = () => this.setManagePrinterDialog(false);
   openManagePrinterDialog = () => this.setManagePrinterDialog(true);
