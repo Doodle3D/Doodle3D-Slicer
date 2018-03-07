@@ -114,15 +114,15 @@ class Interface extends React.Component {
     name: PropTypes.string.isRequired,
     muiTheme: PropTypes.object.isRequired,
     allowDragDrop: PropTypes.bool.isRequired,
-    actions: PropTypes.arrayOf(PropTypes.shape({ type: PropTypes.string }))
+    actions: PropTypes.arrayOf(PropTypes.shape({ target: PropTypes.string }))
   };
 
   static defaultProps = {
     actions: [{
-      type: 'WIFI_PRINT',
+      target: 'WIFI_PRINT',
       title: 'Print over WiFi'
     }, {
-      type: 'DOWNLOAD',
+      target: 'DOWNLOAD',
       title: 'Download GCode'
     }],
     pixelRatio: 1,
