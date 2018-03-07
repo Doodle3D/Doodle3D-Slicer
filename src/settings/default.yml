@@ -1,6 +1,6 @@
 startCode: |-
-  M109 S{printingTemp} ;set target temperature
-  {if heatedBed}M190 S{printingBedTemp} ;set target bed temperature
+  M109 S{temperature} ;set target temperature
+  {if heatedBed}M190 S{bedTemperature} ;set target bed temperature
   G21 ;metric values
   M107 ;start with the fan off
   G28 X0 Y0 ;move X/Y to min endstops
