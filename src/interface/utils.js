@@ -272,6 +272,7 @@ export async function slice(action, name, mesh, settings, updateProgress) {
         });
       });
       currentStep ++;
+      break;
     }
 
     default:
