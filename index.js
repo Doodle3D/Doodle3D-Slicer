@@ -32,10 +32,10 @@ jss.createStyleSheet({
   }
 }).attach();
 
-const { file } = queryString.parse(location.search);
+const { file, selectedPrinter } = queryString.parse(location.search);
 
 render((
   <MuiThemeProvider muiTheme={muiTheme}>
-    <Interface fileUrl={file} name="doodle"/>
+    <Interface fileUrl={file} selectedPrinter={selectedPrinter} name="doodle"/>
   </MuiThemeProvider>
 ), document.getElementById('app'));

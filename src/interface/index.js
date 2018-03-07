@@ -106,6 +106,7 @@ const styles = {
 class Interface extends React.Component {
   static propTypes = {
     fileUrl: PropTypes.string,
+    selectedPrinter: PropTypes.string,
     mesh: PropTypes.shape({ isMesh: PropTypes.oneOf([true]) }),
     classes: PropTypes.objectOf(PropTypes.string),
     pixelRatio: PropTypes.number.isRequired,
@@ -332,7 +333,7 @@ class Interface extends React.Component {
   }
 
   render() {
-    const { classes, onCancel } = this.props;
+    const { classes, onCancel, selectedPrinter } = this.props;
     const { isSlicing, progress, showFullScreen, error, objectDimensions, settings } = this.state;
 
     const style = { ...(showFullScreen ? {} : { maxWidth: 'inherit', width: '100%', height: '100%' }) };
@@ -340,6 +341,7 @@ class Interface extends React.Component {
     const settingsPanel = (
       <div className={classes.settingsBar} style={style}>
         <Settings
+          selectedPrinter={selectedPrinter}
           disabled={isSlicing}
           onChange={this.onChangeSettings}
         />

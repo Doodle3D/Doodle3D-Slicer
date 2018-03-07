@@ -72,6 +72,7 @@ const updateLocalStorage = (localStorage) => {
 
 class Settings extends React.Component {
   static propTypes = {
+    selectedPrinter: PropTypes.string,
     classes: PropTypes.objectOf(PropTypes.string),
     onChange: PropTypes.func,
     disabled: PropTypes.bool.isRequired
@@ -89,20 +90,39 @@ class Settings extends React.Component {
     advancedFields: PropTypes.array.isRequired
   };
 
-  state = {
-    localStorage: getLocalStorage(),
-    wifiBoxes: [],
-    addPrinter: {
-      open: false,
-      name: '',
-      printer: '',
-      ip: '',
-      error: null
-    },
-    managePrinter: {
-      open: false
+  constructor(props) {
+    super(props);
+
+    const { selectedPrinter } = this.props;
+
+    const localStorage = getLocalStorage();
+
+    if (selectedPrinter) {
+      const active = Object.entries(localStorage.printers)
+        .map(([key, value]) => ({ key, value }))
+        .find(({ key, value: { ip } }) => ip === selectedPrinter);
+
+      if (active) {
+        localStorage.active = active.key;
+        updateLocalStorage(localStorage);
+      }
     }
-  };
+    this.state = {
+      localStorage,
+      wifiBoxes: [],
+      addPrinter: {
+        open: false,
+        name: '',
+        printer: '',
+        ip: '',
+        error: null
+      },
+      managePrinter: {
+        open: false
+      }
+    };
+  }
+
 
   componentDidMount() {
     const { onChange } = this.props;
