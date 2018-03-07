@@ -143,15 +143,15 @@ export function sleep(time) {
 
 const GCODE_SERVER_URL = 'https://gcodeserver.doodle3d.com';
 
-export async function slice(target, name, mesh, settings, updateProgress) {
+export async function slice(action, name, mesh, settings, updateProgress) {
   let steps;
   let currentStep = 0;
   let wifiBox;
-  switch (target) {
+  switch (action.target) {
     case 'DOWNLOAD':
       steps = 1;
       break;
-    case 'WIFI':
+    case 'WIFI_PRINT':
       if (settings.printer === 'doodle3d_printer') {
         const { state } = await getMalyanStatus(settings.ip);
         if (state !== 'idle') throw { message: 'printer is busy', code: 0 };
@@ -163,6 +163,9 @@ export async function slice(target, name, mesh, settings, updateProgress) {
         const { state } = await wifiBox.info.status();
         if (state !== 'idle') throw { message: 'printer is busy', code: 0 };
       }
+      steps = 2;
+      break;
+    case 'CUSTOM_UPLOAD':
       steps = 2;
       break;
     default:
@@ -185,14 +188,14 @@ export async function slice(target, name, mesh, settings, updateProgress) {
   });
   currentStep ++;
 
-  switch (target) {
+  switch (action.target) {
     case 'DOWNLOAD': {
       const file = new Blob([gcode], { type: 'text/plain' });
       fileSaver.saveAs(file, `${name}.gcode`);
       break;
     }
 
-    case 'WIFI': {
+    case 'WIFI_PRINT': {
       if (settings.printer === 'doodle3d_printer') {
         const body = new FormData();
         const file = new Blob([gcode], { type: 'plain/text' });
@@ -250,6 +253,25 @@ export async function slice(target, name, mesh, settings, updateProgress) {
         const result = await wifiBox.printer.fetch(id);
       }
       break;
+    }
+    case 'CUSTOM_UPLOAD': {
+      const body = new FormData();
+      const file = new Blob([`;${JSON.stringify({
+        ...settings,
+        name: `${name}.gcode`,
+        printer: { type: settings.printers, title: printerSettings[settings.printer].title },
+        material: { type: settings.material, title: materialSettings[settings.material].title },
+        quality: { type: settings.quality, title: qualitySettings[settings.quality].title }
+      }).trim()}\n${gcode}`]);
+      body.append('file', file, 'doodle.gcode');
+
+      await fetchProgress(action.url, { method: 'POST', body }, progress => {
+        updateProgress({
+          action: 'Uploading',
+          percentage: (currentStep + progress.loaded / progress.total) / steps
+        });
+      });
+      currentStep ++;
     }
 
     default:

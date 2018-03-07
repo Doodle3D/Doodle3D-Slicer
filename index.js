@@ -32,10 +32,11 @@ jss.createStyleSheet({
   }
 }).attach();
 
-const { file, selectedPrinter } = queryString.parse(location.search);
+let { file, selectedPrinter, actions } = queryString.parse(location.search);
+if (actions) actions = JSON.parse(actions);
 
 render((
   <MuiThemeProvider muiTheme={muiTheme}>
-    <Interface fileUrl={file} selectedPrinter={selectedPrinter} name="doodle"/>
+    <Interface actions={actions} fileUrl={file} selectedPrinter={selectedPrinter} name="doodle"/>
   </MuiThemeProvider>
 ), document.getElementById('app'));

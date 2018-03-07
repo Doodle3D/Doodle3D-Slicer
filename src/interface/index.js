@@ -113,10 +113,18 @@ class Interface extends React.Component {
     onCancel: PropTypes.func,
     name: PropTypes.string.isRequired,
     muiTheme: PropTypes.object.isRequired,
-    allowDragDrop: PropTypes.bool.isRequired
+    allowDragDrop: PropTypes.bool.isRequired,
+    actions: PropTypes.arrayOf(PropTypes.shape({ type: PropTypes.string }))
   };
 
   static defaultProps = {
+    actions: [{
+      type: 'WIFI_PRINT',
+      title: 'Print over WiFi'
+    }, {
+      type: 'DOWNLOAD',
+      title: 'Download GCode'
+    }],
     pixelRatio: 1,
     name: 'Doodle3D',
     allowDragDrop: true
@@ -223,7 +231,7 @@ class Interface extends React.Component {
     }
   };
 
-  slice = async (target) => {
+  slice = async (action) => {
     const { isSlicing, settings, mesh, scene: { material, mesh: { matrix } } } = this.state;
     const { name } = this.props;
 
@@ -232,7 +240,7 @@ class Interface extends React.Component {
       this.setState({ error: 'please select a printer first' });
       return;
     }
-    if (target === 'WIFI' && !settings.ip) {
+    if (action.target === 'WIFI_PRINT' && !settings.ip) {
       this.setState({ error: 'please connect to a WiFi enabled printer' });
       return;
     }
@@ -249,7 +257,7 @@ class Interface extends React.Component {
 
     try {
       const updateProgres = progress => this.setState({ progress: { ...this.state.progress, ...progress } });
-      await slice(target, name, exportMesh, settings, updateProgres);
+      await slice(action, name, exportMesh, settings, updateProgres);
     } catch (error) {
       this.setState({ error: error.message });
       throw error;
@@ -333,7 +341,7 @@ class Interface extends React.Component {
   }
 
   render() {
-    const { classes, onCancel, selectedPrinter } = this.props;
+    const { classes, onCancel, selectedPrinter, actions } = this.props;
     const { isSlicing, progress, showFullScreen, error, objectDimensions, settings } = this.state;
 
     const style = { ...(showFullScreen ? {} : { maxWidth: 'inherit', width: '100%', height: '100%' }) };
@@ -361,26 +369,39 @@ class Interface extends React.Component {
               <MalyanControl ip={settings.ip} /> :
               <WifiBoxControl ip={settings.ip} />
             ) */}
-            <RaisedButton
-              label="Print"
-              ref="button"
-              primary
-              className={`${classes.button}`}
-              onTouchTap={this.openPopover}
-              disabled={isSlicing}
-            />
-            <Popover
-              open={this.state.popover.open}
-              anchorEl={this.state.popover.element}
-              anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
-              targetOrigin={{horizontal: 'left', vertical: 'bottom'}}
-              onRequestClose={this.closePopover}
-            >
-            <Menu>
-              <MenuItem disabled={!Boolean(settings && settings.ip)} primaryText="Send over WiFi" onTouchTap={() => this.slice('WIFI')} />
-              <MenuItem primaryText="Download GCode" onTouchTap={() => this.slice('DOWNLOAD')} />
-            </Menu>
-            </Popover>
+            {actions.length === 1 ? (
+              <RaisedButton
+                primary
+                label={actions[0].title}
+                onTouchTap={() => this.slice(actions[0])}
+                className={`${classes.button}`}
+                disabled={isSlicing}
+              />
+            ) : (
+              <span>
+                <RaisedButton
+                  label="Print"
+                  ref="button"
+                  primary
+                  className={`${classes.button}`}
+                  onTouchTap={this.openPopover}
+                  disabled={isSlicing}
+                />
+                <Popover
+                  open={this.state.popover.open}
+                  anchorEl={this.state.popover.element}
+                  anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
+                  targetOrigin={{horizontal: 'left', vertical: 'bottom'}}
+                  onRequestClose={this.closePopover}
+                >
+                  <Menu>
+                    {actions.map((action) => (
+                      <MenuItem key={action.type} primaryText={action.title} onTouchTap={() => this.slice(action)} />
+                    ))}
+                  </Menu>
+                </Popover>
+              </span>
+            )}
           </div>
         </div>
       </div>
