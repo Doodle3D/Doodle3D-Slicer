@@ -396,7 +396,7 @@ class Interface extends React.Component {
                 >
                   <Menu>
                     {actions.map((action) => (
-                      <MenuItem key={action.type} primaryText={action.title} onTouchTap={() => this.slice(action)} />
+                      <MenuItem key={action.target} primaryText={action.title} onTouchTap={() => this.slice(action)} />
                     ))}
                   </Menu>
                 </Popover>
