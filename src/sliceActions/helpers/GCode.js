@@ -127,11 +127,11 @@ export default class GCode {
     return this;
   }
 
-  addGCode(gcode, { temperature, bedTemperature, heatedbed }) {
+  addGCode(gcode, { temperature, bedTemperature, heatedBed }) {
     gcode = gcode
       .replace(/{temperature}/gi, temperature)
       .replace(/{bedTemperature}/gi, bedTemperature)
-      .replace(/{if heatedBed}/gi, heatedbed ? '' : ';');
+      .replace(/{if heatedBed}/gi, heatedBed ? '' : ';');
 
     this._addGCode(gcode);
   }
