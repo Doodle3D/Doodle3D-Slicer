@@ -177,7 +177,10 @@ export async function slice(action, name, mesh, settings, updateProgress) {
   const centerX = dimensions.x / 2;
   const centerY = dimensions.y / 2;
 
-  const matrix = new THREE.Matrix4().makeTranslation(centerY, 0, centerX).multiply(mesh.matrix);
+  const matrix = new THREE.Matrix4().makeRotationY(-Math.PI / 2.0)
+    .multiply(new THREE.Matrix4().makeTranslation(centerY, 0, centerX))
+    .multiply(mesh.matrix);
+
   const { gcode } = await sliceGeometry(settings, mesh.geometry, mesh.material, matrix, false, false, ({ progress }) => {
     updateProgress({
       action: progress.action,
