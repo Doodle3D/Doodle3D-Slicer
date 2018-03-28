@@ -300,7 +300,7 @@ ultimaker2_plus:
   dimensions:
     x: 223
     y: 223
-    z: 223
+    z: 205
 ultimaker2_plus_extended:
   title: Ultimaker 2+ Extended
   heatedBed: true
