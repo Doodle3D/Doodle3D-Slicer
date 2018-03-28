@@ -300,6 +300,14 @@ ultimaker2_plus:
   dimensions:
     x: 223
     y: 223
+    z: 223
+ultimaker2_plus_extended:
+  title: Ultimaker 2+ Extended
+  heatedBed: true
+  filamentThickness: 2.85
+  dimensions:
+    x: 223
+    y: 223
     z: 305
 ultimaker2go:
   startCode: |-
