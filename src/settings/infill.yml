@@ -2,6 +2,10 @@
   title: Hollow (0%)
   innerInfill:
     density: 0.0
+10pct:
+  title: Light (10%)
+  innerInfill:
+    density: 10.0
 20pct:
   title: Normal (20%)
   innerInfill:
