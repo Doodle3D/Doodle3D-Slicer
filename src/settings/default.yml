@@ -14,7 +14,7 @@ startCode: |-
   G1 F9000
   G90 ;absolute positioning
   M117 Printing Doodle...
-endcode: |-
+endCode: |-
   M107 ;fan off
   G91 ;relative positioning
   G1 E-1 F300 ;retract the filament a bit before lifting the nozzle, to release some of the pressure
