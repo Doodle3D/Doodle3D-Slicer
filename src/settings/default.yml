@@ -1,4 +1,30 @@
-zOffset: 0.3
+startCode: |-
+  M109 S{temperature} ;set target temperature
+  {if heatedBed}M190 S{bedTemperature} ;set target bed temperature
+  G21 ;metric values
+  M107 ;start with the fan off
+  G28 X0 Y0 ;move X/Y to min endstops
+  G28 Z0 ;move Z to min endstops
+  G1 Z15 F9000 ;move the platform down 15mm
+  G92 E0 ;zero the extruded length
+  G91 ;relative positioning
+  G1 F200 E10 ;extrude 10mm of feed stock
+  G92 E0 ;zero the extruded length again
+  G92 E0 ;zero the extruded length again
+  G1 F9000
+  G90 ;absolute positioning
+  M117 Printing Doodle...
+endCode: |-
+  M107 ;fan off
+  G91 ;relative positioning
+  G1 E-1 F300 ;retract the filament a bit before lifting the nozzle, to release some of the pressure
+  G1 Z+0.5 E-5 X-20 Y-20 F9000 ;move Z up a bit and retract filament even more
+  G28 X0 Y0 ;move X/Y to min endstops, so the head is out of the way
+  M84 ;disable axes / steppers
+  G90 ;absolute positioning
+  M104 S0
+  {if heatedBed}M140 S0
+  M117 Done
 dimensions:
   x: 200
   y: 200
@@ -7,7 +33,7 @@ heatedBed: false
 nozzleDiameter: 0.4
 filamentThickness: 2.85
 temperature: 210
-bedTemperature: 70
+bedTemperature: 50
 layerHeight: 0.15
 combing: true
 thickness:
@@ -23,11 +49,10 @@ travel:
   speed: 200.0
 support:
   enabled: false
-  acceptanceMargin: 1.5
+  minArea: 2
   distanceY: 0.4
-  gridSize: 6.0
+  density: 5.0
   margin: 2.0
-  plateSize: 4.0
   flowRate: 0.8
   speed: 40.0
 innerShell:
@@ -39,12 +64,12 @@ outerShell:
 innerInfill:
   flowRate: 1.0
   speed: 80.0
-  gridSize: 15.0
+  density: 20.0
 outerInfill:
   flowRate: 1.0
   speed: 50.0
 brim:
-  offset: 4.0
+  size: 8.0
   flowRate: 1.0
   speed: 40.0
 firstLayer:

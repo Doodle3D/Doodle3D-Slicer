@@ -1,11 +1,6 @@
-import { VertexColors } from 'three/src/constants.js';
-import { BufferAttribute } from 'three/src/core/BufferAttribute.js';
-import { LineBasicMaterial } from 'three/src/materials/LineBasicMaterial.js';
-import { LineSegments } from 'three/src/objects/LineSegments.js';
+import * as THREE from 'three';
 import slice from './sliceActions/slice.js';
 import SlicerWorker from './slicer.worker.js';
-import { FrontSide, DoubleSide } from 'three/src/constants.js';
-import { BufferGeometry } from 'three/src/core/BufferGeometry.js'
 
 export function sliceMesh(settings, mesh, sync = false, constructLinePreview = false, onProgress) {
   if (!mesh || !mesh.isMesh) {
@@ -21,26 +16,43 @@ export function sliceGeometry(settings, geometry, materials, matrix, sync = fals
   if (!geometry) {
     throw new Error('Missing required geometry argument');
   } else if (geometry.isBufferGeometry) {
-    geometry = new Geometry().fromBufferGeometry(geometry);
+    geometry = new THREE.Geometry().fromBufferGeometry(geometry);
   } else if (geometry.isGeometry) {
     geometry = geometry.clone();
   } else {
     throw new Error('Geometry is not an instance of BufferGeometry or Geometry');
   }
 
-  if (geometry.faces.length === 0) {
-    throw new Error('Geometry does not contain any data');
-  }
+  if (matrix && matrix.isMatrix4) geometry.applyMatrix(matrix);
 
-  if (matrix && matrix.isMatrix4) {
-    geometry.applyMatrix(matrix);
-  }
+  const vertices = geometry.vertices.reduce((array, { x, y, z }, i) => {
+    const i3 = i * 3;
+    array[i3] = x;
+    array[i3 + 1] = y;
+    array[i3 + 2] = z;
+    return array;
+  }, new Float32Array(geometry.vertices.length * 3));
+  const faces = geometry.faces.reduce((array, { a, b, c }, i) => {
+    const i3 = i * 3;
+    array[i3] = a;
+    array[i3 + 1] = b;
+    array[i3 + 2] = c;
+    return array;
+  }, new Uint32Array(geometry.faces.length * 3));
+  const objectIndexes = geometry.faces.reduce((array, { materialIndex }, i) => {
+    array[i] = materialIndex;
+    return array;
+  }, new Uint8Array(geometry.faces.length));
+
+  if (faces.length === 0) throw new Error('Geometry does not contain any data');
+
+  geometry = { vertices, faces, objectIndexes };
 
   const openObjectIndexes = materials instanceof Array ? materials.map(({ side }) => {
     switch (side) {
-      case FrontSide:
+      case THREE.FrontSide:
         return false;
-      case DoubleSide:
+      case THREE.DoubleSide:
         return true;
       default:
         return false;
@@ -55,7 +67,9 @@ export function sliceGeometry(settings, geometry, materials, matrix, sync = fals
 }
 
 function sliceSync(settings, geometry, openObjectIndexes, constructLinePreview, onProgress) {
-  return slice(settings, geometry, openObjectIndexes, constructLinePreview, onProgress);
+  const gcode = slice(settings, geometry, openObjectIndexes, constructLinePreview, onProgress);
+  if (gcode.linePreview) gcode.linePreview = constructLineGeometry(gcode.linePreview);
+  return gcode;
 }
 
 function sliceAsync(settings, geometry, openObjectIndexes, constructLinePreview, onProgress) {
@@ -63,10 +77,10 @@ function sliceAsync(settings, geometry, openObjectIndexes, constructLinePreview,
     // create the slicer worker
     const slicerWorker = new SlicerWorker();
 
-    slicerWorker.onerror = error => {
+    slicerWorker.addEventListener('error', event => {
       slicerWorker.terminate();
-      reject(error);
-    };
+      reject(event);
+    });
 
     // listen to messages send from worker
     slicerWorker.addEventListener('message', (event) => {
@@ -75,36 +89,36 @@ function sliceAsync(settings, geometry, openObjectIndexes, constructLinePreview,
         case 'SLICE': {
           slicerWorker.terminate();
 
-          if (data.gcode.linePreview) {
-            const geometry = new BufferGeometry();
+          const { gcode } = data;
+          if (gcode.linePreview) gcode.linePreview = constructLineGeometry(gcode.linePreview);
 
-            const { position, color } = data.gcode.linePreview;
-            geometry.addAttribute('position', new BufferAttribute(new Float32Array(position), 3));
-            geometry.addAttribute('color', new BufferAttribute(new Float32Array(color), 3));
-
-            const material = new LineBasicMaterial({ vertexColors: VertexColors });
-            const linePreview = new LineSegments(geometry, material);
-
-            data.gcode.linePreview = linePreview;
-          }
-
-          resolve(data.gcode);
+          resolve(gcode);
           break;
         }
         case 'PROGRESS': {
-          if (typeof onProgress !== 'undefined') {
-            onProgress(data);
-          }
+          if (typeof onProgress !== 'undefined') onProgress(data);
           break;
         }
       }
     });
 
-    // send geometry and settings to worker to start the slicing progress
-    geometry = geometry.toJSON();
+    const { vertices, faces, objectIndexes } = geometry;
+    const buffers = [vertices.buffer, faces.buffer, objectIndexes.buffer];
+
     slicerWorker.postMessage({
       message: 'SLICE',
       data: { settings, geometry, openObjectIndexes, constructLinePreview }
-    });
+    }, buffers);
   });
+}
+
+function constructLineGeometry(linePreview) {
+  const geometry = new THREE.BufferGeometry();
+
+  geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(linePreview.positions), 3));
+  geometry.addAttribute('color', new THREE.BufferAttribute(new Float32Array(linePreview.colors), 3));
+
+  const material = new THREE.LineBasicMaterial({ vertexColors: THREE.VertexColors });
+  const mesh = new THREE.LineSegments(geometry, material);
+  return mesh;
 }

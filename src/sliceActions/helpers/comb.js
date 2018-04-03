@@ -1,8 +1,8 @@
 import Shape from 'clipper-js';
-import { subtract, add, scale, normalize, dot, length, distanceTo } from './VectorUtils.js';
+import { subtract, add, scale, normalize, dot, length, distanceTo } from './vector2.js';
 import { PRECISION } from '../../constants.js';
 
-const TOLERANCE = 5 / PRECISION;
+const TOLERANCE = 1 / PRECISION;
 
 export default function comb(outline, start, end) {
   if (distanceTo(start, end) < TOLERANCE) {
@@ -45,9 +45,9 @@ export default function comb(outline, start, end) {
 
     if (snappedCombPaths.length === 0) {
       snappedCombPaths.push([start], [end]);
-    } else if (distanceTo(firstPath[0], start) > 1.0) {
+    } else if (distanceTo(firstPath[0], start) > 1.) {
       snappedCombPaths.unshift([start]);
-    } else if (distanceTo(lastPath[lastPath.length - 1], end) > 1.0) {
+    } else if (distanceTo(lastPath[lastPath.length - 1], end) > 1.) {
       snappedCombPaths.push([end]);
     }
 

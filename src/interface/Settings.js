@@ -4,98 +4,420 @@ import _ from 'lodash';
 import { Tabs, Tab } from 'material-ui/Tabs';
 import MenuItem from 'material-ui/MenuItem';
 import injectSheet from 'react-jss';
-import { SelectField, TextField, Checkbox } from './FormComponents.js';
-import { grey800, cyan500 } from 'material-ui/styles/colors';
+import { SelectField, TextField, NumberField, Checkbox } from './FormComponents.js';
+import { grey800, red500 } from 'material-ui/styles/colors';
+import Divider from 'material-ui/Divider';
+import Dialog from 'material-ui/Dialog';
+import FlatButton from 'material-ui/FlatButton';
+import RaisedButton from 'material-ui/RaisedButton';
+import { LOCAL_STORAGE_KEY } from '../constants.js';
+import shortid from 'shortid';
+import defaultSettings from '../settings/default.yml';
+import printerSettings from '../settings/printer.yml';
+import materialSettings from '../settings/material.yml';
+import qualitySettings from '../settings/quality.yml';
+import infillSettings from '../settings/infill.yml';
+import update from 'react-addons-update';
+import SettingsIcon from 'material-ui-icons/Settings';
+import ExitToAppIcon from 'material-ui-icons/ExitToApp';
+import validateIp from 'validate-ip';
+import { Doodle3DManager } from 'doodle3d-api';
+
+const DOODLE_3D_MANAGER = new Doodle3DManager();
+DOODLE_3D_MANAGER.checkNonServerBoxes = false;
+DOODLE_3D_MANAGER.setAutoUpdate(true, 5000);
+
+const CONNECT_URL = 'http://connect.doodle3d.com/';
 
 const styles = {
   textFieldRow: {
-    display: 'flex'
+    display: 'flex',
+    alignItems: 'center'
   },
   container: {
     width: '100%',
     flexGrow: 1,
     overflowY: 'auto',
-    '& p, h3': {
+    '& p': {
       fontWeight: 'bold',
       margin: '30px 0 0 0'
+    },
+    '& h3': {
+      fontWeight: 'bold',
+      marginTop: '20px',
+      marginBottom: '20px',
     }
+  },
+  error: {
+    color: red500
+  },
+
+};
+
+const getLocalStorage = () => {
+  let localStorage = window.localStorage.getItem(LOCAL_STORAGE_KEY);
+
+  if (!localStorage) {
+    localStorage = { printers: {}, active: null };
+    updateLocalStorage(localStorage);
+  } else {
+    localStorage = JSON.parse(localStorage);
   }
+  return localStorage;
+};
+
+const updateLocalStorage = (localStorage) => {
+  window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localStorage));
 };
 
 class Settings extends React.Component {
-  static childContextTypes = { state: PropTypes.object, onChange: PropTypes.func, disabled: PropTypes.bool };
+  static propTypes = {
+    selectedPrinter: PropTypes.string,
+    classes: PropTypes.objectOf(PropTypes.string),
+    onChange: PropTypes.func,
+    disabled: PropTypes.bool.isRequired
+  };
   static defaultProps: {
     disabled: false
   };
-  static propTypes = {
-    classes: PropTypes.objectOf(PropTypes.string),
-    onChange: PropTypes.func,
-    printers: PropTypes.object.isRequired,
-    defaultPrinter: PropTypes.string,
-    quality: PropTypes.object.isRequired,
-    defaultQuality: PropTypes.string.isRequired,
-    material: PropTypes.object.isRequired,
-    defaultMaterial: PropTypes.string.isRequired,
-    initialSettings: PropTypes.object.isRequired,
-    disabled: PropTypes.bool.isRequired
+  static childContextTypes = {
+    settings: PropTypes.object.isRequired,
+    onChange: PropTypes.func.isRequired,
+    disabled: PropTypes.bool.isRequired,
+    addPrinter: PropTypes.object.isRequired,
+    managePrinter: PropTypes.object.isRequired,
+    activePrinter: PropTypes.string,
+    advancedFields: PropTypes.array.isRequired
   };
-  constructor(props) {
-    super();
-    this.state = {
-      settings: props.initialSettings,
-      printers: props.defaultPrinter,
-      quality: props.defaultQuality,
-      material: props.defaultMaterial
-    };
+
+  state = {
+    localStorage: getLocalStorage(),
+    wifiBoxes: [],
+    addPrinter: {
+      open: false,
+      name: '',
+      printer: '',
+      ip: '',
+      error: null
+    },
+    managePrinter: {
+      open: false
+    }
+  };
+
+  componentDidMount() {
+    const { onChange, selectedPrinter } = this.props;
+    const { localStorage } = this.state;
+
+    if (selectedPrinter && localStorage.active) {
+      const activePrinter = selectedPrinter && Object.entries(localStorage.printers)
+        .map(([key, value]) => ({ key, value }))
+        .find(({ key, value: { ip } }) => ip === selectedPrinter);
+
+      if (activePrinter) {
+        const state = this.changeSettings('activePrinter', activePrinter.key);
+        if (onChange) onChange(this.constructSettings(state.localStorage));
+      } else {
+        this.openAddPrinterDialog({ ip: selectedPrinter });
+      }
+    } else if (!selectedPrinter && localStorage.active) {
+      if (onChange) onChange(this.constructSettings(localStorage));
+    } else if (selectedPrinter && !localStorage.active) {
+      this.openAddPrinterDialog({ ip: selectedPrinter });
+    } else if (!selectedPrinter && !localStorage.active) {
+      this.openAddPrinterDialog();
+    }
+
+    const eventListener = ({ boxes }) => this.setState({ wifiBoxes: boxes });
+    this.setState({ wifiBoxes: DOODLE_3D_MANAGER.boxes, eventListener });
+    DOODLE_3D_MANAGER.addEventListener('boxeschanged', eventListener);
+  }
+
+  componentWillUnmount() {
+    const { eventListener } = this.state;
+    DOODLE_3D_MANAGER.removeEventListener('boxeschanged', eventListener);
   }
 
   changeSettings = (fieldName, value) => {
     const { onChange } = this.props;
+    const { localStorage } = this.state;
 
-    let state;
+    let state = _.cloneDeep(this.state);
+
     switch (fieldName) {
-      case 'printers':
-      case 'quality':
-      case 'material':
-        state = {
-          [fieldName]: value,
-          settings: _.merge({}, this.state.settings, this.props[fieldName][value])
-        };
+      case 'managePrinter.printer':
+      case 'managePrinter.name':
+      case 'managePrinter.ip':
+        state = _.set(state, fieldName, value);
+        state = update(state, { managePrinter: { error: { $set: null } } });
+        break;
+
+      case 'addPrinter.printer':
+      case 'addPrinter.name':
+      case 'addPrinter.ip':
+        state = _.set(state, fieldName, value);
+        if (fieldName === 'addPrinter.printer') {
+          state = update(state, { addPrinter: { name: { $set: printerSettings[value].title } } });
+        }
+        state = update(state, { addPrinter: { error: { $set: null } } });
+        break;
+
+      case 'activePrinter':
+        if (value !== 'add_printer') state = update(state, { localStorage: { active: { $set: value } } });
+        break;
+
+      case 'settings.infill':
+      case 'settings.quality':
+      case 'settings.material':
+        if (!localStorage.active) return this.openAddPrinterDialog();
+
+        state = _.set(state, `localStorage.printers[${localStorage.active}].${fieldName}`, value);
+        break;
+
+      case 'settings.layerHeight':
+      case 'settings.dimensions.x':
+      case 'settings.dimensions.y':
+      case 'settings.dimensions.z':
+      case 'settings.nozzleDiameter':
+      case 'settings.bedTemperature':
+      case 'settings.heatedBed':
+      case 'settings.filamentThickness':
+      case 'settings.temperature':
+      case 'settings.thickness.top':
+      case 'settings.thickness.bottom':
+      case 'settings.thickness.shell':
+      case 'settings.retraction.enabled':
+      case 'settings.retraction.amount':
+      case 'settings.retraction.speed':
+      case 'settings.retraction.minDistance':
+      case 'settings.travel.speed':
+      case 'settings.combing':
+      case 'settings.innerShell.speed':
+      case 'settings.innerShell.flowRate':
+      case 'settings.outerShell.speed':
+      case 'settings.outerShell.flowRate':
+      case 'settings.innerInfill.density':
+      case 'settings.innerInfill.speed':
+      case 'settings.innerInfill.flowRate':
+      case 'settings.outerInfill.speed':
+      case 'settings.outerInfill.flowRate':
+      case 'settings.brim.size':
+      case 'settings.brim.speed':
+      case 'settings.brim.flowRate':
+      case 'settings.firstLayer.speed':
+      case 'settings.firstLayer.flowRate':
+      case 'settings.support.enabled':
+      case 'settings.support.speed':
+      case 'settings.support.distanceY':
+      case 'settings.support.density':
+      case 'settings.support.minArea':
+      case 'settings.support.margin':
+      case 'settings.support.speed':
+      case 'settings.support.flowRate':
+        if (!localStorage.active) return this.openAddPrinterDialog();
+
+        if (value === null) {
+          const advanced = { ...state.localStorage.printers[localStorage.active].settings.advanced };
+          delete advanced[fieldName];
+          state = update(state, { localStorage: { printers: { [localStorage.active]: { settings: { advanced: { $set: advanced } } } } } });
+        } else {
+          state = _.set(state, `localStorage.printers[${localStorage.active}].settings.advanced[${JSON.stringify(fieldName)}]`, value);
+        }
         break;
 
       default:
-        state = _.set(_.cloneDeep(this.state), fieldName, value);
         break;
     }
-    if (onChange) onChange(state);
-    if (state) this.setState(state);
-  };
+    this.setState(state);
+    if (localStorage.active) {
+      if (onChange) onChange(this.constructSettings(state.localStorage));
+      updateLocalStorage(state.localStorage);
+    }
+
+    return state;
+  }
 
   getChildContext() {
-    return { state: this.state, onChange: this.changeSettings, disabled: this.props.disabled };
+    const { localStorage, addPrinter, managePrinter } = this.state;
+
+    return {
+      addPrinter,
+      managePrinter,
+      activePrinter: localStorage.active,
+      advancedFields: localStorage.active ? Object.keys(localStorage.printers[localStorage.active].settings.advanced) : [],
+      settings: this.constructSettings(localStorage),
+      onChange: this.changeSettings,
+      disabled: this.props.disabled
+    };
+  }
+
+  constructSettings(localStorage) {
+    if (!localStorage.active) return defaultSettings;
+
+    const { ip, settings: { printer, material, quality, infill, advanced } } = localStorage.printers[localStorage.active];
+    let settings = {
+      ...defaultSettings,
+      printer,
+      material,
+      quality,
+      infill,
+      ip
+    };
+
+    settings = _.merge({}, settings, printerSettings[printer]);
+    settings = _.merge({}, settings, qualitySettings[quality]);
+    settings = _.merge({}, settings, infillSettings[infill]);
+    settings = _.merge({}, settings, materialSettings[material]);
+
+    for (const key in advanced) {
+      const value = advanced[key];
+      settings = _.set(_.cloneDeep(settings), key.replace('settings.', ''), value);
+    }
+
+    return settings;
+  }
+
+  addPrinter = () => {
+    const { name, printer, ip } = this.state.addPrinter;
+
+    if (!name || !printer) {
+      this.setState(update(this.state, { addPrinter: { error: { $set: 'Please enter a name and printer' } } }));
+      return;
+    }
+    if (printer === 'doodle3d_printer' && ip !== '' && !validateIp(ip)) {
+      this.setState(update(this.state, { addPrinter: { error: { $set: 'Please enter a valid IP adress' } } }));
+      return;
+    }
+
+    const id = shortid.generate();
+    const localStorage = {
+      active: id,
+      printers: {
+        ...this.state.localStorage.printers,
+        [id]: { name, ip, settings: { printer, material: 'pla', infill: '20pct', quality: 'medium', advanced: {} } }
+      }
+    };
+    this.setState({ localStorage });
+    updateLocalStorage(localStorage);
+
+    this.closeAddPrinterDialog();
+
+    const { onChange } = this.props;
+    if (onChange) onChange(this.constructSettings(localStorage));
+  };
+
+  editPrinter = () => {
+    const { localStorage: { active, printers }, managePrinter: { printer, name, ip } } = this.state;
+
+    if (!name) {
+      this.setState(update(this.state, { managePrinter: { error: { $set: 'Please enter a name' } } }));
+      return;
+    }
+    if (printer === 'doodle3d_printer' && !validateIp(ip)) {
+      this.setState(update(this.state, { managePrinter: { error: { $set: 'Please enter a valid IP adress' } } }));
+      return;
+    }
+
+    const localStorage = update(this.state.localStorage, {
+      printers: {
+        [active]: {
+          name: { $set: name },
+          ip: { $set: ip },
+          settings: {
+            printer: { $set: printer }
+          }
+        }
+      }
+    });
+    this.closeManagePrinterDialog();
+    this.setState({ localStorage });
+    updateLocalStorage(localStorage);
+
+    const { onChange } = this.props;
+    if (onChange) onChange(this.constructSettings(localStorage));
+  };
+
+  removeActivePrinter = () => {
+    let { localStorage: { active, printers } } = this.state;
+    if (!active) return;
+
+    printers = { ...printers };
+    delete printers[active];
+    active = Object.keys(printers)[0] || null;
+    const localStorage = { active, printers };
+
+    this.closeManagePrinterDialog();
+    this.setState({ localStorage });
+    updateLocalStorage(localStorage);
+
+    const { onChange } = this.props;
+    if (onChange) onChange(this.constructSettings(localStorage));
+  };
+
+  closeAddPrinterDialog = (override) => this.setAddPrinterDialog(false, override);
+  openAddPrinterDialog = (override) => this.setAddPrinterDialog(true, override);
+  setAddPrinterDialog = (open, override = {}) => this.setState({
+    addPrinter: {
+      ip: '',
+      name: '',
+      printer: '',
+      error: null,
+      open,
+      ...override
+    }
+  });
+
+  closeManagePrinterDialog = () => this.setManagePrinterDialog(false);
+  openManagePrinterDialog = () => this.setManagePrinterDialog(true);
+  setManagePrinterDialog = (open) => {
+    const { localStorage: { active, printers } } = this.state;
+    if (!active) return this.setState({ managePrinter: { open: false } });
+    this.setState({
+      managePrinter: {
+        open,
+        name: printers[active].name,
+        ip: printers[active].ip,
+        printer: printers[active].settings.printer,
+        error: null
+      }
+    });
   }
 
   render() {
-    const { classes, printers, quality, material, disabled } = this.props;
+    const { addPrinter, managePrinter, localStorage, wifiBoxes } = this.state;
+    const { classes, disabled } = this.props;
 
     return (
       <div className={classes.container}>
-        <SelectField name="printers" floatingLabelText="Printer" fullWidth>
-          {Object.entries(printers).map(([value, { title }]) => (
+        <div className={classes.textFieldRow}>
+          <SelectField name="activePrinter" floatingLabelText="Printer" fullWidth>
+            {Object.entries(localStorage.printers).map(([id, { name }]) => (
+              <MenuItem key={id} value={id} primaryText={name} />
+            ))}
+            <Divider />
+            <MenuItem onTouchTap={this.openAddPrinterDialog} value="add_printer" primaryText="Add Printer" />
+          </SelectField>
+          {localStorage.active && <SettingsIcon
+            onTouchTap={this.openManagePrinterDialog}
+            style={{ fill: grey800, marginLeft: '10px', cursor: 'pointer' }}
+          />}
+        </div>
+        <SelectField name="settings.material" floatingLabelText="Material" fullWidth>
+          {Object.entries(materialSettings).map(([value, { title }]) => (
             <MenuItem key={value} value={value} primaryText={title} />
           ))}
         </SelectField>
-        <SelectField name="material" floatingLabelText="Material" fullWidth>
-          {Object.entries(material).map(([value, { title }]) => (
-            <MenuItem key={value} value={value} primaryText={title} />
-          ))}
-        </SelectField>
-        <h3>Printer Setup</h3>
-        <Tabs inkBarStyle={{ backgroundColor: cyan500 }}>
+        <h3>Print Setup</h3>
+        <Tabs>
           <Tab buttonStyle={{ color: grey800, backgroundColor: 'white' }} label="Basic">
             <div>
-              <SelectField name="quality" floatingLabelText="Quality" fullWidth>
-                {Object.entries(quality).map(([value, { title }]) => (
+              <SelectField name="settings.quality" floatingLabelText="Quality" fullWidth>
+                {Object.entries(qualitySettings).map(([value, { title }]) => (
+                  <MenuItem key={value} value={value} primaryText={title} />
+                ))}
+              </SelectField>
+              <SelectField name="settings.infill" floatingLabelText="Infill" fullWidth>
+                {Object.entries(infillSettings).map(([value, { title }]) => (
                   <MenuItem key={value} value={value} primaryText={title} />
                 ))}
               </SelectField>
@@ -104,59 +426,119 @@ class Settings extends React.Component {
           <Tab buttonStyle={{ color: grey800, backgroundColor: 'white' }} label="Advanced">
             <div>
               <p>Layer</p>
-              <TextField name="settings.layerHeight" fullWidth floatingLabelText="Height" type="number" />
-              <p>Printer dimensions</p>
-              <div className={classes.textFieldRow}>
-                <TextField name="settings.dimensions.x" fullWidth floatingLabelText="X" type="number" />
-                <TextField name="settings.dimensions.y" fullWidth floatingLabelText="Y" type="number" />
-                <TextField name="settings.dimensions.z" fullWidth floatingLabelText="Z" type="number" />
-              </div>
-              <p>Nozzle</p>
-              <TextField name="settings.nozzleDiameter" fullWidth floatingLabelText="Diameter" type="number" />
-              <p>Bed</p>
-              <TextField name="settings.bedTemperature" fullWidth floatingLabelText="Temperature" type="number" />
-              <Checkbox name="settings.heatedBed" label="Heated" />
-              <p>Material</p>
-              <TextField name="settings.filamentThickness" fullWidth floatingLabelText="Thickness" type="number" />
-              <TextField name="settings.temperature" fullWidth floatingLabelText="Temperature" type="number" />
+              <NumberField name="settings.layerHeight" min={0.05} max={3} fullWidth floatingLabelText="Height" />
               <p>Thickness</p>
-              <TextField name="settings.thickness.top" fullWidth floatingLabelText="top" type="number" />
-              <TextField name="settings.thickness.bottom" fullWidth floatingLabelText="bottom" type="number" />
-              <TextField name="settings.thickness.shell" fullWidth floatingLabelText="shell" type="number" />
+              <NumberField name="settings.thickness.top" min={0} fullWidth floatingLabelText="top" />
+              <NumberField name="settings.thickness.bottom" min={0} fullWidth floatingLabelText="bottom" />
+              <NumberField name="settings.thickness.shell" min={0} fullWidth floatingLabelText="shell" />
+              <p>Material</p>
+              <NumberField name="settings.filamentThickness" min={0.1} max={10} fullWidth floatingLabelText="Thickness" />
+              <NumberField name="settings.temperature" min={100} max={400} fullWidth floatingLabelText="Temperature" />
+              <p>Bed</p>
+              <NumberField name="settings.bedTemperature" min={30} max={150} fullWidth floatingLabelText="Temperature" />
+              <Checkbox name="settings.heatedBed" label="Heated" />
+              <p>Brim</p>
+              <NumberField name="settings.brim.size" min={0} max={20} fullWidth floatingLabelText="Size" />
+              <NumberField name="settings.brim.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+              <NumberField name="settings.brim.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
+              <p>Support</p>
+              <Checkbox name="settings.support.enabled" label="Enabled" />
+              <NumberField name="settings.support.distanceY" min={0.1} fullWidth floatingLabelText="Distance Y" />
+              <NumberField name="settings.support.density" min={0} max={100} fullWidth floatingLabelText="Density" />
+              <NumberField name="settings.support.margin" min={0.1} fullWidth floatingLabelText="Margin" />
+              <NumberField name="settings.support.minArea" min={1} fullWidth floatingLabelText="Min Area" />
+              <NumberField name="settings.support.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+              <NumberField name="settings.support.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
+              <p>First layer</p>
+              <NumberField name="settings.firstLayer.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+              <NumberField name="settings.firstLayer.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
+              <p>Inner shell</p>
+              <NumberField name="settings.innerShell.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+              <NumberField name="settings.innerShell.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
+              <p>Outer shell</p>
+              <NumberField name="settings.outerShell.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+              <NumberField name="settings.outerShell.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
+              <p>Inner infill</p>
+              <NumberField name="settings.innerInfill.density" min={0} max={100} fullWidth floatingLabelText="Density" />
+              <NumberField name="settings.innerInfill.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+              <NumberField name="settings.innerInfill.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
+              <p>Outer infill</p>
+              <NumberField name="settings.outerInfill.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+              <NumberField name="settings.outerInfill.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
+              <p>Travel</p>
+              <NumberField name="settings.travel.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+              <Checkbox name="settings.combing" label="Combing" />
               <p>Retraction</p>
               <Checkbox name="settings.retraction.enabled" label="Enabled" />
-              <TextField name="settings.retraction.amount" fullWidth floatingLabelText="Amount" type="number" />
-              <TextField name="settings.retraction.speed" fullWidth floatingLabelText="Speed" type="number" />
-              <TextField name="settings.retraction.minDistance" fullWidth floatingLabelText="Min distance" type="number" />
-              <p>Travel</p>
-              <TextField name="settings.travel.speed" fullWidth floatingLabelText="Speed" type="number" />
-              <Checkbox name="settings.combing" label="Combing" />
-              <p>Inner shell</p>
-              <TextField name="settings.innerShell.speed" fullWidth floatingLabelText="Speed" type="number" />
-              <TextField name="settings.innerShell.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
-              <p>Outer shell</p>
-              <TextField name="settings.outerShell.speed" fullWidth floatingLabelText="Speed" type="number" />
-              <TextField name="settings.outerShell.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
-              <p>Inner infill</p>
-              <TextField name="settings.innerInfill.gridSize" fullWidth floatingLabelText="Grid size" type="number" />
-              <TextField name="settings.innerInfill.speed" fullWidth floatingLabelText="Speed" type="number" />
-              <TextField name="settings.innerInfill.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
-              <p>Outer infill</p>
-              <TextField name="settings.outerInfill.speed" fullWidth floatingLabelText="Speed" type="number" />
-              <TextField name="settings.outerInfill.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
-              <p>Brim</p>
-              <TextField name="settings.brim.offset" fullWidth floatingLabelText="Offset" type="number" />
-              <TextField name="settings.brim.speed" fullWidth floatingLabelText="Speed" type="number" />
-              <TextField name="settings.brim.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
-              <p>First layer</p>
-              <TextField name="settings.firstLayer.speed" fullWidth floatingLabelText="Speed" type="number" />
-              <TextField name="settings.firstLayer.flowRate" fullWidth floatingLabelText="Flow rate" type="number" />
+              <NumberField name="settings.retraction.amount" min={0} max={10} fullWidth floatingLabelText="Amount" />
+              <NumberField name="settings.retraction.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+              <NumberField name="settings.retraction.minDistance" min={0} fullWidth floatingLabelText="Min distance" />
+              <p>Printer dimensions</p>
+              <div className={classes.textFieldRow}>
+                <NumberField name="settings.dimensions.x" min={1} fullWidth floatingLabelText="X" />
+                <NumberField name="settings.dimensions.y" min={1} fullWidth floatingLabelText="Y" />
+                <NumberField name="settings.dimensions.z" min={1} fullWidth floatingLabelText="Z" />
+              </div>
+              <p>Nozzle</p>
+              <NumberField name="settings.nozzleDiameter" min={0.1} max={5} fullWidth floatingLabelText="Diameter" />
             </div>
           </Tab>
         </Tabs>
+        {printDialog(this.props, this.state, 'Add Printer', 'addPrinter', 'Add', addPrinter, localStorage.active && this.closeAddPrinterDialog, null, this.addPrinter)}
+        {printDialog(this.props, this.state, 'Manage Printer', 'managePrinter', 'Save', managePrinter, this.closeManagePrinterDialog, this.removeActivePrinter, this.editPrinter)}
       </div>
     );
   }
+}
+
+function printDialog(props, state, title, form, submitText, data, closeDialog, removeActivePrinter, save) {
+  const { classes } = props;
+  const { wifiBoxes } = state;
+
+  return (
+    <Dialog
+      title={title}
+      open={data.open}
+      onRequestClose={closeDialog ? closeDialog : null}
+      contentStyle={{ maxWidth: '400px' }}
+      autoScrollBodyContent
+      actions={[
+        closeDialog && <FlatButton
+          label="Close"
+          onTouchTap={closeDialog}
+        />,
+        removeActivePrinter && <FlatButton
+          label="Remove Printer"
+          onTouchTap={removeActivePrinter}
+        />,
+        <RaisedButton
+          label={submitText}
+          primary
+          onTouchTap={save}
+        />
+      ]}
+    >
+      <SelectField name={`${form}.printer`} floatingLabelText="Printer" fullWidth>
+        {Object.entries(printerSettings).map(([value, { title }]) => (
+          <MenuItem key={value} value={value} primaryText={title} />
+        ))}
+      </SelectField>
+      <TextField name={`${form}.name`} floatingLabelText="Name" fullWidth />
+      {(data.printer === 'doodle3d_printer') ?
+        <TextField name={`${form}.ip`} floatingLabelText="IP Adress" fullWidth /> :
+        <div className={classes.textFieldRow}>
+          <SelectField name={`${form}.ip`} floatingLabelText="Doodle3D WiFi-Box" fullWidth>
+            {wifiBoxes.map(({ localip, id, wifiboxid }) => (<MenuItem key={id} value={localip} primaryText={wifiboxid} />))}
+          </SelectField>
+          {data.ip && <ExitToAppIcon
+            onTouchTap={() => window.open(`${CONNECT_URL}/?uuid=0#control?localip=${data.ip}`, '_blank')}
+            style={{ fill: grey800, marginLeft: '10px', cursor: 'pointer' }}
+          />}
+        </div>
+      }
+      {data.error && <p className={classes.error}>{data.error}</p>}
+    </Dialog>
+  );
 }
 
 export default injectSheet(styles)(Settings);

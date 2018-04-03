@@ -1,7 +1,7 @@
 import Shape from 'clipper-js';
 import Slice from './helpers/Slice.js';
 
-import { PRECISION } from '../constants.js';
+import { PRECISION, MIN_AREA } from '../constants.js';
 
 export default function shapesToSlices(shapes, settings) {
   const sliceLayers = [];
@@ -13,6 +13,7 @@ export default function shapesToSlices(shapes, settings) {
       .fixOrientation()
       .simplify('pftNonZero')
       .clean(1)
+      .thresholdArea(MIN_AREA / Math.pow(PRECISION, 2))
       .seperateShapes();
 
     lineShapesClosed = new Shape(lineShapesClosed, true, true, true, true)
@@ -27,23 +28,16 @@ export default function shapesToSlices(shapes, settings) {
 
     for (let i = 0; i < fillShapes.length; i ++) {
       const fillShape = fillShapes[i];
+      if (fillShape.paths.length === 0) continue;
+
       slice.add(fillShape, true);
 
-      // if (lineShapesClosed.paths.length > 0) {
-      //   lineShapesClosed = lineShapesClosed.difference(closedShape);
-      // }
-      // if (lineShapesOpen.paths.length > 0) {
-      //   lineShapesOpen = lineShapesOpen.difference(closedShape);
-      // }
+      if (lineShapesClosed.paths.length > 0) lineShapesClosed = lineShapesClosed.difference(fillShape);
+      if (lineShapesOpen.paths.length > 0) lineShapesOpen = lineShapesOpen.difference(fillShape);
     }
 
-    if (lineShapesClosed.paths.length > 0) {
-      slice.add(lineShapesClosed, false);
-    }
-
-    if (lineShapesOpen.paths.length > 0) {
-      slice.add(lineShapesOpen, false);
-    }
+    if (lineShapesClosed.paths.length > 0) slice.add(lineShapesClosed, false);
+    if (lineShapesOpen.paths.length > 0) slice.add(lineShapesOpen, false);
 
     sliceLayers.push(slice);
   }

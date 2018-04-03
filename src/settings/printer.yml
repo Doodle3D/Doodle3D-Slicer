@@ -1,3 +1,33 @@
+doodle3d_printer:
+  startCode: |-
+    M140 S{bedTemperature}
+    {if heatedBed}M104 S{temperature}
+    G28
+    M109 S{temperature}
+    {if heatedBed}M190 S{bedTemperature}
+    G90
+    M82
+    G1 Z10.0 F6000
+    G92 E0
+    G1 F200 E3
+    G92 E0
+  endCode: |-
+    M104 S0
+    M140 S0
+    G92 E1
+    G1 E-1 F300
+    G28 X0 Y0
+    M84
+    M82
+    M104 S0
+  title: Doodle3D Printer
+  heatedBed: true
+  bedTemperature: 50
+  filamentThickness: 1.75
+  dimensions:
+    x: 120
+    y: 120
+    z: 120
 _3Dison_plus:
   title: 3Dison plus
   heatedBed: false
@@ -270,8 +300,47 @@ ultimaker2_plus:
   dimensions:
     x: 223
     y: 223
+    z: 205
+ultimaker2_plus_extended:
+  title: Ultimaker 2+ Extended
+  heatedBed: true
+  filamentThickness: 2.85
+  dimensions:
+    x: 223
+    y: 223
     z: 305
 ultimaker2go:
+  startCode: |-
+    M10000
+    M10000
+    M10001 X8 Y28 SDoodle3D heat up...
+    M109 S{temperature} ;set target temperature
+    {if heatedBed}M190 S{bedTemperature} ;set target bed temperature
+    G21 ;metric values
+    G90 ;absolute positioning
+    M107 ;start with the fan off
+    G28 ; home to endstops
+    G1 Z15 F9000 ;move the platform down 15mm
+    G92 E0 ;zero the extruded length
+    G1 F200 E10 ;extrude 10mm of feed stock
+    G92 E0 ;zero the extruded length again
+    G1 F9000
+    M10000
+    M10000
+    M10001 X8 Y28 SDoodle3D printing...
+  endCode: |-
+    M10000
+    M10000
+    M10001 X20 Y28 SDoodle3D done!
+    M107 ;fan off
+    G91 ;relative positioning
+    G1 E-1 F300 ;retract the filament a bit before lifting the nozzle, to release some of the pressure
+    G1 Z+5.5 E-5 X-20 Y-20 F9000 ;move Z up a bit and retract filament even more
+    G28 ;home the printer
+    M84 ;disable axes / steppers
+    G90 ;absolute positioning
+    M104 S0
+    {if heatedBed}M140 S0
   title: Ultimaker 2 Go
   heatedBed: false
   filamentThickness: 2.85

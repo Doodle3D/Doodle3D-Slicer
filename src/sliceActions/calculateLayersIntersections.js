@@ -1,26 +1,25 @@
+import { Z_OFFSET } from '../constants.js';
+
 export default function calculateLayersIntersections(lines, settings) {
   const {
     dimensions: { z: dimensionsZ },
-    layerHeight,
-    zOffset
+    layerHeight
   } = settings;
 
-  const numLayers = Math.floor((dimensionsZ - zOffset) / layerHeight);
+  const numLayers = Math.floor((dimensionsZ - Z_OFFSET) / layerHeight);
 
-  const layers = Array.from(Array(numLayers)).map(() => ({
-    points: {},
-    faceIndexes: []
-  }));
+  const layerPoints = Array.from(Array(numLayers)).map(() => ({}));
+  const layerFaceIndexes = Array.from(Array(numLayers)).map(() => []);
 
   for (let lineIndex = 0; lineIndex < lines.length; lineIndex ++) {
     const { line, faces } = lines[lineIndex];
 
-    const min = Math.ceil((Math.min(line.start.y, line.end.y) - zOffset) / layerHeight);
-    const max = Math.floor((Math.max(line.start.y, line.end.y) - zOffset) / layerHeight);
+    const min = Math.ceil((Math.min(line.start.y, line.end.y) - Z_OFFSET) / layerHeight);
+    const max = Math.floor((Math.max(line.start.y, line.end.y) - Z_OFFSET) / layerHeight);
 
     for (let layerIndex = min; layerIndex <= max; layerIndex ++) {
       if (layerIndex >= 0 && layerIndex < numLayers) {
-        const y = layerIndex * layerHeight + zOffset;
+        const y = layerIndex * layerHeight + Z_OFFSET;
 
         let x, z;
         if (line.start.y === line.end.y) {
@@ -33,20 +32,14 @@ export default function calculateLayersIntersections(lines, settings) {
           z = line.end.z * alpha + line.start.z * alpha1;
         }
 
-        layers[layerIndex].points[lineIndex] = { x: z, y: x };
-        layers[layerIndex].faceIndexes.push(...faces);
+        layerPoints[layerIndex][lineIndex] = { x: z, y: x };
+        for (const faceIndex of faces) {
+          const layerFaceIndex = layerFaceIndexes[layerIndex];
+          if (!layerFaceIndex.includes(faceIndex)) layerFaceIndex.push(faceIndex);
+        }
       }
     }
   }
 
-  for (let i = 0; i < layers.length; i ++) {
-    const layer = layers[i];
-
-    layer.faceIndexes = layer.faceIndexes.reduce((result, faceIndex) => {
-      if (!result.includes(faceIndex)) result.push(faceIndex);
-      return result;
-    }, []);
-  }
-
-  return layers;
+  return { layerPoints, layerFaceIndexes };
 }

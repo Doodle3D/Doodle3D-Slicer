@@ -1,8 +1,9 @@
 const path = require('path');
-// const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const HTMLWebpackPlugin = require('html-webpack-plugin');
 
-const devMode = true;
+const devMode = process.env.NODE_ENV !== 'production';
+const analyzeBundle = process.env.ANALYZE_BUNDLE;
 
 const babelLoader = {
   loader: 'babel-loader',
@@ -34,6 +35,7 @@ module.exports = {
       'clipper-lib': '@doodle3d/clipper-lib',
       'clipper-js': '@doodle3d/clipper-js',
       'doodle3d-core': `@doodle3d/doodle3d-core/${devMode ? 'module' : 'lib'}`,
+      'doodle3d-api': `@doodle3d/doodle3d-api/${devMode ? 'module' : 'lib'}`,
       'cal': '@doodle3d/cal'
     }
   },
@@ -51,7 +53,13 @@ module.exports = {
         use: 'yml-loader'
       }, {
         test: /\.worker\.js$/,
-        use: ['worker-loader', babelLoader]
+        use: [{
+          loader: 'worker-loader',
+          options: {
+            inline: false,
+            name: '[name].js'
+          }
+        }, babelLoader],
       }, {
         test: /\.(png|jpg|gif)$/,
         use: ['url-loader?name=images/[name].[ext]']
@@ -61,15 +69,16 @@ module.exports = {
       }
     ]
   },
-  plugins: [
+  plugins: analyzeBundle ? [new BundleAnalyzerPlugin()] : [
     new HTMLWebpackPlugin({
-      title: 'Doodle3D Slicer - Simple example',
+      favicon: 'favicon.ico',
+      title: 'Doodle3D Slicer',
       template: require('html-webpack-template'),
       inject: false,
       appMountId: 'app'
-    }),
+    })
   ],
-  devtool: "source-map",
+  devtool: devMode ? 'source-map' : false,
   devServer: {
     contentBase: 'dist'
   }

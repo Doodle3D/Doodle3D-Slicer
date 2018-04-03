@@ -1,0 +1,21 @@
+0pct:
+  title: Hollow (0%)
+  innerInfill:
+    density: 0.0
+10pct:
+  title: Light (10%)
+  innerInfill:
+    density: 10.0
+20pct:
+  title: Normal (20%)
+  innerInfill:
+    density: 20.0
+50pct:
+  title: Dense (50%)
+  innerInfill:
+    density: 50.0
+100pct:
+  title: Solid (100%)
+  innerInfill:
+    density: 100.0
+  

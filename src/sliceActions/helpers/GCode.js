@@ -1,5 +1,5 @@
-import { Vector2 } from 'three/src/math/Vector2.js';
-import { PRECISION } from '../../constants.js';
+import { scale, distanceTo } from './vector2.js';
+import { PRECISION, VERSION } from '../../constants.js';
 
 export const MOVE = 'G';
 export const M_COMMAND = 'M';
@@ -10,13 +10,15 @@ export const POSITION_X = 'X';
 export const POSITION_Y = 'Y';
 export const POSITION_Z = 'Z';
 
-export default class {
-  constructor(nozzleToFilamentRatio) {
-    this._nozzleToFilamentRatio = nozzleToFilamentRatio;
-
-    this._gcode = [];
+export default class GCode {
+  constructor(settings) {
+    this._nozzleToFilamentRatio = 1;
+    this._gcode = [
+      `; ${JSON.stringify(settings).trim()}`,
+      `; Generated with Doodle3D Slicer V${VERSION}`
+    ];
     this._currentValues = {};
-    this._nozzlePosition = new Vector2(0, 0);
+    this._nozzlePosition = { x: 0, y: 0 };
     this._extruder = 0.0;
     this._duration = 0.0;
     this._isRetracted = false;
@@ -27,10 +29,16 @@ export default class {
     this._gcode.push(command);
   }
 
+  updateLayerHeight(layerHeight, nozzleDiameter, filamentThickness) {
+    const filamentSurfaceArea = Math.pow((filamentThickness / 2), 2) * Math.PI;
+    const lineSurfaceArea = nozzleDiameter * layerHeight;
+    this._nozzleToFilamentRatio = lineSurfaceArea / filamentSurfaceArea;
+  }
+
   turnFanOn(fanSpeed) {
     this._isFanOn = true;
 
-    const gcode = { [M_COMMAND]: 106 }
+    const gcode = { [M_COMMAND]: 106 };
     if (typeof fanSpeed !== 'undefined') gcode[FAN_SPEED] = fanSpeed;
 
     this._addGCode(gcode);
@@ -47,41 +55,41 @@ export default class {
   }
 
   moveTo(x, y, z, { speed }) {
-    const newNozzlePosition = new Vector2(x, y).multiplyScalar(PRECISION);
-    const lineLength = this._nozzlePosition.distanceTo(newNozzlePosition);
+    const newNozzlePosition = scale({ x, y }, PRECISION);
+    const lineLength = distanceTo(this._nozzlePosition, newNozzlePosition);
 
     this._duration += lineLength / speed;
 
     this._addGCode({
       [MOVE]: 0,
-      [POSITION_X]: newNozzlePosition.x.toFixed(3),
-      [POSITION_Y]: newNozzlePosition.y.toFixed(3),
-      [POSITION_Z]: z.toFixed(3),
-      [SPEED]: (speed * 60).toFixed(3)
+      [POSITION_X]: newNozzlePosition.x,
+      [POSITION_Y]: newNozzlePosition.y,
+      [POSITION_Z]: z,
+      [SPEED]: speed * 60
     });
 
-    this._nozzlePosition.copy(newNozzlePosition);
+    this._nozzlePosition = newNozzlePosition;
 
     return this;
   }
 
   lineTo(x, y, z, { speed, flowRate }) {
-    const newNozzlePosition = new Vector2(x, y).multiplyScalar(PRECISION);
-    const lineLength = this._nozzlePosition.distanceTo(newNozzlePosition);
+    const newNozzlePosition = scale({ x, y }, PRECISION);
+    const lineLength = distanceTo(this._nozzlePosition, newNozzlePosition);
 
     this._extruder += this._nozzleToFilamentRatio * lineLength * flowRate;
     this._duration += lineLength / speed;
 
     this._addGCode({
       [MOVE]: 1,
-      [POSITION_X]: newNozzlePosition.x.toFixed(3),
-      [POSITION_Y]: newNozzlePosition.y.toFixed(3),
-      [POSITION_Z]: z.toFixed(3),
-      [SPEED]: (speed * 60).toFixed(3),
-      [EXTRUDER]: this._extruder.toFixed(3)
+      [POSITION_X]: newNozzlePosition.x,
+      [POSITION_Y]: newNozzlePosition.y,
+      [POSITION_Z]: z,
+      [SPEED]: speed * 60,
+      [EXTRUDER]: this._extruder
     });
 
-    this._nozzlePosition.copy(newNozzlePosition);
+    this._nozzlePosition = newNozzlePosition;
 
     return this;
   }
@@ -95,8 +103,8 @@ export default class {
 
         this._addGCode({
           [MOVE]: 0,
-          [EXTRUDER]: this._extruder.toFixed(3),
-          [SPEED]: (speed * 60).toFixed(3)
+          [EXTRUDER]: this._extruder,
+          [SPEED]: speed * 60
         });
       }
     }
@@ -113,13 +121,22 @@ export default class {
 
         this._addGCode({
           [MOVE]: 0,
-          [EXTRUDER]: (this._extruder - amount).toFixed(3),
-          [SPEED]: (speed * 60).toFixed(3)
+          [EXTRUDER]: this._extruder - amount,
+          [SPEED]: speed * 60
         });
       }
     }
 
     return this;
+  }
+
+  addGCode(gcode, { temperature, bedTemperature, heatedBed }) {
+    gcode = gcode
+      .replace(/{temperature}/gi, temperature)
+      .replace(/{bedTemperature}/gi, bedTemperature)
+      .replace(/{if heatedBed}/gi, heatedBed ? '' : ';');
+
+    this._addGCode(gcode);
   }
 
   getGCode() {

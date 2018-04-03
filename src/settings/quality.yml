@@ -15,7 +15,7 @@ low:
     speed: 70.0
   innerInfill:
     speed: 80.0
-    gridSize: 25.0
+    density: 10.0
 medium:
   title: "Medium"
   layerHeight: .15
@@ -33,7 +33,7 @@ medium:
     speed: 40.0
   innerInfill:
     speed: 80.0
-    gridSize: 25.0
+    density: 10.0
 high:
   title: "High"
   thickness:
@@ -51,4 +51,4 @@ high:
     speed: 30.0
   innerInfill:
     speed: 70.0
-    gridSize: 10.0
+    density: 20.0

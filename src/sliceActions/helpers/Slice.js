@@ -1,6 +1,6 @@
 import Shape from 'clipper-js';
 
-export default class {
+export default class Slice {
   constructor() {
     this.parts = [];
   }
