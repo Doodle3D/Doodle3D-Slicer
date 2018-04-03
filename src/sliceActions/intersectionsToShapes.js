@@ -87,7 +87,7 @@ export default function intersectionsToShapes(layerPoints, layerFaceIndexes, fac
     for (const objectIndex in shapes) {
       const shape = shapes[objectIndex]
         .map(lineSegment => lineSegment.map(pointIndex => points[pointIndex]))
-        .filter(lineSegment => lineSegment.some(i => !almostEquals(lineSegment[0], lineSegment[1])));
+        .filter(lineSegment => lineSegment.some(point => !almostEquals(lineSegment[0], point)));
       const openShape = openObjectIndexes[objectIndex];
 
       const connectPoints = [];
