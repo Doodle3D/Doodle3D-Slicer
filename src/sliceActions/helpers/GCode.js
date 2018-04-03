@@ -14,7 +14,7 @@ export default class GCode {
   constructor(settings) {
     this._nozzleToFilamentRatio = 1;
     this._gcode = [
-      `; ${JSON.stringify(settings).trim()}`,
+      `; ${JSON.stringify(settings)}`,
       `; Generated with Doodle3D Slicer V${VERSION}`
     ];
     this._currentValues = {};
