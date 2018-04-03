@@ -65,7 +65,8 @@ export default function(settings, geometry, openObjectIndexes, constructLinePrev
 
   if (constructLinePreview) gcode.linePreview = createGcodeGeometry(gcode.gcode);
 
-  gcode.gcode = gcodeToString(gcode.gcode);
+  gcode.gcode = new Blob([gcodeToString(gcode.gcode)], { type: 'text/plain' });
+
   return gcode;
 }
 

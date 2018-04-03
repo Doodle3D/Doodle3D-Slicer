@@ -16,7 +16,7 @@ export default function slicesToGCode(slices, settings) {
     combing
   } = settings;
 
-  const gcode = new GCode();
+  const gcode = new GCode(settings);
   gcode.updateLayerHeight(Z_OFFSET, nozzleDiameter, filamentThickness)
 
   if (settings.startCode) gcode.addGCode(settings.startCode, settings);

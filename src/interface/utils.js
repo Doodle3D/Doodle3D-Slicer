@@ -181,7 +181,13 @@ export async function slice(action, name, mesh, settings, updateProgress) {
     .multiply(new THREE.Matrix4().makeRotationY(-Math.PI / 2.0))
     .multiply(mesh.matrix);
 
-  const { gcode } = await sliceGeometry(settings, mesh.geometry, mesh.material, matrix, false, false, ({ progress }) => {
+  const { gcode } = await sliceGeometry({
+    ...settings,
+    name: `${name}.gcode`,
+    printer: { type: settings.printers, title: printerSettings[settings.printer].title },
+    material: { type: settings.material, title: materialSettings[settings.material].title },
+    quality: { type: settings.quality, title: qualitySettings[settings.quality].title }
+  }, mesh.geometry, mesh.material, matrix, false, false, ({ progress }) => {
     updateProgress({
       action: progress.action,
       percentage: (currentStep + progress.done / progress.total) / steps
@@ -193,16 +199,14 @@ export async function slice(action, name, mesh, settings, updateProgress) {
 
   switch (action.target) {
     case 'DOWNLOAD': {
-      const file = new Blob([gcode], { type: 'text/plain' });
-      fileSaver.saveAs(file, `${name}.gcode`);
+      fileSaver.saveAs(gcode, `${name}.gcode`);
       break;
     }
 
     case 'WIFI_PRINT': {
       if (settings.printer === 'doodle3d_printer') {
         const body = new FormData();
-        const file = new Blob([gcode], { type: 'plain/text' });
-        body.append('file', file, 'doodle.gcode');
+        body.append('file', gcode, 'doodle.gcode');
 
         // because fetch has no way of retrieving progress we fake progress
         let loaded = 0;
@@ -236,14 +240,7 @@ export async function slice(action, name, mesh, settings, updateProgress) {
           body.append(key, fields[key]);
         }
 
-        const file = new Blob([`;${JSON.stringify({
-          ...settings,
-          name: `${name}.gcode`,
-          printer: { type: settings.printers, title: printerSettings[settings.printer].title },
-          material: { type: settings.material, title: materialSettings[settings.material].title },
-          quality: { type: settings.quality, title: qualitySettings[settings.quality].title }
-        }).trim()}\n${gcode}`]);
-        body.append('file', file, 'doodle.gcode');
+        body.append('file', gcode, 'doodle.gcode');
 
         await fetchProgress(url, { method: 'POST', body }, progress => {
           updateProgress({
@@ -259,14 +256,7 @@ export async function slice(action, name, mesh, settings, updateProgress) {
     }
     case 'CUSTOM_UPLOAD': {
       const body = new FormData();
-      const file = new Blob([`;${JSON.stringify({
-        ...settings,
-        name: `${name}.gcode`,
-        printer: { type: settings.printers, title: printerSettings[settings.printer].title },
-        material: { type: settings.material, title: materialSettings[settings.material].title },
-        quality: { type: settings.quality, title: qualitySettings[settings.quality].title }
-      }).trim()}\n${gcode}`]);
-      body.append('file', file, 'doodle.gcode');
+      body.append('file', gcode, 'doodle.gcode');
 
       await fetchProgress(action.url, { method: 'POST', body }, progress => {
         updateProgress({

@@ -11,9 +11,12 @@ export const POSITION_Y = 'Y';
 export const POSITION_Z = 'Z';
 
 export default class GCode {
-  constructor(layerHeight) {
+  constructor(settings) {
     this._nozzleToFilamentRatio = 1;
-    this._gcode = [`; Generated with Doodle3D Slicer V${VERSION}`];
+    this._gcode = [
+      `; ${JSON.stringify(settings).trim()}`,
+      `; Generated with Doodle3D Slicer V${VERSION}`
+    ];
     this._currentValues = {};
     this._nozzlePosition = { x: 0, y: 0 };
     this._extruder = 0.0;
