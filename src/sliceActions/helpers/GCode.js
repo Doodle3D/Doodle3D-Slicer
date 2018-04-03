@@ -38,7 +38,7 @@ export default class GCode {
   turnFanOn(fanSpeed) {
     this._isFanOn = true;
 
-    const gcode = { [M_COMMAND]: 106 }
+    const gcode = { [M_COMMAND]: 106 };
     if (typeof fanSpeed !== 'undefined') gcode[FAN_SPEED] = fanSpeed;
 
     this._addGCode(gcode);

@@ -14,19 +14,11 @@ import { hslToRgb } from './helpers/color.js';
 // // import removePrecision from './removePrecision.js';
 
 export default function(settings, geometry, openObjectIndexes, constructLinePreview, onProgress) {
-  const totalStages = 11;
-  let current = -1;
-  const updateProgress = (action) => {
-    current ++;
-    if (typeof onProgress !== 'undefined') {
-      onProgress({
-        progress: {
-          done: current,
-          total: totalStages,
-          action
-        }
-      });
-    }
+  const total = 11;
+  let done = -1;
+  const updateProgress = action => {
+    done ++;
+    if (onProgress) onProgress({ progress: { done, total, action } });
   };
 
   updateProgress('Constructing unique lines from geometry');
@@ -70,9 +62,9 @@ export default function(settings, geometry, openObjectIndexes, constructLinePrev
   return gcode;
 }
 
-const PRECISION_INVERSE = 1000;
+const PRECISION = 1000;
 function toFixedTrimmed(value) {
-  return (Math.round(value * PRECISION_INVERSE) / PRECISION_INVERSE).toString();
+  return (Math.round(value * PRECISION) / PRECISION).toString();
 }
 
 function gcodeToString(gcode) {

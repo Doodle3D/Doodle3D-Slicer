@@ -96,9 +96,7 @@ function sliceAsync(settings, geometry, openObjectIndexes, constructLinePreview,
           break;
         }
         case 'PROGRESS': {
-          if (typeof onProgress !== 'undefined') {
-            onProgress(data);
-          }
+          if (typeof onProgress !== 'undefined') onProgress(data);
           break;
         }
       }
