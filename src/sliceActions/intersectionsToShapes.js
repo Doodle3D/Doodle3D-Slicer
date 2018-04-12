@@ -59,6 +59,7 @@ export default function intersectionsToShapes(layerPoints, layerFaceIndexes, fac
           } else {
             lineSegment.push(...startConnects[pointB]);
             endConnects[lineSegment[lineSegment.length - 1]] = lineSegment;
+            shapes[objectIndex].splice(shapes[objectIndex].indexOf(startConnects[pointB]), 1);
           }
         } else {
           lineSegment.push(pointB);
@@ -70,6 +71,7 @@ export default function intersectionsToShapes(layerPoints, layerFaceIndexes, fac
         if (endConnects[pointA]) {
           lineSegment.unshift(...endConnects[pointA]);
           startConnects[lineSegment[0]] = lineSegment;
+          shapes[objectIndex].splice(shapes[objectIndex].indexOf(endConnects[pointA]), 1);
         } else {
           lineSegment.unshift(pointA);
           startConnects[pointA] = lineSegment;
