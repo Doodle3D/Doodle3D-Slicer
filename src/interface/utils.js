@@ -214,7 +214,7 @@ export async function slice(action, name, mesh, settings, updateProgress) {
           loaded += 15 * 1024;
           updateProgress({
             action: 'Uploading to printer',
-            percentage: (currentStep + loaded / file.size) / steps
+            percentage: (currentStep + loaded / gcode.size) / steps
           });
         }, 1000);
 
