@@ -45,13 +45,16 @@ const styles = {
     '& h3': {
       fontWeight: 'bold',
       marginTop: '20px',
-      marginBottom: '20px',
+      marginBottom: '20px'
     }
   },
   error: {
     color: red500
-  },
+  }
+};
 
+const updateLocalStorage = (localStorage) => {
+  window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localStorage));
 };
 
 const getLocalStorage = () => {
@@ -64,10 +67,6 @@ const getLocalStorage = () => {
     localStorage = JSON.parse(localStorage);
   }
   return localStorage;
-};
-
-const updateLocalStorage = (localStorage) => {
-  window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localStorage));
 };
 
 class Settings extends React.Component {
@@ -110,9 +109,8 @@ class Settings extends React.Component {
     const { localStorage } = this.state;
 
     if (selectedPrinter && localStorage.active) {
-      const activePrinter = selectedPrinter && Object.entries(localStorage.printers)
-        .map(([key, value]) => ({ key, value }))
-        .find(({ key, value: { ip } }) => ip === selectedPrinter);
+      const activePrinter = selectedPrinter && Object.values(localStorage.printers)
+        .find(({ ip }) => ip === selectedPrinter);
 
       if (activePrinter) {
         const state = this.changeSettings('activePrinter', activePrinter.key);
@@ -212,7 +210,6 @@ class Settings extends React.Component {
       case 'settings.support.density':
       case 'settings.support.minArea':
       case 'settings.support.margin':
-      case 'settings.support.speed':
       case 'settings.support.flowRate':
         if (!localStorage.active) return this.openAddPrinterDialog();
 
@@ -307,14 +304,22 @@ class Settings extends React.Component {
   };
 
   editPrinter = () => {
-    const { localStorage: { active, printers }, managePrinter: { printer, name, ip } } = this.state;
+    const { localStorage: { active }, managePrinter: { printer, name, ip } } = this.state;
 
     if (!name) {
-      this.setState(update(this.state, { managePrinter: { error: { $set: 'Please enter a name' } } }));
+      this.setState(update(this.state, {
+        managePrinter: {
+          error: { $set: 'Please enter a name' }
+        }
+      }));
       return;
     }
     if (printer === 'doodle3d_printer' && !validateIp(ip)) {
-      this.setState(update(this.state, { managePrinter: { error: { $set: 'Please enter a valid IP adress' } } }));
+      this.setState(update(this.state, {
+        managePrinter: {
+          error: { $set: 'Please enter a valid IP adress' }
+        }
+      }));
       return;
     }
 
@@ -384,8 +389,8 @@ class Settings extends React.Component {
   }
 
   render() {
-    const { addPrinter, managePrinter, localStorage, wifiBoxes } = this.state;
-    const { classes, disabled } = this.props;
+    const { addPrinter, managePrinter, localStorage } = this.state;
+    const { classes } = this.props;
 
     return (
       <div className={classes.container}>
@@ -540,5 +545,8 @@ function printDialog(props, state, title, form, submitText, data, closeDialog, r
     </Dialog>
   );
 }
+printDialog.propTypes = {
+  classes: PropTypes.objectOf(PropTypes.string)
+};
 
 export default injectSheet(styles)(Settings);

@@ -13,7 +13,7 @@ import applyPrecision from './applyPrecision.js';
 import { hslToRgb } from './helpers/color.js';
 // // import removePrecision from './removePrecision.js';
 
-export default function(settings, geometry, openObjectIndexes, constructLinePreview, onProgress) {
+export default function slice(settings, geometry, openObjectIndexes, constructLinePreview, onProgress) {
   const total = 11;
   let done = -1;
   const updateProgress = action => {

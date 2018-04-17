@@ -6,7 +6,7 @@ const onProgress = progress => {
     message: 'PROGRESS',
     data: progress
   });
-}
+};
 
 self.addEventListener('message', (event) => {
   const { message, data } = event.data;
@@ -28,5 +28,7 @@ self.addEventListener('message', (event) => {
       }, buffers);
       break;
     }
+    default:
+      break;
   }
 }, false);

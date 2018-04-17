@@ -10,14 +10,13 @@ export default function slicesToGCode(slices, settings) {
     layerHeight,
     filamentThickness,
     nozzleDiameter,
-    travelSpeed,
     retraction,
     travel,
     combing
   } = settings;
 
   const gcode = new GCode(settings);
-  gcode.updateLayerHeight(Z_OFFSET, nozzleDiameter, filamentThickness)
+  gcode.updateLayerHeight(Z_OFFSET, nozzleDiameter, filamentThickness);
 
   if (settings.startCode) gcode.addGCode(settings.startCode, settings);
 
@@ -37,12 +36,12 @@ export default function slicesToGCode(slices, settings) {
       isFirstLayer = false;
     }
 
-    const profiles = PROFILE_TYPES.reduce((profiles, profileType) => {
-      profiles[profileType] = {
+    const profiles = PROFILE_TYPES.reduce((_profiles, profileType) => {
+      _profiles[profileType] = {
         ...defaultProfile,
         lineProfile: isFirstLayer ? settings.firstLayer : settings[profileType]
       };
-      return profiles;
+      return _profiles;
     }, {});
 
     if (typeof slice.brim !== 'undefined') {
@@ -82,7 +81,8 @@ export default function slicesToGCode(slices, settings) {
   return gcode.getGCode();
 }
 
-function pathToGCode(outline, combing, gcode, shape, retract, unRetract, z, { lineProfile, travelProfile, retractionProfile }) {
+function pathToGCode(outline, combing, gcode, shape, retract, unRetract, z, profiles) {
+  const { lineProfile, travelProfile, retractionProfile } = profiles;
   const { closed } = shape;
   const paths = shape.mapToLower();
 

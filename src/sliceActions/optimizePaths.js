@@ -1,7 +1,7 @@
-import { length, distanceTo } from './helpers/vector2.js';
+import { distanceTo } from './helpers/vector2.js';
 import Shape from 'clipper-js';
 
-export default function optimizePaths(slices, settings) {
+export default function optimizePaths(slices) {
   let start = { x: 0, y: 0 };
 
   for (let layer = 0; layer < slices.length; layer ++) {

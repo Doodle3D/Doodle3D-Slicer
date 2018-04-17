@@ -1,12 +1,9 @@
 import * as THREE from 'three';
-import _ from 'lodash';
 import React from 'react';
 import PropTypes from 'proptypes';
 import { centerGeometry, placeOnGround, createScene, slice, TabTemplate } from './utils.js';
 import injectSheet from 'react-jss';
 import RaisedButton from 'material-ui/RaisedButton';
-import FlatButton from 'material-ui/FlatButton';
-import Slider from 'material-ui/Slider';
 import LinearProgress from 'material-ui/LinearProgress';
 import { grey50, grey300, grey800, red500 } from 'material-ui/styles/colors';
 import Popover from 'material-ui/Popover/Popover';
@@ -14,14 +11,11 @@ import Menu from 'material-ui/Menu';
 import MenuItem from 'material-ui/MenuItem';
 import { Tabs, Tab } from 'material-ui/Tabs';
 import Settings from './Settings.js';
-// import MalyanControl from './MalyanControl.js';
-// import WifiBoxControl from './WifiBoxControl.js';
 import ReactResizeDetector from 'react-resize-detector';
 import JSONToSketchData from 'doodle3d-core/shape/JSONToSketchData';
 import createSceneData from 'doodle3d-core/d3/createSceneData.js';
 import { generateExportMesh } from 'doodle3d-core/utils/exportUtils.js';
 import muiThemeable from 'material-ui/styles/muiThemeable';
-import Dialog from 'material-ui/Dialog';
 import logo from '../../img/logo.png';
 
 const MAX_FULLSCREEN_WIDTH = 720;
@@ -58,7 +52,7 @@ const styles = {
     borderLeft: `1px solid ${grey300}`
   },
   sliceActions: {
-    flexShrink: 0,
+    flexShrink: 0
   },
   sliceInfo: {
     margin: '10px 0',
@@ -232,7 +226,7 @@ class Interface extends React.Component {
   };
 
   slice = async (action) => {
-    const { isSlicing, settings, mesh, scene: { material, mesh: { matrix } } } = this.state;
+    const { isSlicing, settings, mesh, scene: { mesh: { matrix } } } = this.state;
     const { name } = this.props;
 
     if (isSlicing) return;
@@ -342,7 +336,7 @@ class Interface extends React.Component {
 
   render() {
     const { classes, onCancel, selectedPrinter, actions } = this.props;
-    const { isSlicing, progress, showFullScreen, error, objectDimensions, settings } = this.state;
+    const { isSlicing, progress, showFullScreen, error, objectDimensions } = this.state;
 
     const style = { ...(showFullScreen ? {} : { maxWidth: 'inherit', width: '100%', height: '100%' }) };
 
@@ -365,10 +359,6 @@ class Interface extends React.Component {
               className={`${classes.button}`}
               onTouchTap={onCancel}
             />}
-            {/* (settings && settings.ip) && ((settings.printer === 'doodle3d_printer') ?
-              <MalyanControl ip={settings.ip} /> :
-              <WifiBoxControl ip={settings.ip} />
-            ) */}
             {actions.length === 1 ? (
               <RaisedButton
                 primary
@@ -390,8 +380,8 @@ class Interface extends React.Component {
                 <Popover
                   open={this.state.popover.open}
                   anchorEl={this.state.popover.element}
-                  anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
-                  targetOrigin={{horizontal: 'left', vertical: 'bottom'}}
+                  anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
+                  targetOrigin={{ horizontal: 'left', vertical: 'bottom' }}
                   onRequestClose={this.closePopover}
                 >
                   <Menu>

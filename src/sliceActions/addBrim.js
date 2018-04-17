@@ -20,8 +20,8 @@ export default function addBrim(slices, settings) {
 
   const [firstLayer] = slices;
 
-  const brim = firstLayer.parts.reduce((brim, { shape }) => (
-    brim.join(shape.offset(nozzleRadius, {
+  const brim = firstLayer.parts.reduce((_brim, { shape }) => (
+    _brim.join(shape.offset(nozzleRadius, {
       ...OFFSET_OPTIONS,
       endType: shape.closed ? 'etClosedPolygon' : 'etOpenRound'
     }))
