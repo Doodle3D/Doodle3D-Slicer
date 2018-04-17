@@ -8,6 +8,7 @@
   "scripts": {
     "start": "webpack-dev-server -w",
     "dist": "NODE_ENV=production webpack -p",
+    "lint": "eslint src",
     "prepare": "npm run build",
     "upload": "npm run dist && scp -r dist/* doodle3d.com:/domains/doodle3d.com/print",
     "analyze": "NODE_ENV=production ANALYZE_BUNDLE=true webpack -p",
@@ -41,6 +42,7 @@
   },
   "devDependencies": {
     "babel-cli": "6.24.1",
+    "babel-eslint": "^8.2.3",
     "babel-loader": "7.0.0",
     "babel-plugin-transform-es2015-classes": "^6.24.1",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
@@ -51,6 +53,11 @@
     "babel-preset-react": "^6.24.1",
     "babel-preset-stage-0": "^6.24.1",
     "babel-runtime": "^6.26.0",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb": "^16.1.0",
+    "eslint-plugin-import": "^2.11.0",
+    "eslint-plugin-jsx-a11y": "^6.0.3",
+    "eslint-plugin-react": "^7.7.0",
     "html-webpack-plugin": "^2.29.0",
     "html-webpack-template": "^6.0.2",
     "imports-loader": "^0.7.1",
