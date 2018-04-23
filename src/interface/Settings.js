@@ -25,7 +25,6 @@ import { Doodle3DManager } from 'doodle3d-api';
 
 const DOODLE_3D_MANAGER = new Doodle3DManager();
 DOODLE_3D_MANAGER.checkNonServerBoxes = false;
-DOODLE_3D_MANAGER.setAutoUpdate(true, 5000);
 
 const CONNECT_URL = 'http://connect.doodle3d.com/';
 
@@ -127,8 +126,8 @@ class Settings extends React.Component {
     }
 
     const eventListener = ({ boxes }) => this.setState({ wifiBoxes: boxes });
-    this.setState({ wifiBoxes: DOODLE_3D_MANAGER.boxes, eventListener });
     DOODLE_3D_MANAGER.addEventListener('boxeschanged', eventListener);
+    this.setState({ eventListener });
   }
 
   componentWillUnmount() {
@@ -361,22 +360,38 @@ class Settings extends React.Component {
 
   closeAddPrinterDialog = (override) => this.setAddPrinterDialog(false, override);
   openAddPrinterDialog = (override) => this.setAddPrinterDialog(true, override);
-  setAddPrinterDialog = (open, override = {}) => this.setState({
-    addPrinter: {
-      ip: '',
-      name: '',
-      printer: '',
-      error: null,
-      open,
-      ...override
+  setAddPrinterDialog = (open, override = {}) => {
+    if (open) {
+      DOODLE_3D_MANAGER.setAutoUpdate(true, 10000);
+    } else {
+      DOODLE_3D_MANAGER.setAutoUpdate(false);
     }
-  });
+    this.setState({
+      addPrinter: {
+        ip: '',
+        name: '',
+        printer: '',
+        error: null,
+        open,
+        ...override
+      }
+    });
+  };
 
   closeManagePrinterDialog = () => this.setManagePrinterDialog(false);
   openManagePrinterDialog = () => this.setManagePrinterDialog(true);
   setManagePrinterDialog = (open) => {
     const { localStorage: { active, printers } } = this.state;
-    if (!active) return this.setState({ managePrinter: { open: false } });
+    if (!active) {
+      DOODLE_3D_MANAGER.setAutoUpdate(false);
+      return this.setState({ managePrinter: { open: false } });
+    }
+
+    if (open) {
+      DOODLE_3D_MANAGER.setAutoUpdate(true, 10000);
+    } else {
+      DOODLE_3D_MANAGER.setAutoUpdate(false);
+    }
     this.setState({
       managePrinter: {
         open,
