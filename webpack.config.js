@@ -1,6 +1,7 @@
 const path = require('path');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 const HTMLWebpackPlugin = require('html-webpack-plugin');
+const GoogleFontsPlugin = require('google-fonts-webpack-plugin');
 
 const devMode = process.env.NODE_ENV !== 'production';
 const analyzeBundle = process.env.ANALYZE_BUNDLE;
@@ -87,6 +88,18 @@ module.exports = {
       template: require('html-webpack-template'),
       inject: false,
       appMountId: 'app'
+    }),
+    new GoogleFontsPlugin({
+      fonts: [
+        { family: 'Oswald' },
+        { family: 'Ranga' },
+        { family: 'Joti One' },
+        { family: 'Bellefair' },
+        { family: 'Lobster' },
+        { family: 'Abril Fatface' },
+        { family: 'Play' },
+        { family: 'Fascinate' }
+      ]
     })
   ],
   devtool: devMode ? 'source-map' : false,

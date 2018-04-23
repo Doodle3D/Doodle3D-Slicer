@@ -160,8 +160,8 @@ class Interface extends React.Component {
 
     fetch(`${origin}${port}${pathname}`, { headers })
       .then(resonse => resonse.json())
-      .then(json => JSONToSketchData(json))
-      .then(file => createSceneData(file))
+      .then(JSONToSketchData)
+      .then(createSceneData)
       .then(sketch => generateExportMesh(sketch, { offsetSingleWalls: false, matrix: new THREE.Matrix4() }))
       .then(mesh => this.updateMesh(mesh));
   };
