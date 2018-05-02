@@ -23,6 +23,7 @@
     "@doodle3d/doodle3d-api": "^1.0.5",
     "@doodle3d/doodle3d-core": "github:doodle3d/doodle3d-core",
     "babel-plugin-transform-class-properties": "^6.24.1",
+    "earcut": "^2.1.3",
     "file-saver": "^1.3.3",
     "lodash": "^4.17.4",
     "material-ui": "^0.19.4",

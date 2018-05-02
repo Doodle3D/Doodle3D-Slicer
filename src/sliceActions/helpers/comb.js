@@ -1,131 +1,225 @@
-import Shape from 'clipper-js';
-import { subtract, add, scale, normalize, dot, length, distanceTo } from './vector2.js';
-import { PRECISION } from '../../constants.js';
+import { subtract, add, normalize, dot, distanceTo, divide, normal } from './vector2.js';
+import earcut from 'earcut';
 
-const TOLERANCE = 1 / PRECISION;
+// const TRIANGULATED_OUTLINES = new WeakMap();
 
 export default function comb(outline, start, end) {
-  if (distanceTo(start, end) < TOLERANCE) {
-    return [start, end];
+  if (distanceTo(start, end) < 10) return [start, end];
+
+  // if (!TRIANGULATED_OUTLINES.has(outline)) TRIANGULATED_OUTLINES.set(outline, decompose(outline));
+  // const { convexPolygons, vertices } = TRIANGULATED_OUTLINES.get(outline);
+  const { convexPolygons, vertices } = decompose(outline);
+  const startPolygon = convexPolygons.findIndex(({ face }) => pointIsInsideConvex(start, face, vertices));
+  const endPolygon = convexPolygons.findIndex(({ face }) => pointIsInsideConvex(end, face, vertices));
+  if (startPolygon === -1 || endPolygon === -1) return [start, end];
+  if (startPolygon === endPolygon) return [start, end];
+
+  const path = findClosestPath(convexPolygons, startPolygon, endPolygon);
+  if (!path) return [start, end];
+  const line = containLineInPath(path, start, end, vertices);
+
+  return line;
+}
+
+function lineIntersection(a1, a2, b1, b2) {
+  // source: http://mathworld.wolfram.com/Line-LineIntersection.html
+  const intersection = {
+    x: ((a1.x * a2.y - a1.y * a2.x) * (b1.x - b2.x) - (a1.x - a2.x) * (b1.x * b2.y - b1.y * b2.x)) / ((a1.x - a2.x) * (b1.y - b2.y) - (a1.y - a2.y) * (b1.x - b2.x)),
+    y: ((a1.x * a2.y - a1.y * a2.x) * (b1.y - b2.y) - (a1.y - a2.y) * (b1.x * b2.y - b1.y * b2.x)) / ((a1.x - a2.x) * (b1.y - b2.y) - (a1.y - a2.y) * (b1.x - b2.x))
+  };
+
+  const intersectionA = subtract(intersection, a1);
+  const directionA = subtract(a2, a1);
+  const normalA = normalize(directionA);
+  const distanceA = dot(normalA, intersectionA);
+  if (distanceA < 0 || distanceA > dot(normalA, directionA)) return false;
+
+  const intersectionB = subtract(intersection, b1);
+  const directionB = subtract(b2, b1);
+  const normalB = normalize(directionB);
+  const distanceB = dot(normalB, intersectionB);
+  if (distanceB < 0 || distanceB > dot(normalB, directionB)) return false;
+
+  return intersection;
+}
+
+function pointIsInsideConvex(point, convex, vertices) {
+  for (let i = 0; i < convex.length; i ++) {
+    const vertexA = vertices[convex[i]];
+    const vertexB = vertices[convex[(i + 1) % convex.length]];
+
+    const n = normalize(normal(subtract(vertexB, vertexA)));
+    const p = subtract(point, vertexA);
+
+    if (dot(p, n) < 0) return false;
+  }
+  return true;
+}
+
+function decompose(polygon) {
+  const vertices = polygon.reduce((points, path) => {
+    points.push(...path);
+    return points;
+  }, []);
+  const flatVertices = vertices.reduce((points, { x, y }) => {
+    points.push(x, y);
+    return points;
+  }, []);
+  let offset = 0;
+  const holes = polygon
+    .map(path => offset += path.length)
+    .slice(0, -1);
+
+  const flatTrainglesIndexed = earcut(flatVertices, holes);
+  const convexPolygons = [];
+  for (let i = 0; i < flatTrainglesIndexed.length; i += 3) {
+    const face = [
+      flatTrainglesIndexed[i],
+      flatTrainglesIndexed[i + 1],
+      flatTrainglesIndexed[i + 2]
+    ];
+    const center = divide(face.reduce((total, point) => {
+      if (!total) {
+        return vertices[point];
+      } else {
+        return add(total, vertices[point]);
+      }
+    }, null), face.length);
+    convexPolygons.push({
+      center,
+      face,
+      connects: []
+    });
   }
 
-  let combPath = new Shape([[start, end]], false, true, false);
+  for (let i = 0; i < convexPolygons.length; i ++) {
+    for (let j = i + 1; j < convexPolygons.length; j ++) {
+      const triangleIndexedA = convexPolygons[i];
+      const triangleIndexedB = convexPolygons[j];
 
-  for (let i = 0; i < outline.paths.length; i ++) {
-    let outlinePart = new Shape([outline.paths[i]], true, false, false, true);
+      const overlap = [];
+      triangleIndexedA.face.map(index => {
+        if (triangleIndexedB.face.includes(index)) overlap.push(index);
+      });
 
-    let snappedCombPaths = outlinePart.orientation(0) ? combPath.intersect(outlinePart) : combPath.difference(outlinePart);
-
-    snappedCombPaths = snappedCombPaths.mapToLower();
-    outlinePart = outlinePart.mapToLower()[0];
-
-    if (distanceTo(start, outlinePart[outlinePart.length - 1]) < distanceTo(start, outlinePart[0])) {
-      outlinePart = outlinePart.reverse();
+      if (overlap.length === 2) {
+        const distance = distanceTo(convexPolygons[i].center, convexPolygons[j].center);
+        triangleIndexedA.connects.push({ to: j, edge: overlap, distance });
+        triangleIndexedB.connects.push({ to: i, edge: overlap, distance });
+      }
     }
+  }
 
+  return { vertices, convexPolygons };
+}
+
+function findClosestPath(convexPolygons, start, end, visited = [], path = []) {
+  if (start === end) return [];
+
+  visited = [...visited, start];
+
+  const { connects } = convexPolygons[start];
+
+  const finish = connects.find(({ to }) => to === end);
+  if (finish) return [...path, finish];
+
+  const posibilities = [];
+  for (const connect of connects) {
+    if (visited.includes(connect.to)) continue;
+
+    const posibility = findClosestPath(convexPolygons, connect.to, end, visited, [...path, connect]);
+    if (posibility) posibilities.push(posibility);
+  }
+
+  if (posibilities.length === 0) {
+    return null;
+  } else if (posibilities.length === 1) {
+    return posibilities[0];
+  } else if (posibilities.length > 1) {
     const distanceMap = new WeakMap();
-
-    for (let i = 0; i < snappedCombPaths.length; i ++) {
-      const snappedCombPath = snappedCombPaths[i];
-
-      const distanceStart = distanceTo(start, snappedCombPath[0]);
-      const distanceEnd = distanceTo(start, snappedCombPath[snappedCombPath.length - 1]);
-
-      if (distanceStart < distanceEnd) {
-        distanceMap.set(snappedCombPath, distanceStart);
-      } else {
-        snappedCombPath.reverse();
-        distanceMap.set(snappedCombPath, distanceEnd);
-      }
-    }
-    snappedCombPaths.sort((a, b) => distanceMap.get(a) - distanceMap.get(b));
-
-    const firstPath = snappedCombPaths[0];
-    const lastPath = snappedCombPaths[snappedCombPaths.length - 1];
-
-    if (snappedCombPaths.length === 0) {
-      snappedCombPaths.push([start], [end]);
-    } else if (distanceTo(firstPath[0], start) > 1.0) {
-      snappedCombPaths.unshift([start]);
-    } else if (distanceTo(lastPath[lastPath.length - 1], end) > 1.0) {
-      snappedCombPaths.push([end]);
+    for (const posibility of posibilities) {
+      const distance = posibility.reduce((totalDistance, connect) => totalDistance + connect.distance, 0);
+      distanceMap.set(posibility, distance);
     }
 
-    if (snappedCombPaths.length === 1) {
-      continue;
-    }
-
-    const startPath = snappedCombPaths[0];
-    const startPoint = startPath[startPath.length - 1];
-
-    const endPath = snappedCombPaths[snappedCombPaths.length - 1];
-    const endPoint = endPath[0];
-
-    const lineIndexStart = findClosestLineOnPath(outlinePart, startPoint);
-    const lineIndexEnd = findClosestLineOnPath(outlinePart, endPoint);
-
-    const path = [];
-    if (lineIndexEnd === lineIndexStart) {
-      continue;
-    } else if (lineIndexEnd > lineIndexStart) {
-      if (lineIndexStart + outlinePart.length - lineIndexEnd < lineIndexEnd - lineIndexStart) {
-        for (let i = lineIndexStart + outlinePart.length; i > lineIndexEnd; i --) {
-          path.push(outlinePart[i % outlinePart.length]);
-        }
-      } else {
-        for (let i = lineIndexStart; i < lineIndexEnd; i ++) {
-          path.push(outlinePart[i + 1]);
-        }
-      }
-    } else {
-      if (lineIndexEnd + outlinePart.length - lineIndexStart < lineIndexStart - lineIndexEnd) {
-        for (let i = lineIndexStart; i < lineIndexEnd + outlinePart.length; i ++) {
-          path.push(outlinePart[(i + 1) % outlinePart.length]);
-        }
-      } else {
-        for (let i = lineIndexStart; i > lineIndexEnd; i --) {
-          path.push(outlinePart[i]);
-        }
-      }
-    }
-
-    combPath = new Shape([[...startPath, ...path, ...endPath]], false, true, false, true);
+    return posibilities.sort((a, b) => distanceMap.get(a) - distanceMap.get(b))[0];
   }
-
-  return combPath.mapToLower()[0];
 }
 
-function findClosestLineOnPath(path, point) {
-  let distance = Infinity;
-  let lineIndex;
+// const parse = string => parseFloat(string);
+// function findClosestPath(map, start, end) {
+//   // dijkstra's algorithm
+//   const costs = { [start]: 0 };
+//   const open = { [0]: [start] };
+//   const predecessors = {};
+//
+//   while (open) {
+//     const keys = Object.keys(open).map(parse);
+//     if (keys.length === 0) break;
+//     keys.sort();
+//
+//     const [key] = keys;
+//     const bucket = open[key];
+//     const node = bucket.shift();
+//     const currentCost = key;
+//     const { connects } = map[node];
+//
+//     if (!bucket.length) delete open[key];
+//
+//     for (const { distance, to } of connects) {
+//       const totalCost = distance + currentCost;
+//       const vertexCost = costs[to];
+//
+//       if ((typeof vertexCost === 'undefined') || (vertexCost > totalCost)) {
+//         costs[to] = totalCost;
+//
+//         if (!open[totalCost]) open[totalCost] = [];
+//         open[totalCost].push(to);
+//
+//         predecessors[to] = node;
+//       }
+//     }
+//   }
+//
+//   if (typeof costs[end] === 'undefined') return null;
+//
+//   const nodes = [];
+//   let node = end;
+//   while (typeof node !== 'undefined') {
+//     nodes.push(node);
+//     node = predecessors[node];
+//   }
+//   nodes.reverse();
+//
+//   const path = [];
+//   for (let i = 1; i < nodes.length; i ++) {
+//     const from = nodes[i - 1];
+//     const to = nodes[i];
+//
+//     const connection = map[from].connects.find(connect => connect.to === to);
+//     path.push(connection);
+//   }
+//
+//   return path;
+// }
 
-  for (let i = 0; i < path.length; i ++) {
-    const pointA = path[i];
-    const pointB = path[(i + 1) % path.length];
+function containLineInPath(path, start, end, vertices) {
+  const line = [start];
 
-    const tempClosestPoint = findClosestPointOnLine(pointA, pointB, point);
-    const tempDistance = distanceTo(tempClosestPoint, point);
+  for (const { edge: [indexA, indexB] } of path) {
+    const vertexA = vertices[indexA];
+    const vertexB = vertices[indexB];
 
-    if (tempDistance < distance) {
-      distance = tempDistance;
-      lineIndex = i;
+    const intersection = lineIntersection(start, end, vertexA, vertexB);
+    if (!intersection) {
+      const lastPoint = line[line.length - 1];
+      const distanceA = distanceTo(lastPoint, vertexA) + distanceTo(vertexA, end);
+      const distanceB = distanceTo(lastPoint, vertexB) + distanceTo(vertexB, end);
+
+      line.push(distanceA < distanceB ? vertexA : vertexB);
     }
   }
 
-  return lineIndex;
-}
-
-function findClosestPointOnLine(a, b, c) {
-  const b_ = subtract(b, a);
-  const c_ = subtract(c, a);
-
-  const lambda = dot(normalize(b_), c_) / length(b_);
-
-  if (lambda >= 1) {
-    return b;
-  } else if (lambda > 0) {
-    return add(a, scale(b_, lambda));
-  } else {
-    return a;
-  }
+  line.push(end);
+  return line;
 }

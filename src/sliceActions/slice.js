@@ -11,7 +11,7 @@ import shapesToSlices from './shapesToSlices.js';
 import slicesToGCode from './slicesToGCode.js';
 import applyPrecision from './applyPrecision.js';
 import { hslToRgb } from './helpers/color.js';
-// // import removePrecision from './removePrecision.js';
+import removePrecision from './removePrecision.js';
 
 export default function slice(settings, geometry, openObjectIndexes, constructLinePreview, onProgress) {
   const total = 11;
@@ -48,7 +48,7 @@ export default function slice(settings, geometry, openObjectIndexes, constructLi
   updateProgress('Optimizing paths');
   optimizePaths(slices, settings);
 
-  // removePrecision(slices);
+  removePrecision(slices);
 
   updateProgress('Constructing gcode');
   const gcode = slicesToGCode(slices, settings);

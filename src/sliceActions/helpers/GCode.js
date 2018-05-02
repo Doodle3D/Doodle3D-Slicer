@@ -1,5 +1,5 @@
-import { scale, distanceTo } from './vector2.js';
-import { PRECISION, VERSION } from '../../constants.js';
+import { distanceTo } from './vector2.js';
+import { VERSION } from '../../constants.js';
 
 export const MOVE = 'G';
 export const M_COMMAND = 'M';
@@ -55,7 +55,7 @@ export default class GCode {
   }
 
   moveTo(x, y, z, { speed }) {
-    const newNozzlePosition = scale({ x, y }, PRECISION);
+    const newNozzlePosition = { x, y };
     const lineLength = distanceTo(this._nozzlePosition, newNozzlePosition);
 
     this._duration += lineLength / speed;
@@ -74,7 +74,7 @@ export default class GCode {
   }
 
   lineTo(x, y, z, { speed, flowRate }) {
-    const newNozzlePosition = scale({ x, y }, PRECISION);
+    const newNozzlePosition = { x, y };
     const lineLength = distanceTo(this._nozzlePosition, newNozzlePosition);
 
     this._extruder += this._nozzleToFilamentRatio * lineLength * flowRate;
