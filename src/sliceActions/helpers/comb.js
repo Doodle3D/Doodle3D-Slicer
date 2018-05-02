@@ -205,16 +205,18 @@ function findClosestPath(map, start, end) {
 }
 
 function containLineInPath(path, start, end, vertices) {
-  const line = [start];
+  let line = [start];
 
   for (let i = 0; i < path.length; i ++) {
     const { edge: [indexA, indexB] } = path[i];
     const vertexA = vertices[indexA];
     const vertexB = vertices[indexB];
+    const lastPoint = line[line.length - 1];
 
-    const intersection = lineIntersection(start, end, vertexA, vertexB);
+    const intersection = lineIntersection(lastPoint, end, vertexA, vertexB);
     if (!intersection) {
-      const lastPoint = line[line.length - 1];
+      line = containLineInPath(path.slice(0, i), start, lastPoint, vertices);
+
       const distanceA = distanceTo(lastPoint, vertexA) + distanceTo(vertexA, end);
       const distanceB = distanceTo(lastPoint, vertexB) + distanceTo(vertexB, end);
 
