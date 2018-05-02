@@ -1,7 +1,6 @@
 import earcut from 'earcut';
 import { add, divide, distanceTo, normalize, subtract, normal, dot } from './src/sliceActions/helpers/vector2.js';
 
-
 function lineIntersection(a1, a2, b1, b2) {
   // source: http://mathworld.wolfram.com/Line-LineIntersection.html
   const intersection = {
@@ -229,7 +228,7 @@ function circle(radius = 10, x = 0, y = 0, clockWise = true, segments = 40) {
   return shape;
 }
 
-const START = { x: 300, y: 300 };
+const START = { x: 300, y: 40 };
 const END = { x: 300, y: 20 };
 // const CONCAVE_POLYGON = [[
 //   { x: 10, y: 10 },
@@ -242,7 +241,14 @@ const END = { x: 300, y: 20 };
 //   { x: 120, y: 400 },
 //   { x: 400, y: 400 }
 // ], circle(50, 300, 100, false)];
-const CONCAVE_POLYGON = [circle(300, 305, 305, true, 100), circle(50, 300, 100, false)];
+const CONCAVE_POLYGON = [
+  circle(300, 305, 305, true),
+  circle(40, 305, 105, false),
+  circle(40, 305, 205, false),
+  circle(40, 305, 305, false),
+  circle(40, 305, 405, false),
+  circle(40, 305, 505, false)
+];
 
 canvas.onmousedown = (event) => {
   START.x = event.offsetX;
