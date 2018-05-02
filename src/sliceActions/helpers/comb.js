@@ -4,7 +4,7 @@ import earcut from 'earcut';
 const TRIANGULATED_OUTLINES = new WeakMap();
 
 export default function comb(outline, start, end) {
-  if (distanceTo(start, end) < 10) return [start, end];
+  if (distanceTo(start, end) < 3) return [start, end];
 
   if (!TRIANGULATED_OUTLINES.has(outline)) TRIANGULATED_OUTLINES.set(outline, decompose(outline));
   const { convexPolygons, vertices } = TRIANGULATED_OUTLINES.get(outline);
