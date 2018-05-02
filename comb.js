@@ -1,6 +1,7 @@
 import earcut from 'earcut';
 import { add, divide, distanceTo, normalize, subtract, normal, dot } from './src/sliceActions/helpers/vector2.js';
 
+
 function lineIntersection(a1, a2, b1, b2) {
   // source: http://mathworld.wolfram.com/Line-LineIntersection.html
   const intersection = {
@@ -93,100 +94,102 @@ function decompose(polygon) {
   return { vertices, convexPolygons };
 }
 
-function findClosestPath(convexPolygons, start, end, visited = [], path = []) {
-  if (start === end) return [];
-
-  visited = [...visited, start];
-
-  const { connects } = convexPolygons[start];
-
-  const finish = connects.find(({ to }) => to === end);
-  if (finish) return [...path, finish];
-
-  const posibilities = [];
-  for (const connect of connects) {
-    if (visited.includes(connect.to)) continue;
-
-    const posibility = findClosestPath(convexPolygons, connect.to, end, visited, [...path, connect]);
-    if (posibility) posibilities.push(posibility);
-  }
-
-  if (posibilities.length === 0) {
-    return null;
-  } else if (posibilities.length === 1) {
-    return posibilities[0];
-  } else if (posibilities.length > 1) {
-    const distanceMap = new WeakMap();
-    for (const posibility of posibilities) {
-      const distance = posibility.reduce((totalDistance, connect) => totalDistance + connect.distance, 0);
-      distanceMap.set(posibility, distance);
-    }
-
-    return posibilities.sort((a, b) => distanceMap.get(a) - distanceMap.get(b))[0];
-  }
-}
-
-// const parse = string => parseFloat(string);
-// function findClosestPath(map, start, end) {
-//   // dijkstra's algorithm
-//   const costs = { [start]: 0 };
-//   const open = { [0]: [start] };
-//   const predecessors = {};
+// const distanceMap = new WeakMap();
+// function findClosestPath(convexPolygons, start, end, visited = [], path = [], distance = 0) {
+//   if (start === end) return [];
 //
-//   while (open) {
-//     const keys = Object.keys(open).map(parse);
-//     if (keys.length === 0) break;
-//     keys.sort();
+//   visited = [...visited, start];
 //
-//     const [key] = keys;
-//     const bucket = open[key];
-//     const node = bucket.shift();
-//     const currentCost = key;
-//     const { connects } = map[node];
+//   const { connects } = convexPolygons[start];
 //
-//     if (!bucket.length) delete open[key];
+//   const finish = connects.find(({ to }) => to === end);
+//   if (finish) return [...path, finish];
 //
-//     for (const { distance, to } of connects) {
-//       const totalCost = distance + currentCost;
-//       const vertexCost = costs[to];
+//   const posibilities = [];
+//   for (let i = 0; i < connects.length; i ++) {
+//     const connect = connects[i];
+//     if (visited.includes(connect.to)) continue;
 //
-//       if ((typeof vertexCost === 'undefined') || (vertexCost > totalCost)) {
-//         costs[to] = totalCost;
-//
-//         if (!open[totalCost]) open[totalCost] = [];
-//         open[totalCost].push(to);
-//
-//         predecessors[to] = node;
-//       }
+//     const positibiltyDistance = distance + connect.distance;
+//     const posibility = findClosestPath(convexPolygons, connect.to, end, visited, [...path, connect], positibiltyDistance);
+//     if (posibility) {
+//       posibilities.push(posibility);
+//       distanceMap.set(posibility, positibiltyDistance);
 //     }
 //   }
 //
-//   if (typeof costs[end] === 'undefined') return null;
-//
-//   const nodes = [];
-//   let node = end;
-//   while (typeof node !== 'undefined') {
-//     nodes.push(node);
-//     node = predecessors[node];
+//   if (posibilities.length === 0) {
+//     return null;
+//   } else if (posibilities.length === 1) {
+//     return posibilities[0];
+//   } else if (posibilities.length > 1) {
+//     return posibilities.sort((a, b) => distanceMap.get(a) - distanceMap.get(b))[0];
 //   }
-//   nodes.reverse();
-//
-//   const path = [];
-//   for (let i = 1; i < nodes.length; i ++) {
-//     const from = nodes[i - 1];
-//     const to = nodes[i];
-//
-//     const connection = map[from].connects.find(connect => connect.to === to);
-//     path.push(connection);
-//   }
-//
-//   return path;
 // }
+
+const findKey = _key => ({ key }) => _key === key;
+function findClosestPath(map, start, end) {
+  // dijkstra's algorithm
+  const distances = { [start]: 0 };
+  const open = [{ key: 0, nodes: [start] }];
+  const predecessors = {};
+
+  while (open.length !== 0) {
+    const key = Math.min(...open.map(n => n.key).sort());
+    const bucket = open.find(findKey(key));
+    const node = bucket.nodes.shift();
+    const currentDistance = key;
+    const { connects } = map[node];
+
+    if (bucket.nodes.length === 0) open.splice(open.indexOf(bucket), 1);
+
+    for (let i = 0; i < connects.length; i ++) {
+      const { distance, to } = connects[i];
+      const totalDistance = distance + currentDistance;
+      const vertexDistance = distances[to];
+
+      if ((typeof vertexDistance === 'undefined') || (vertexDistance > totalDistance)) {
+        distances[to] = totalDistance;
+
+        let openNode = open.find(findKey(totalDistance));
+        if (!openNode) {
+          openNode = { key: totalDistance, nodes: [] };
+          open.push(openNode);
+        }
+        openNode.nodes.push(to);
+
+        predecessors[to] = node;
+      }
+    }
+  }
+
+  if (typeof distances[end] === 'undefined') return null;
+
+  const nodes = [];
+  let node = end;
+  while (typeof node !== 'undefined') {
+    nodes.push(node);
+    node = predecessors[node];
+  }
+  nodes.reverse();
+
+  const path = [];
+  for (let i = 1; i < nodes.length; i ++) {
+    const from = nodes[i - 1];
+    const to = nodes[i];
+
+    const connection = map[from].connects.find(connect => connect.to === to);
+    path.push(connection);
+  }
+
+  return path;
+}
 
 function containLineInPath(path, start, end, vertices) {
   const line = [start];
 
-  for (const { edge: [indexA, indexB] } of path) {
+  for (let i = 0; i < path.length; i ++) {
+    const { edge: [indexA, indexB] } = path[i];
     const vertexA = vertices[indexA];
     const vertexB = vertices[indexB];
 
@@ -203,6 +206,7 @@ function containLineInPath(path, start, end, vertices) {
   line.push(end);
   return line;
 }
+
 
 const canvas = document.createElement('canvas');
 document.body.appendChild(canvas);
@@ -281,38 +285,38 @@ function compute() {
   context.fillStyle = 'lightgray';
   context.fill();
 
-  // context.fillStyle = 'black';
-  // context.strokeStyle = 'black';
-  // context.textAlign = 'center';
-  // context.textBaseline = 'middle';
-  // context.lineWidth = 1;
-  // context.font = '14px arial';
-  // for (let i = 0; i < convexPolygons.length; i ++) {
-  //   const { face, center } = convexPolygons[i];
-  //
-  //   context.beginPath();
-  //   for (const index of face) {
-  //     const vertex = vertices[index];
-  //     context.lineTo(vertex.x, vertex.y);
-  //   }
-  //   context.closePath();
-  //   context.stroke();
-  //
-  //   context.fillText(i, center.x, center.y);
-  // }
+  context.fillStyle = 'black';
+  context.strokeStyle = 'black';
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  context.lineWidth = 1;
+  context.font = '14px arial';
+  for (let i = 0; i < convexPolygons.length; i ++) {
+    const { face, center } = convexPolygons[i];
 
-  // if (path) {
-  //   context.beginPath();
-  //   for (const { edge: [indexA, indexB] } of path) {
-  //     const pointA = vertices[indexA];
-  //     const pointB = vertices[indexB];
-  //     context.moveTo(pointA.x, pointA.y);
-  //     context.lineTo(pointB.x, pointB.y);
-  //   }
-  //   context.strokeStyle = 'blue';
-  //   context.lineWidth = 3;
-  //   context.stroke();
-  // }
+    context.beginPath();
+    for (const index of face) {
+      const vertex = vertices[index];
+      context.lineTo(vertex.x, vertex.y);
+    }
+    context.closePath();
+    context.stroke();
+
+    context.fillText(i, center.x, center.y);
+  }
+
+  if (path) {
+    context.beginPath();
+    for (const { edge: [indexA, indexB] } of path) {
+      const pointA = vertices[indexA];
+      const pointB = vertices[indexB];
+      context.moveTo(pointA.x, pointA.y);
+      context.lineTo(pointB.x, pointB.y);
+    }
+    context.strokeStyle = 'blue';
+    context.lineWidth = 3;
+    context.stroke();
+  }
 
   if (line) {
     context.beginPath();
