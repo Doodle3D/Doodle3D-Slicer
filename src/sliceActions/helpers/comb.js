@@ -43,7 +43,7 @@ function lineIntersection(a1, a2, b1, b2) {
   return intersection;
 }
 
-function pointIsInsideConvex(point, convex, vertices) {
+export function pointIsInsideConvex(point, convex, vertices) {
   for (let i = 0; i < convex.length; i ++) {
     const vertexA = vertices[convex[i]];
     const vertexB = vertices[convex[(i + 1) % convex.length]];
@@ -56,7 +56,7 @@ function pointIsInsideConvex(point, convex, vertices) {
   return true;
 }
 
-function decompose(polygon) {
+export function decompose(polygon) {
   const vertices = polygon.reduce((points, path) => {
     points.push(...path);
     return points;
@@ -114,7 +114,7 @@ function decompose(polygon) {
 }
 
 // const distanceMap = new WeakMap();
-// function findClosestPath(convexPolygons, start, end, visited = [], path = [], distance = 0) {
+// export function findClosestPath(convexPolygons, start, end, visited = [], path = [], distance = 0) {
 //   if (start === end) return [];
 //
 //   visited = [...visited, start];
@@ -147,7 +147,7 @@ function decompose(polygon) {
 // }
 
 const findKey = _key => ({ key }) => _key === key;
-function findClosestPath(map, start, end) {
+export function findClosestPath(map, start, end) {
   // dijkstra's algorithm
   const distances = { [start]: 0 };
   const open = [{ key: 0, nodes: [start] }];
@@ -204,7 +204,7 @@ function findClosestPath(map, start, end) {
   return path;
 }
 
-function containLineInPath(path, start, end, vertices) {
+export function containLineInPath(path, start, end, vertices) {
   let line = [start];
 
   for (let i = 0; i < path.length; i ++) {
@@ -215,7 +215,7 @@ function containLineInPath(path, start, end, vertices) {
 
     const intersection = lineIntersection(lastPoint, end, vertexA, vertexB);
     if (!intersection) {
-      line = containLineInPath(path.slice(0, i), start, lastPoint, vertices);
+      // line = containLineInPath(path.slice(0, i), start, lastPoint, vertices);
 
       const distanceA = distanceTo(lastPoint, vertexA) + distanceTo(vertexA, end);
       const distanceB = distanceTo(lastPoint, vertexB) + distanceTo(vertexB, end);
