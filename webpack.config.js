@@ -87,6 +87,7 @@ module.exports = {
       title: 'Doodle3D Slicer',
       template: require('html-webpack-template'),
       inject: false,
+      hash: !devMode,
       appMountId: 'app'
     }),
     new GoogleFontsPlugin({
