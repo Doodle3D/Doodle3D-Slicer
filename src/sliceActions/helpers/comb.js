@@ -2,7 +2,6 @@ import { subtract, add, normalize, dot, distanceTo, divide, normal } from './vec
 import earcut from 'earcut';
 
 const TRIANGULATED_OUTLINES = new WeakMap();
-
 export default function comb(outline, start, end) {
   if (distanceTo(start, end) < 3) return [start, end];
 
@@ -215,12 +214,12 @@ export function containLineInPath(path, start, end, vertices) {
 
     const intersection = lineIntersection(lastPoint, end, vertexA, vertexB);
     if (!intersection) {
-      // line = containLineInPath(path.slice(0, i), start, lastPoint, vertices);
-
       const distanceA = distanceTo(lastPoint, vertexA) + distanceTo(vertexA, end);
       const distanceB = distanceTo(lastPoint, vertexB) + distanceTo(vertexB, end);
+      const newPoint = distanceA < distanceB ? vertexA : vertexB;
 
-      line.push(distanceA < distanceB ? vertexA : vertexB);
+      // line = containLineInPath(path.slice(0, i), start, newPoint, vertices);
+      line.push(newPoint);
     }
   }
 
