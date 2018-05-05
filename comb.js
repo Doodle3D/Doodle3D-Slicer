@@ -1,4 +1,3 @@
-import { add, divide, distanceTo, normalize, subtract, normal, dot } from './src/sliceActions/helpers/vector2.js';
 import { pointIsInsideConvex, decompose, findClosestPath, containLineInPath } from './src/sliceActions/helpers/comb.js';
 
 const canvas = document.createElement('canvas');
