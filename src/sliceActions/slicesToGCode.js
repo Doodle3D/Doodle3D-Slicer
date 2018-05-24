@@ -1,7 +1,6 @@
 import GCode from './helpers/GCode.js';
 import comb from './helpers/comb.js';
-import { divide } from './helpers/vector2.js';
-import { PRECISION, Z_OFFSET } from '../constants.js';
+import { Z_OFFSET } from '../constants.js';
 
 const PROFILE_TYPES = ['support', 'innerShell', 'outerShell', 'innerInfill', 'outerInfill', 'brim'];
 
