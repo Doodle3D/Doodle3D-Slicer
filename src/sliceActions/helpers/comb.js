@@ -54,15 +54,15 @@ function createGraph(polygons) {
       const nextPoint = nextPoints.get(a);
       const previousPoint = previousPoints.get(a);
 
-      if (lineIsVisible(previousPoint, nextPoint, edges, a, b)) {
-        const distance = distanceTo(a, b);
+      if (!lineIsVisible(previousPoint, nextPoint, edges, a, b)) continue;
 
-        const connectNodeA = graph[i];
-        connectNodeA.push({ to: j, distance });
+      const distance = distanceTo(a, b);
 
-        const connectNodeB = graph[j];
-        connectNodeB.push({ to: i, distance });
-      }
+      const connectNodeA = graph[i];
+      connectNodeA.push({ to: j, distance });
+
+      const connectNodeB = graph[j];
+      connectNodeB.push({ to: i, distance });
     }
   }
   return { graph, edges, points };
@@ -86,8 +86,8 @@ function createNode(graph, points, edges, point) {
     if (!lineIsVisible(previousPoint, nextPoint, edges, point, b)) continue;
 
     const distance = distanceTo(point, b);
-    node.push({ to: i, distance });
 
+    node.push({ to: i, distance });
     graph[i] = [...graph[i], { to, distance }];
   }
 
@@ -101,6 +101,7 @@ function lineIsVisible(previousPoint, nextPoint, edges, a, b) {
     const angleLine = angle(subtract(b, a));
     const anglePrevious = angle(subtract(previousPoint, a));
     const angleNext = angle(subtract(nextPoint, a));
+
     if (betweenAngles(angleLine, anglePrevious, angleNext)) return false;
   }
 
@@ -149,7 +150,10 @@ function shortestPath(graph, start, end) {
   const distances = graph.map(() => Infinity);
   distances[start] = 0;
   const traverse = [];
-  const queue = graph.map((node, i) => i);
+  const queue = [];
+  for (let i = 0; i < distances.length; i ++) {
+    queue.push(i);
+  }
 
   while (queue.length > 0) {
     let queueIndex;
