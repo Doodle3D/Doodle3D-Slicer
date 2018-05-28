@@ -131,9 +131,10 @@ function lineSegmentsCross(a, b, c, d) {
   return (r > 0.0 && r < 1.0) && (s >= 0.0 && s <= 1.0);
 }
 
+const TAU = Math.PI * 2.0;
 function normalizeAngle(a) {
-  a %= Math.PI * 2;
-  return a > 0.0 ? a : a + Math.PI * 2;
+  a %= TAU;
+  return a > 0.0 ? a : a + TAU;
 }
 
 function betweenAngles(n, a, b) {
