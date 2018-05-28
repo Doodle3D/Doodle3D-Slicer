@@ -1,7 +1,6 @@
 import GCode from './helpers/GCode.js';
 import comb from './helpers/comb.js';
-import { divide } from './helpers/vector2.js';
-import { PRECISION, Z_OFFSET } from '../constants.js';
+import { Z_OFFSET } from '../constants.js';
 
 const PROFILE_TYPES = ['support', 'innerShell', 'outerShell', 'innerInfill', 'outerInfill', 'brim'];
 
@@ -52,7 +51,7 @@ export default function slicesToGCode(slices, settings) {
       const part = slice.parts[i];
 
       if (part.closed) {
-        const outline = part.shell[0];
+        const outline = part.shell[0].mapToLower();
 
         for (let i = 0; i < part.shell.length; i ++) {
           const shell = part.shell[i];
@@ -72,7 +71,8 @@ export default function slicesToGCode(slices, settings) {
     }
 
     if (typeof slice.support !== 'undefined') {
-      pathToGCode(slice.supportOutline, combing, gcode, slice.support, true, true, z, profiles.support);
+      const supportOutline = slice.supportOutline.mapToLower();
+      pathToGCode(supportOutline, combing, gcode, slice.support, true, true, z, profiles.support);
     }
   }
 
@@ -95,7 +95,7 @@ function pathToGCode(outline, combing, gcode, shape, retract, unRetract, z, prof
 
       if (i === 0) {
         if (combing) {
-          const combPath = comb(outline, divide(gcode._nozzlePosition, PRECISION), point);
+          const combPath = comb(outline, gcode._nozzlePosition, point);
           for (let i = 0; i < combPath.length; i ++) {
             const combPoint = combPath[i];
             gcode.moveTo(combPoint.x, combPoint.y, z, travelProfile);
