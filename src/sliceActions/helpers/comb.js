@@ -1,15 +1,15 @@
-import { angle, subtract, distanceTo, normal } from './vector2.js';
+import { angle, subtract, distanceTo } from './vector2.js';
 
 const graphs = new WeakMap();
 export default function comb(polygons, start, end) {
   if (!graphs.has(polygons)) graphs.set(polygons, createGraph(polygons));
-  let { edges, graph, points, normals } = graphs.get(polygons);
+  let { edges, graph, points } = graphs.get(polygons);
 
   points = [...points, start, end];
   graph = [...graph];
 
-  const startNode = createNode(graph, points, edges, normals, start);
-  const endNode = createNode(graph, points, edges, normals, end);
+  const startNode = createNode(graph, points, edges, start);
+  const endNode = createNode(graph, points, edges, end);
 
   let result;
   if (graph[startNode].some(node => node.to === endNode)) {
@@ -31,7 +31,6 @@ function createGraph(polygons) {
   const edges = [];
   const nextPoints = new WeakMap();
   const previousPoints = new WeakMap();
-  const normals = new WeakMap();
   for (let i = 0; i < polygons.length; i ++) {
     const polygon = polygons[i];
     for (let j = 0; j < polygon.length; j ++) {
@@ -43,8 +42,6 @@ function createGraph(polygons) {
       edges.push([point, nextPoint]);
       nextPoints.set(point, nextPoint);
       previousPoints.set(point, previousPoint);
-
-      normals.set(point, normal(subtract(nextPoint, point)));
     }
   }
 
@@ -68,10 +65,10 @@ function createGraph(polygons) {
       }
     }
   }
-  return { graph, edges, points, normals };
+  return { graph, edges, points };
 }
 
-function createNode(graph, points, edges, normals, point) {
+function createNode(graph, points, edges, point) {
   const node = [];
   const to = graph.length;
   graph.push(node);
