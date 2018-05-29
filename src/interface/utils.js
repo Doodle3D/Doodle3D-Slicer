@@ -4,7 +4,6 @@ import printerSettings from '../settings/printer.yml';
 import materialSettings from '../settings/material.yml';
 import qualitySettings from '../settings/quality.yml';
 import { sliceGeometry } from '../slicer.js';
-import { grey800, red500 } from 'material-ui/styles/colors';
 import React from 'react';
 import PropTypes from 'prop-types';
 import fileSaver from 'file-saver';
@@ -24,7 +23,7 @@ export function centerGeometry(mesh) {
   mesh.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(-center.x, -center.y, -center.z));
 }
 
-export function createScene({ pixelRatio, muiTheme }) {
+export function createScene({ muiTheme }) {
   const scene = new THREE.Scene();
 
   const camera = new THREE.PerspectiveCamera(50, 1, 1, 10000);
@@ -52,7 +51,7 @@ export function createScene({ pixelRatio, muiTheme }) {
   let renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
   let editorControls = new THREE.EditorControls(camera, renderer.domElement);
 
-  box.scale.set(1., 1., 1.);
+  box.scale.set(1, 1, 1);
   box.updateMatrix();
 
   const render = () => renderer.render(scene, camera);
@@ -95,16 +94,16 @@ export function fetchProgress(url, data = {}, onProgress) {
       // const headers = new Headers(xhr.getAllResponseHeaders() || '');
       // const { status, statusText, response, responseText, responseURL: url = headers.get('X-Request-URL') } = xhr;
       // resolve(new Response(response || responseText, { headers, status, statusText, url }));
-    }
+    };
     xhr.onerror = () => reject(new TypeError('Network request failed'));
     xhr.ontimeout = () => reject(new TypeError('Network request failed'));
 
     xhr.open(request.method, url, true);
 
     if (request.credentials === 'include') {
-      xhr.withCredentials = true
+      xhr.withCredentials = true;
     } else if (request.credentials === 'omit') {
-      xhr.withCredentials = false
+      xhr.withCredentials = false;
     }
     if (xhr.upload && onProgress) xhr.upload.onprogress = onProgress;
     if (xhr.responseType) xhr.responseType = 'blob';
@@ -134,7 +133,7 @@ export function getMalyanStatus(ip) {
           break;
       }
       return status;
-    })
+    });
 }
 
 export function sleep(time) {
@@ -153,12 +152,11 @@ export async function slice(action, name, mesh, settings, updateProgress) {
       break;
     case 'WIFI_PRINT':
       if (settings.printer === 'doodle3d_printer') {
-        const { state } = await getMalyanStatus(settings.ip);
-        if (state !== 'idle') throw { message: 'printer is busy', code: 0 };
-
+        // const { state } = await getMalyanStatus(settings.ip);
+        // if (state !== 'idle') throw { message: 'printer is busy', code: 0 };
       } else {
         wifiBox = new Doodle3DBox(settings.ip);
-        if (!await wifiBox.checkAlive()) throw { message: `can't connect to printer`, code: 4 }
+        if (! await wifiBox.checkAlive()) throw { message: `can't connect to printer`, code: 4 };
 
         const { state } = await wifiBox.info.status();
         if (state !== 'idle') throw { message: 'printer is busy', code: 0 };
@@ -170,7 +168,6 @@ export async function slice(action, name, mesh, settings, updateProgress) {
       break;
     default:
       throw { message: 'unknown target', code: 1 };
-      break;
   }
 
   const { dimensions } = settings;
@@ -214,7 +211,7 @@ export async function slice(action, name, mesh, settings, updateProgress) {
           loaded += 15 * 1024;
           updateProgress({
             action: 'Uploading to printer',
-            percentage: (currentStep + loaded / file.size) / steps
+            percentage: (currentStep + loaded / gcode.size) / steps
           });
         }, 1000);
 
@@ -250,7 +247,7 @@ export async function slice(action, name, mesh, settings, updateProgress) {
         });
         currentStep ++;
 
-        const result = await wifiBox.printer.fetch(id);
+        await wifiBox.printer.fetch(id);
       }
       break;
     }
@@ -270,7 +267,6 @@ export async function slice(action, name, mesh, settings, updateProgress) {
 
     default:
       throw { message: 'unknown target', code: 1 };
-      break;
   }
 }
 
@@ -297,5 +293,5 @@ export const TabTemplate = ({ children, selected, style }) => {
 TabTemplate.propTypes = {
   children: PropTypes.node,
   selected: PropTypes.bool,
-  style: PropTypes.object,
+  style: PropTypes.object
 };

@@ -1,6 +1,6 @@
 import { subtract, normal, normalize, dot, almostEquals } from './helpers/vector2.js';
 
-export default function intersectionsToShapes(layerPoints, layerFaceIndexes, faces, openObjectIndexes, settings) {
+export default function intersectionsToShapes(layerPoints, layerFaceIndexes, faces, openObjectIndexes) {
   const layers = [];
 
   for (let layer = 0; layer < layerPoints.length; layer ++) {
@@ -59,6 +59,7 @@ export default function intersectionsToShapes(layerPoints, layerFaceIndexes, fac
           } else {
             lineSegment.push(...startConnects[pointB]);
             endConnects[lineSegment[lineSegment.length - 1]] = lineSegment;
+            shapes[objectIndex].splice(shapes[objectIndex].indexOf(startConnects[pointB]), 1);
           }
         } else {
           lineSegment.push(pointB);
@@ -70,6 +71,7 @@ export default function intersectionsToShapes(layerPoints, layerFaceIndexes, fac
         if (endConnects[pointA]) {
           lineSegment.unshift(...endConnects[pointA]);
           startConnects[lineSegment[0]] = lineSegment;
+          shapes[objectIndex].splice(shapes[objectIndex].indexOf(endConnects[pointA]), 1);
         } else {
           lineSegment.unshift(pointA);
           startConnects[pointA] = lineSegment;
@@ -87,7 +89,7 @@ export default function intersectionsToShapes(layerPoints, layerFaceIndexes, fac
     for (const objectIndex in shapes) {
       const shape = shapes[objectIndex]
         .map(lineSegment => lineSegment.map(pointIndex => points[pointIndex]))
-        .filter(lineSegment => lineSegment.some(i => !almostEquals(lineSegment[0], lineSegment[1])));
+        .filter(lineSegment => lineSegment.some(point => !almostEquals(lineSegment[0], point)));
       const openShape = openObjectIndexes[objectIndex];
 
       const connectPoints = [];

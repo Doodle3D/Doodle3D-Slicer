@@ -1,7 +1,7 @@
 import * as vector2 from './helpers/vector2.js';
 import * as vector3 from './helpers/vector3.js';
 
-export default function createLines(geometry, settings) {
+export default function createLines(geometry) {
   const faces = [];
   const lines = [];
   const lineLookup = {};
@@ -12,7 +12,7 @@ export default function createLines(geometry, settings) {
     const normal = calculateNormal(geometry.vertices, a, b, c);
 
     // skip faces that point up or down
-    if (normal.y > .999 || normal.y < -.999) {
+    if (normal.y > 0.999 || normal.y < -0.999) {
       faces.push(null);
       continue;
     }

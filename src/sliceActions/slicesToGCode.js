@@ -1,7 +1,6 @@
 import GCode from './helpers/GCode.js';
 import comb from './helpers/comb.js';
-import { divide } from './helpers/vector2.js';
-import { PRECISION, Z_OFFSET } from '../constants.js';
+import { Z_OFFSET } from '../constants.js';
 
 const PROFILE_TYPES = ['support', 'innerShell', 'outerShell', 'innerInfill', 'outerInfill', 'brim'];
 
@@ -10,14 +9,13 @@ export default function slicesToGCode(slices, settings) {
     layerHeight,
     filamentThickness,
     nozzleDiameter,
-    travelSpeed,
     retraction,
     travel,
     combing
   } = settings;
 
   const gcode = new GCode(settings);
-  gcode.updateLayerHeight(Z_OFFSET, nozzleDiameter, filamentThickness)
+  gcode.updateLayerHeight(Z_OFFSET, nozzleDiameter, filamentThickness);
 
   if (settings.startCode) gcode.addGCode(settings.startCode, settings);
 
@@ -37,12 +35,12 @@ export default function slicesToGCode(slices, settings) {
       isFirstLayer = false;
     }
 
-    const profiles = PROFILE_TYPES.reduce((profiles, profileType) => {
-      profiles[profileType] = {
+    const profiles = PROFILE_TYPES.reduce((_profiles, profileType) => {
+      _profiles[profileType] = {
         ...defaultProfile,
         lineProfile: isFirstLayer ? settings.firstLayer : settings[profileType]
       };
-      return profiles;
+      return _profiles;
     }, {});
 
     if (typeof slice.brim !== 'undefined') {
@@ -53,7 +51,7 @@ export default function slicesToGCode(slices, settings) {
       const part = slice.parts[i];
 
       if (part.closed) {
-        const outline = part.shell[0];
+        const outline = part.shell[0].mapToLower();
 
         for (let i = 0; i < part.shell.length; i ++) {
           const shell = part.shell[i];
@@ -73,7 +71,8 @@ export default function slicesToGCode(slices, settings) {
     }
 
     if (typeof slice.support !== 'undefined') {
-      pathToGCode(slice.supportOutline, combing, gcode, slice.support, true, true, z, profiles.support);
+      const supportOutline = slice.supportOutline.mapToLower();
+      pathToGCode(supportOutline, combing, gcode, slice.support, true, true, z, profiles.support);
     }
   }
 
@@ -82,7 +81,8 @@ export default function slicesToGCode(slices, settings) {
   return gcode.getGCode();
 }
 
-function pathToGCode(outline, combing, gcode, shape, retract, unRetract, z, { lineProfile, travelProfile, retractionProfile }) {
+function pathToGCode(outline, combing, gcode, shape, retract, unRetract, z, profiles) {
+  const { lineProfile, travelProfile, retractionProfile } = profiles;
   const { closed } = shape;
   const paths = shape.mapToLower();
 
@@ -95,7 +95,7 @@ function pathToGCode(outline, combing, gcode, shape, retract, unRetract, z, { li
 
       if (i === 0) {
         if (combing) {
-          const combPath = comb(outline, divide(gcode._nozzlePosition, PRECISION), point);
+          const combPath = comb(outline, gcode._nozzlePosition, point);
           for (let i = 0; i < combPath.length; i ++) {
             const combPoint = combPath[i];
             gcode.moveTo(combPoint.x, combPoint.y, z, travelProfile);

@@ -1,8 +1,7 @@
 import React from 'react';
 import PropTypes from 'proptypes';
 import _ from 'lodash';
-import injectSheet from 'react-jss';
-import MaterialUISelectField from 'material-ui/SelectField'
+import MaterialUISelectField from 'material-ui/SelectField';
 import MaterialUICheckbox from 'material-ui/Checkbox';
 import TextFieldIcon from 'material-ui-textfield-icon';
 import RefreshIcon from 'material-ui-icons/Refresh';
@@ -59,8 +58,8 @@ const _NumberField = ({ name, min, max, muiTheme: { palette }, ...props }, conte
     type="number"
     icon={context.advancedFields.includes(name) && <RefreshIcon
       style={{ fill: palette.textColor }}
-      onTouchTap={() => context.onChange(name, null)} />
-    }
+      onTouchTap={() => context.onChange(name, null)}
+    />}
     floatingLabelStyle={{
       color: context.advancedFields.includes(name) ? palette.primary1Color : palette.primary3Color
     }}

@@ -23,6 +23,7 @@ export const almostEquals = (a, b) => Math.abs(a.x - b.x) < 0.001 && Math.abs(a.
 export const dot = (a, b) => a.x * b.x + a.y * b.y;
 export const length = (v) => Math.sqrt(v.x * v.x + v.y * v.y);
 export const distanceTo = (a, b) => length(subtract(a, b));
+export const angle = (v) => Math.atan2(v.y, v.x);
 export const normalize = (v) => {
   const l = length(v);
 

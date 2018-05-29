@@ -17,7 +17,7 @@ export default function generateSupport(slices, settings) {
   margin /= PRECISION;
   nozzleDiameter /= PRECISION;
 
-  const infillGridSize = nozzleDiameter *  2 / density;
+  const infillGridSize = nozzleDiameter * 2 / density;
   const supportDistanceLayers = Math.max(Math.ceil(distanceY / layerHeight), 1);
 
   let supportArea = new Shape([], true);
