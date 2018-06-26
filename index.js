@@ -1,9 +1,8 @@
-import 'babel-polyfill'
+import 'babel-polyfill';
 import React from 'react';
 import { Interface } from 'doodle3d-slicer';
 import { render } from 'react-dom';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import injectTapEventPlugin from 'react-tap-event-plugin';
 import jss from 'jss';
 import preset from 'jss-preset-default';
 import normalize from 'normalize-jss';
@@ -18,8 +17,6 @@ const muiTheme = getMuiTheme({
     accent1Color: blue500,
   }
 });
-
-injectTapEventPlugin();
 
 jss.setup(preset());
 jss.createStyleSheet(normalize).attach();

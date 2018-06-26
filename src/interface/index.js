@@ -357,13 +357,13 @@ class Interface extends React.Component {
             {onCancel && <RaisedButton
               label="Close"
               className={`${classes.button}`}
-              onTouchTap={onCancel}
+              onClick={onCancel}
             />}
             {actions.length === 1 ? (
               <RaisedButton
                 primary
                 label={actions[0].title}
-                onTouchTap={() => this.slice(actions[0])}
+                onClick={() => this.slice(actions[0])}
                 className={`${classes.button}`}
                 disabled={isSlicing}
               />
@@ -374,7 +374,7 @@ class Interface extends React.Component {
                   ref="button"
                   primary
                   className={`${classes.button}`}
-                  onTouchTap={this.openPopover}
+                  onClick={this.openPopover}
                   disabled={isSlicing}
                 />
                 <Popover
@@ -386,7 +386,7 @@ class Interface extends React.Component {
                 >
                   <Menu>
                     {actions.map((action) => (
-                      <MenuItem key={action.target} primaryText={action.title} onTouchTap={() => this.slice(action)} />
+                      <MenuItem key={action.target} primaryText={action.title} onClick={() => this.slice(action)} />
                     ))}
                   </Menu>
                 </Popover>
@@ -405,12 +405,12 @@ class Interface extends React.Component {
           <div className={classes.detail}>
             <p>Dimensions: {objectDimensions}</p>
           </div>
-          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.resetMesh} label="reset" />
-          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.scaleUp} label="scale down" />
-          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.scaleDown} label="scale up" />
-          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.rotateX} label="rotate x" />
-          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.rotateY} label="rotate y" />
-          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.rotateZ} label="rotate z" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onClick={this.resetMesh} label="reset" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onClick={this.scaleUp} label="scale down" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onClick={this.scaleDown} label="scale up" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onClick={this.rotateX} label="rotate x" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onClick={this.rotateY} label="rotate y" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onClick={this.rotateZ} label="rotate z" />
         </div>
       </div>
     );

@@ -415,10 +415,10 @@ class Settings extends React.Component {
               <MenuItem key={id} value={id} primaryText={name} />
             ))}
             <Divider />
-            <MenuItem onTouchTap={this.openAddPrinterDialog} value="add_printer" primaryText="Add Printer" />
+            <MenuItem onClick={this.openAddPrinterDialog} value="add_printer" primaryText="Add Printer" />
           </SelectField>
           {localStorage.active && <SettingsIcon
-            onTouchTap={this.openManagePrinterDialog}
+            onClick={this.openManagePrinterDialog}
             style={{ fill: grey800, marginLeft: '10px', cursor: 'pointer' }}
           />}
         </div>
@@ -525,16 +525,16 @@ function printDialog(props, state, title, form, submitText, data, closeDialog, r
       actions={[
         closeDialog && <FlatButton
           label="Close"
-          onTouchTap={closeDialog}
+          onClick={closeDialog}
         />,
         removeActivePrinter && <FlatButton
           label="Remove Printer"
-          onTouchTap={removeActivePrinter}
+          onClick={removeActivePrinter}
         />,
         <RaisedButton
           label={submitText}
           primary
-          onTouchTap={save}
+          onClick={save}
         />
       ]}
     >
@@ -551,7 +551,7 @@ function printDialog(props, state, title, form, submitText, data, closeDialog, r
             {wifiBoxes.map(({ localip, id, wifiboxid }) => (<MenuItem key={id} value={localip} primaryText={wifiboxid} />))}
           </SelectField>
           {data.ip && <ExitToAppIcon
-            onTouchTap={() => window.open(`${CONNECT_URL}/?uuid=0#control?localip=${data.ip}`, '_blank')}
+            onClick={() => window.open(`${CONNECT_URL}/?uuid=0#control?localip=${data.ip}`, '_blank')}
             style={{ fill: grey800, marginLeft: '10px', cursor: 'pointer' }}
           />}
         </div>

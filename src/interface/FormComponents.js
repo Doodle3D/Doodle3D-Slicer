@@ -38,7 +38,7 @@ const _TextField = ({ name, muiTheme: { palette }, ...props }, context) => (
     {...props}
     icon={context.advancedFields.includes(name) && <RefreshIcon
       style={{ fill: palette.textColor }}
-      onTouchTap={() => context.onChange(name, null)}
+      onClick={() => context.onChange(name, null)}
     />}
     floatingLabelStyle={{
       color: context.advancedFields.includes(name) ? palette.primary1Color : palette.primary3Color
@@ -58,7 +58,7 @@ const _NumberField = ({ name, min, max, muiTheme: { palette }, ...props }, conte
     type="number"
     icon={context.advancedFields.includes(name) && <RefreshIcon
       style={{ fill: palette.textColor }}
-      onTouchTap={() => context.onChange(name, null)}
+      onClick={() => context.onChange(name, null)}
     />}
     floatingLabelStyle={{
       color: context.advancedFields.includes(name) ? palette.primary1Color : palette.primary3Color
@@ -95,7 +95,7 @@ const _Checkbox = ({ name, muiTheme: { palette }, ...props }, context) => (
       onCheck={(event, value) => context.onChange(name, value)}
     />
     {context.advancedFields.includes(name) && <RefreshIcon
-      onTouchTap={() => context.onChange(name, null)}
+      onClick={() => context.onChange(name, null)}
     />}
   </span>
 );
