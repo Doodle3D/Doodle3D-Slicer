@@ -1,3 +1,29 @@
+duplicator_i3_mini:
+  startCode: |-
+    M104 S{temperature}
+    G28
+    M109 S{temperature}
+    G90
+    M82
+    G1 Z10.0 F6000
+    G92 E0
+    G1 F200 E3
+    G92 E0
+  endCode: |-
+    M104 S0
+    G92 E1
+    G1 E-1 F300
+    G28 X0 Y0
+    M84
+    M82
+    M104 S0
+  title: Duplicator i3 Mini
+  heatedBed: false
+  filamentThickness: 1.75
+  dimensions:
+    x: 120
+    y: 135
+    z: 120
 doodle3d_printer:
   startCode: |-
     {if heatedBed}M140 S{bedTemperature}
