@@ -1,12 +1,9 @@
 import * as THREE from 'three';
-import _ from 'lodash';
 import React from 'react';
 import PropTypes from 'proptypes';
 import { centerGeometry, placeOnGround, createScene, slice, TabTemplate } from './utils.js';
 import injectSheet from 'react-jss';
 import RaisedButton from 'material-ui/RaisedButton';
-import FlatButton from 'material-ui/FlatButton';
-import Slider from 'material-ui/Slider';
 import LinearProgress from 'material-ui/LinearProgress';
 import { grey50, grey300, grey800, red500 } from 'material-ui/styles/colors';
 import Popover from 'material-ui/Popover/Popover';
@@ -14,14 +11,11 @@ import Menu from 'material-ui/Menu';
 import MenuItem from 'material-ui/MenuItem';
 import { Tabs, Tab } from 'material-ui/Tabs';
 import Settings from './Settings.js';
-// import MalyanControl from './MalyanControl.js';
-// import WifiBoxControl from './WifiBoxControl.js';
 import ReactResizeDetector from 'react-resize-detector';
 import JSONToSketchData from 'doodle3d-core/shape/JSONToSketchData';
 import createSceneData from 'doodle3d-core/d3/createSceneData.js';
 import { generateExportMesh } from 'doodle3d-core/utils/exportUtils.js';
 import muiThemeable from 'material-ui/styles/muiThemeable';
-import Dialog from 'material-ui/Dialog';
 import logo from '../../img/logo.png';
 
 const MAX_FULLSCREEN_WIDTH = 720;
@@ -58,7 +52,7 @@ const styles = {
     borderLeft: `1px solid ${grey300}`
   },
   sliceActions: {
-    flexShrink: 0,
+    flexShrink: 0
   },
   sliceInfo: {
     margin: '10px 0',
@@ -166,8 +160,8 @@ class Interface extends React.Component {
 
     fetch(`${origin}${port}${pathname}`, { headers })
       .then(resonse => resonse.json())
-      .then(json => JSONToSketchData(json))
-      .then(file => createSceneData(file))
+      .then(JSONToSketchData)
+      .then(createSceneData)
       .then(sketch => generateExportMesh(sketch, { offsetSingleWalls: false, matrix: new THREE.Matrix4() }))
       .then(mesh => this.updateMesh(mesh));
   };
@@ -232,7 +226,7 @@ class Interface extends React.Component {
   };
 
   slice = async (action) => {
-    const { isSlicing, settings, mesh, scene: { material, mesh: { matrix } } } = this.state;
+    const { isSlicing, settings, mesh, scene: { mesh: { matrix } } } = this.state;
     const { name } = this.props;
 
     if (isSlicing) return;
@@ -342,7 +336,7 @@ class Interface extends React.Component {
 
   render() {
     const { classes, onCancel, selectedPrinter, actions } = this.props;
-    const { isSlicing, progress, showFullScreen, error, objectDimensions, settings } = this.state;
+    const { isSlicing, progress, showFullScreen, error, objectDimensions } = this.state;
 
     const style = { ...(showFullScreen ? {} : { maxWidth: 'inherit', width: '100%', height: '100%' }) };
 
@@ -363,17 +357,13 @@ class Interface extends React.Component {
             {onCancel && <RaisedButton
               label="Close"
               className={`${classes.button}`}
-              onTouchTap={onCancel}
+              onClick={onCancel}
             />}
-            {/* (settings && settings.ip) && ((settings.printer === 'doodle3d_printer') ?
-              <MalyanControl ip={settings.ip} /> :
-              <WifiBoxControl ip={settings.ip} />
-            ) */}
             {actions.length === 1 ? (
               <RaisedButton
                 primary
                 label={actions[0].title}
-                onTouchTap={() => this.slice(actions[0])}
+                onClick={() => this.slice(actions[0])}
                 className={`${classes.button}`}
                 disabled={isSlicing}
               />
@@ -384,19 +374,19 @@ class Interface extends React.Component {
                   ref="button"
                   primary
                   className={`${classes.button}`}
-                  onTouchTap={this.openPopover}
+                  onClick={this.openPopover}
                   disabled={isSlicing}
                 />
                 <Popover
                   open={this.state.popover.open}
                   anchorEl={this.state.popover.element}
-                  anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
-                  targetOrigin={{horizontal: 'left', vertical: 'bottom'}}
+                  anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
+                  targetOrigin={{ horizontal: 'left', vertical: 'bottom' }}
                   onRequestClose={this.closePopover}
                 >
                   <Menu>
                     {actions.map((action) => (
-                      <MenuItem key={action.target} primaryText={action.title} onTouchTap={() => this.slice(action)} />
+                      <MenuItem key={action.target} primaryText={action.title} onClick={() => this.slice(action)} />
                     ))}
                   </Menu>
                 </Popover>
@@ -415,12 +405,12 @@ class Interface extends React.Component {
           <div className={classes.detail}>
             <p>Dimensions: {objectDimensions}</p>
           </div>
-          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.resetMesh} label="reset" />
-          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.scaleUp} label="scale down" />
-          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.scaleDown} label="scale up" />
-          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.rotateX} label="rotate x" />
-          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.rotateY} label="rotate y" />
-          <RaisedButton disabled={isSlicing} className={classes.controlButton} onTouchTap={this.rotateZ} label="rotate z" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onClick={this.resetMesh} label="reset" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onClick={this.scaleUp} label="scale down" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onClick={this.scaleDown} label="scale up" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onClick={this.rotateX} label="rotate x" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onClick={this.rotateY} label="rotate y" />
+          <RaisedButton disabled={isSlicing} className={classes.controlButton} onClick={this.rotateZ} label="rotate z" />
         </div>
       </div>
     );

@@ -1,4 +1,4 @@
-import { PRECISION } from '../constants.js'
+import { PRECISION } from '../constants.js';
 
 const OFFSET_OPTIONS = {
   jointType: 'jtSquare',
@@ -10,7 +10,6 @@ const OFFSET_OPTIONS = {
 export default function generateInnerLines(slices, settings) {
   // need to scale up everything because of clipper rounding errors
   let {
-    layerHeight,
     nozzleDiameter,
     thickness: { shell: shellThickness }
   } = settings;

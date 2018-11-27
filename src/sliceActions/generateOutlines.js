@@ -1,6 +1,6 @@
 import Shape from 'clipper-js';
 
-export default function calculateOutlines(slices, settings) {
+export default function calculateOutlines(slices) {
   for (let layer = 0; layer < slices.length; layer ++) {
     const slice = slices[layer];
 

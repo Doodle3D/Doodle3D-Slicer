@@ -3,7 +3,7 @@ import Slice from './helpers/Slice.js';
 
 import { PRECISION, MIN_AREA } from '../constants.js';
 
-export default function shapesToSlices(shapes, settings) {
+export default function shapesToSlices(shapes) {
   const sliceLayers = [];
 
   for (let layer = 0; layer < shapes.length; layer ++) {

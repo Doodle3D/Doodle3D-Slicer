@@ -1,5 +1,5 @@
-import { scale, distanceTo } from './vector2.js';
-import { PRECISION, VERSION } from '../../constants.js';
+import { distanceTo } from './vector2.js';
+import { VERSION } from '../../constants.js';
 
 export const MOVE = 'G';
 export const M_COMMAND = 'M';
@@ -14,7 +14,7 @@ export default class GCode {
   constructor(settings) {
     this._nozzleToFilamentRatio = 1;
     this._gcode = [
-      `; ${JSON.stringify(settings).trim()}`,
+      `; ${JSON.stringify(settings)}`,
       `; Generated with Doodle3D Slicer V${VERSION}`
     ];
     this._currentValues = {};
@@ -55,7 +55,7 @@ export default class GCode {
   }
 
   moveTo(x, y, z, { speed }) {
-    const newNozzlePosition = scale({ x, y }, PRECISION);
+    const newNozzlePosition = { x, y };
     const lineLength = distanceTo(this._nozzlePosition, newNozzlePosition);
 
     this._duration += lineLength / speed;
@@ -74,7 +74,7 @@ export default class GCode {
   }
 
   lineTo(x, y, z, { speed, flowRate }) {
-    const newNozzlePosition = scale({ x, y }, PRECISION);
+    const newNozzlePosition = { x, y };
     const lineLength = distanceTo(this._nozzlePosition, newNozzlePosition);
 
     this._extruder += this._nozzleToFilamentRatio * lineLength * flowRate;
@@ -132,9 +132,9 @@ export default class GCode {
 
   addGCode(gcode, { temperature, bedTemperature, heatedBed }) {
     gcode = gcode
-      .replace(/{temperature}/gi, temperature)
-      .replace(/{bedTemperature}/gi, bedTemperature)
-      .replace(/{if heatedBed}/gi, heatedBed ? '' : ';');
+      .replace(/{temperature}/g, temperature)
+      .replace(/{if heatedBed}.*?\n/g, str => heatedBed ? str.replace(/{if heatedBed}/g, '') : '')
+      .replace(/{bedTemperature}/g, bedTemperature);
 
     this._addGCode(gcode);
   }

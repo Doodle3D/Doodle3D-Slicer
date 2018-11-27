@@ -1,5 +1,5 @@
+import { PRECISION } from '../constants.js';
 import { divide } from './helpers/vector2.js';
-import { PRECISION } from '../constants.js'
 
 export default function applyPrecision(layers) {
   for (let layer = 0; layer < layers.length; layer ++) {

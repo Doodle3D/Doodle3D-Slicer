@@ -1,6 +1,7 @@
 const path = require('path');
-const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 const HTMLWebpackPlugin = require('html-webpack-plugin');
+const GoogleFontsPlugin = require('google-fonts-webpack-plugin');
 
 const devMode = process.env.NODE_ENV !== 'production';
 const analyzeBundle = process.env.ANALYZE_BUNDLE;
@@ -59,10 +60,21 @@ module.exports = {
             inline: false,
             name: '[name].js'
           }
-        }, babelLoader],
+        }, babelLoader]
       }, {
         test: /\.(png|jpg|gif)$/,
-        use: ['url-loader?name=images/[name].[ext]']
+        use: [{
+          loader: 'file-loader',
+          options: { name: '[path][name].[ext]' }
+        },
+        ...(!devMode ? [{
+          loader: 'image-webpack-loader',
+          options: {
+            mozjpeg: { progressive: true, quality: 65 },
+            optipng: { enabled: false },
+            pngquant: { quality: '65-90', speed: 4 }
+          }
+        }] : [])]
       }, {
         test: /\.glsl$/,
         use: ['raw-loader']
@@ -75,7 +87,20 @@ module.exports = {
       title: 'Doodle3D Slicer',
       template: require('html-webpack-template'),
       inject: false,
+      hash: !devMode,
       appMountId: 'app'
+    }),
+    new GoogleFontsPlugin({
+      fonts: [
+        { family: 'Oswald' },
+        { family: 'Ranga' },
+        { family: 'Joti One' },
+        { family: 'Bellefair' },
+        { family: 'Lobster' },
+        { family: 'Abril Fatface' },
+        { family: 'Play' },
+        { family: 'Fascinate' }
+      ]
     })
   ],
   devtool: devMode ? 'source-map' : false,

@@ -99,6 +99,9 @@ function sliceAsync(settings, geometry, openObjectIndexes, constructLinePreview,
           if (typeof onProgress !== 'undefined') onProgress(data);
           break;
         }
+
+        default:
+          break;
       }
     });
 

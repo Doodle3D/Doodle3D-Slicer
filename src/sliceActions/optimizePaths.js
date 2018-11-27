@@ -1,7 +1,7 @@
-import { length, distanceTo } from './helpers/vector2.js';
+import { distanceTo } from './helpers/vector2.js';
 import Shape from 'clipper-js';
 
-export default function optimizePaths(slices, settings) {
+export default function optimizePaths(slices) {
   let start = { x: 0, y: 0 };
 
   for (let layer = 0; layer < slices.length; layer ++) {
@@ -82,12 +82,12 @@ export default function optimizePaths(slices, settings) {
 }
 
 function optimizeShape(shape, start) {
-  const inputPaths = shape.mapToLower();
+  const inputPaths = shape.mapToLower().filter(path => path.length > 0);
   const optimizedPaths = [];
   const donePaths = [];
 
   while (optimizedPaths.length !== inputPaths.length) {
-    let minLength = false;
+    let minLength = Infinity;
     let reverse;
     let minPath;
     let offset;
@@ -101,7 +101,7 @@ function optimizeShape(shape, start) {
       if (shape.closed) {
         for (let j = 0; j < path.length; j += 1) {
           const length = distanceTo(path[j], start);
-          if (minLength === false || length < minLength) {
+          if (length < minLength) {
             minPath = path;
             minLength = length;
             offset = j;
@@ -110,7 +110,7 @@ function optimizeShape(shape, start) {
         }
       } else {
         const lengthToStart = distanceTo(path[0], start);
-        if (minLength === false || lengthToStart < minLength) {
+        if (lengthToStart < minLength) {
           minPath = path;
           minLength = lengthToStart;
           reverse = false;

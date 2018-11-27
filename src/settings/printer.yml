@@ -1,7 +1,7 @@
 doodle3d_printer:
   startCode: |-
-    {if heatedBed}M140 S{bedTemperature}
     M104 S{temperature}
+    {if heatedBed}M140 S{bedTemperature}
     G28
     M109 S{temperature}
     {if heatedBed}M190 S{bedTemperature}
