@@ -122,7 +122,7 @@ export default function intersectionsToShapes(layerPoints, layerFaceIndexes, fac
         }
       }
 
-      connectPoints.sort(({ previous }) => -previous);
+      connectPoints.sort((a, b) => b.previous - a.previous);
 
       while (connectPoints.length !== 0) {
         let { next, previous } = connectPoints.pop();
