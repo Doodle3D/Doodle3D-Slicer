@@ -14,6 +14,7 @@ const styles = {
     maxHeight: '0px'
   },
   title: {
+    userSelect: 'none',
     display: 'flex',
     alignItems: 'flex-end'
   }
