@@ -48,9 +48,11 @@ class Accordion extends React.Component {
 
     return elements.map(({ body, title }, i) => (
       <span key={i}>
-        <span className={classes.title}>
+        <span onClick={() => this.changeAccordion(title)} className={classes.title}>
           <ExpandIcon />
-          <p onClick={() => this.changeAccordion(title)} className={classes.button}>{title}</p>
+          <p style={{
+            fontWeight: openAccordion === title ? 'bold' : 'normal'
+          }} className={classes.button}>{title}</p>
         </span>
         <div className={`${classes.body} ${openAccordion === title ? '' : classes.closed}`}>
           {body}

@@ -39,7 +39,7 @@ const styles = {
     flexGrow: 1,
     overflowY: 'auto',
     '& p': {
-      fontWeight: 'bold',
+      // fontWeight: 'bold',
       margin: '30px 0 0 0'
     },
     '& h3': {
