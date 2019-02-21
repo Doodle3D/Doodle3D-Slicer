@@ -235,7 +235,7 @@ class Interface extends React.Component {
       return;
     }
     if (action.target === 'WIFI_PRINT' && !settings.ip) {
-      this.setState({ error: 'please connect to a WiFi enabled printer' });
+      this.setState({ error: 'no Doodle3D WiFi-Box selected' });
       return;
     }
     if (!mesh) {
@@ -336,7 +336,7 @@ class Interface extends React.Component {
 
   render() {
     const { classes, onCancel, selectedPrinter, actions } = this.props;
-    const { isSlicing, progress, showFullScreen, error, objectDimensions } = this.state;
+    const { isSlicing, settings, progress, showFullScreen, error, objectDimensions } = this.state;
 
     const style = { ...(showFullScreen ? {} : { maxWidth: 'inherit', width: '100%', height: '100%' }) };
 
@@ -369,27 +369,25 @@ class Interface extends React.Component {
               />
             ) : (
               <span>
+
+                <RaisedButton
+                  label="Download GCODE"
+                  ref="button"
+                  primary
+                  className={`${classes.button}`}
+                  disabled={isSlicing}
+                  onClick={() => this.slice({target: 'DOWNLOAD'})}
+                />
+
                 <RaisedButton
                   label="Print"
                   ref="button"
                   primary
                   className={`${classes.button}`}
-                  onClick={this.openPopover}
-                  disabled={isSlicing}
+                  disabled={settings && settings.ip==""}
+                  onClick={() => this.slice({target:'WIFI_PRINT'})}
                 />
-                <Popover
-                  open={this.state.popover.open}
-                  anchorEl={this.state.popover.element}
-                  anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
-                  targetOrigin={{ horizontal: 'left', vertical: 'bottom' }}
-                  onRequestClose={this.closePopover}
-                >
-                  <Menu>
-                    {actions.map((action) => (
-                      <MenuItem key={action.target} primaryText={action.title} onClick={() => this.slice(action)} />
-                    ))}
-                  </Menu>
-                </Popover>
+
               </span>
             )}
           </div>
