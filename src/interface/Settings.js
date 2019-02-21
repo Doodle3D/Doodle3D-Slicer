@@ -22,6 +22,7 @@ import SettingsIcon from 'material-ui-icons/Settings';
 import ExitToAppIcon from 'material-ui-icons/ExitToApp';
 import validateIp from 'validate-ip';
 import { Doodle3DManager } from 'doodle3d-api';
+import Accordion from './Accordion.js';
 
 const DOODLE_3D_MANAGER = new Doodle3DManager();
 DOODLE_3D_MANAGER.checkNonServerBoxes = false;
@@ -445,62 +446,106 @@ class Settings extends React.Component {
           </Tab>
           <Tab buttonStyle={{ color: grey800, backgroundColor: 'white' }} label="Advanced">
             <div>
-              <p>Layer</p>
-              <NumberField name="settings.layerHeight" min={0.05} max={3} fullWidth floatingLabelText="Height" />
-              <p>Thickness</p>
-              <NumberField name="settings.thickness.top" min={0} fullWidth floatingLabelText="top" />
-              <NumberField name="settings.thickness.bottom" min={0} fullWidth floatingLabelText="bottom" />
-              <NumberField name="settings.thickness.shell" min={0} fullWidth floatingLabelText="shell" />
-              <p>Material</p>
-              <NumberField name="settings.filamentThickness" min={0.1} max={10} fullWidth floatingLabelText="Thickness" />
-              <NumberField name="settings.temperature" min={100} max={400} fullWidth floatingLabelText="Temperature" />
-              <p>Bed</p>
-              <NumberField name="settings.bedTemperature" min={30} max={150} fullWidth floatingLabelText="Temperature" />
-              <Checkbox name="settings.heatedBed" label="Heated" />
-              <p>Brim</p>
-              <NumberField name="settings.brim.size" min={0} max={20} fullWidth floatingLabelText="Size" />
-              <NumberField name="settings.brim.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
-              <NumberField name="settings.brim.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
-              <p>Support</p>
-              <Checkbox name="settings.support.enabled" label="Enabled" />
-              <NumberField name="settings.support.distanceY" min={0.1} fullWidth floatingLabelText="Distance Y" />
-              <NumberField name="settings.support.density" min={0} max={100} fullWidth floatingLabelText="Density" />
-              <NumberField name="settings.support.margin" min={0.1} fullWidth floatingLabelText="Margin" />
-              <NumberField name="settings.support.minArea" min={1} fullWidth floatingLabelText="Min Area" />
-              <NumberField name="settings.support.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
-              <NumberField name="settings.support.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
-              <p>First layer</p>
-              <NumberField name="settings.firstLayer.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
-              <NumberField name="settings.firstLayer.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
-              <p>Inner shell</p>
-              <NumberField name="settings.innerShell.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
-              <NumberField name="settings.innerShell.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
-              <p>Outer shell</p>
-              <NumberField name="settings.outerShell.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
-              <NumberField name="settings.outerShell.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
-              <p>Inner infill</p>
-              <NumberField name="settings.innerInfill.density" min={0} max={100} fullWidth floatingLabelText="Density" />
-              <NumberField name="settings.innerInfill.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
-              <NumberField name="settings.innerInfill.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
-              <p>Outer infill</p>
-              <NumberField name="settings.outerInfill.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
-              <NumberField name="settings.outerInfill.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
-              <p>Travel</p>
-              <NumberField name="settings.travel.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
-              <Checkbox name="settings.combing" label="Combing" />
-              <p>Retraction</p>
-              <Checkbox name="settings.retraction.enabled" label="Enabled" />
-              <NumberField name="settings.retraction.amount" min={0} max={10} fullWidth floatingLabelText="Amount" />
-              <NumberField name="settings.retraction.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
-              <NumberField name="settings.retraction.minDistance" min={0} fullWidth floatingLabelText="Min distance" />
-              <p>Printer dimensions</p>
-              <div className={classes.textFieldRow}>
-                <NumberField name="settings.dimensions.x" min={1} fullWidth floatingLabelText="X" />
-                <NumberField name="settings.dimensions.y" min={1} fullWidth floatingLabelText="Y" />
-                <NumberField name="settings.dimensions.z" min={1} fullWidth floatingLabelText="Z" />
-              </div>
-              <p>Nozzle</p>
-              <NumberField name="settings.nozzleDiameter" min={0.1} max={5} fullWidth floatingLabelText="Diameter" />
+              <Accordion elements={[{
+                title: 'Layer',
+                body: (<NumberField name="settings.layerHeight" min={0.05} max={3} fullWidth floatingLabelText="Height" />)
+              }, {
+                title: 'Thickness',
+                body: (<span>
+                  <NumberField name="settings.thickness.top" min={0} fullWidth floatingLabelText="top" />
+                  <NumberField name="settings.thickness.bottom" min={0} fullWidth floatingLabelText="bottom" />
+                  <NumberField name="settings.thickness.shell" min={0} fullWidth floatingLabelText="shell" />
+                </span>)
+              }, {
+                title: 'Material',
+                body: (<span>
+                  <NumberField name="settings.filamentThickness" min={0.1} max={10} fullWidth floatingLabelText="Thickness" />
+                  <NumberField name="settings.temperature" min={100} max={400} fullWidth floatingLabelText="Temperature" />
+                </span>)
+              }, {
+                title: 'Bed',
+                body: (<span>
+                  <NumberField name="settings.bedTemperature" min={30} max={150} fullWidth floatingLabelText="Temperature" />
+                  <Checkbox name="settings.heatedBed" label="Heated" />
+                </span>)
+              }, {
+                title: 'Brim',
+                body: (<span>
+                  <NumberField name="settings.brim.size" min={0} max={20} fullWidth floatingLabelText="Size" />
+                  <NumberField name="settings.brim.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+                  <NumberField name="settings.brim.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
+                </span>)
+              }, {
+                title: 'Support',
+                body: (<span>
+                  <Checkbox name="settings.support.enabled" label="Enabled" />
+                  <NumberField name="settings.support.distanceY" min={0.1} fullWidth floatingLabelText="Distance Y" />
+                  <NumberField name="settings.support.density" min={0} max={100} fullWidth floatingLabelText="Density" />
+                  <NumberField name="settings.support.margin" min={0.1} fullWidth floatingLabelText="Margin" />
+                  <NumberField name="settings.support.minArea" min={1} fullWidth floatingLabelText="Min Area" />
+                  <NumberField name="settings.support.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+                  <NumberField name="settings.support.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
+                </span>)
+              }, {
+                title: 'First layer',
+                body: (<span>
+                  <NumberField name="settings.firstLayer.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+                  <NumberField name="settings.firstLayer.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
+                </span>)
+              }, {
+                title: 'Inner shell',
+                body: (<span>
+                  <NumberField name="settings.innerShell.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+                  <NumberField name="settings.innerShell.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
+                </span>)
+              }, {
+                title: 'Outer shell',
+                body: (<span>
+                  <NumberField name="settings.outerShell.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+                  <NumberField name="settings.outerShell.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
+                </span>)
+              }, {
+                title: 'Inner infill',
+                body: (<span>
+                  <NumberField name="settings.innerInfill.density" min={0} max={100} fullWidth floatingLabelText="Density" />
+                  <NumberField name="settings.innerInfill.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+                  <NumberField name="settings.innerInfill.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
+                </span>)
+              }, {
+                title: 'Outer infill',
+                body: (<span>
+                  <NumberField name="settings.outerInfill.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+                  <NumberField name="settings.outerInfill.flowRate" min={0.1} max={4} fullWidth floatingLabelText="Flow rate" />
+                </span>)
+              }, {
+                title: 'Travel',
+                body: (<span>
+                  <NumberField name="settings.travel.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+                  <Checkbox name="settings.combing" label="Combing" />
+                </span>)
+              }, {
+                title: 'Retraction',
+                body: (<span>
+                  <Checkbox name="settings.retraction.enabled" label="Enabled" />
+                  <NumberField name="settings.retraction.amount" min={0} max={10} fullWidth floatingLabelText="Amount" />
+                  <NumberField name="settings.retraction.speed" min={10} max={200} fullWidth floatingLabelText="Speed" />
+                  <NumberField name="settings.retraction.minDistance" min={0} fullWidth floatingLabelText="Min distance" />
+                </span>)
+              }, {
+                title: 'Printer dimensions',
+                body: (<span>
+                  <div className={classes.textFieldRow}>
+                  <NumberField name="settings.dimensions.x" min={1} fullWidth floatingLabelText="X" />
+                  <NumberField name="settings.dimensions.y" min={1} fullWidth floatingLabelText="Y" />
+                  <NumberField name="settings.dimensions.z" min={1} fullWidth floatingLabelText="Z" />
+                </div>
+                </span>)
+              }, {
+                title: 'Nozzle',
+                body: (<span>
+                  <NumberField name="settings.nozzleDiameter" min={0.1} max={5} fullWidth floatingLabelText="Diameter" />
+                </span>)
+              }]} />
             </div>
           </Tab>
         </Tabs>
