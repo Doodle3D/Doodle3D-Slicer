@@ -1,3 +1,4 @@
+import Heap from 'heap';
 import { angle, subtract, distanceTo } from './vector2.js';
 
 const graphs = new WeakMap();
@@ -147,40 +148,36 @@ function betweenAngles(n, a, b) {
 
 // dijkstra's algorithm
 function shortestPath(graph, start, end) {
+  const traverse = graph.map(() => -1);
+  traverse[start] = start;
+  const visited = graph.map(() => false);
   const distances = graph.map(() => Infinity);
   distances[start] = 0;
-  const traverse = [];
-  const queue = [];
-  for (let i = 0; i < distances.length; i ++) {
-    queue.push(i);
-  }
 
-  while (queue.length > 0) {
-    let queueIndex;
-    let minDistance = Infinity;
-    for (let index = 0; index < queue.length; index ++) {
-      const nodeIndex = queue[index];
-      const distance = distances[nodeIndex];
-      if (distances[nodeIndex] < minDistance) {
-        queueIndex = index;
-        minDistance = distance;
-      }
-    }
+  const heap = new Heap((a, b) => a.distance - b.distance);
+  heap.push({ nodeIndex: start, distance: 0 });
 
-    const [nodeIndex] = queue.splice(queueIndex, 1);
+  for (let i = 0; i < graph.length; i ++) {
+    let nodeIndex;
+    do { nodeIndex = heap.pop().nodeIndex } while (visited[nodeIndex]);
+
+    if (nodeIndex === end) break;
+
     const node = graph[nodeIndex];
+    visited[nodeIndex] = true;
 
     for (let i = 0; i < node.length; i ++) {
       const child = node[i];
       const distance = distances[nodeIndex] + child.distance;
       if (distance < distances[child.to]) {
+        heap.push({ nodeIndex: child.to, distance });
         distances[child.to] = distance;
         traverse[child.to] = nodeIndex;
       }
     }
   }
 
-  if (!traverse.hasOwnProperty(end)) return null;
+  if (traverse[end] === -1) return null;
 
   const path = [end];
   let nodeIndex = end;
