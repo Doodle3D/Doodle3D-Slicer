@@ -154,12 +154,13 @@ function shortestPath(graph, start, end) {
   const distances = graph.map(() => Infinity);
   distances[start] = 0;
 
-  const heap = new Heap((a, b) => a.distance - b.distance);
-  heap.push({ nodeIndex: start, distance: 0 });
+  const heap = new Heap((a, b) => distances[a] - distances[b]);
+  for (let i = 0; i < graph.length; i ++) {
+    heap.push(i);
+  }
 
   for (let i = 0; i < graph.length; i ++) {
-    let nodeIndex;
-    do { nodeIndex = heap.pop().nodeIndex } while (visited[nodeIndex]);
+    const nodeIndex = heap.pop();
 
     if (nodeIndex === end) break;
 
@@ -168,11 +169,14 @@ function shortestPath(graph, start, end) {
 
     for (let i = 0; i < node.length; i ++) {
       const child = node[i];
+
+      if (visited[child.to]) continue;
+
       const distance = distances[nodeIndex] + child.distance;
       if (distance < distances[child.to]) {
-        heap.push({ nodeIndex: child.to, distance });
         distances[child.to] = distance;
         traverse[child.to] = nodeIndex;
+        heap.updateItem(child.to);
       }
     }
   }
