@@ -57,7 +57,6 @@
     "eslint-config-airbnb": "^3.1.0",
     "eslint-plugin-react": "^3.16.1",
     "file-loader": "^1.1.11",
-    "google-fonts-webpack-plugin": "^0.4.4",
     "html-webpack-plugin": "^2.29.0",
     "html-webpack-template": "^6.0.2",
     "image-webpack-loader": "^4.2.0",
