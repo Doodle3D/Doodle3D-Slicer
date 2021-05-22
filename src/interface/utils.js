@@ -6,8 +6,6 @@ import qualitySettings from '../settings/quality.yml';
 import { sliceGeometry } from '../slicer.js';
 import React from 'react';
 import PropTypes from 'prop-types';
-import fileSaver from 'file-saver';
-import { Doodle3DBox } from 'doodle3d-api';
 
 export function placeOnGround(mesh) {
   const boundingBox = new THREE.Box3().setFromObject(mesh);
@@ -84,91 +82,13 @@ export function createScene({ muiTheme }) {
   return { editorControls, scene, mesh, camera, renderer, render, box, setSize, updateCanvas, focus };
 }
 
-export function fetchProgress(url, data = {}, onProgress) {
-  return new Promise((resolve, reject) => {
-    const request = new Request(url, data);
-    const xhr = new XMLHttpRequest();
-
-    xhr.onload = () => {
-      resolve(new Response(xhr.response));
-      // const headers = new Headers(xhr.getAllResponseHeaders() || '');
-      // const { status, statusText, response, responseText, responseURL: url = headers.get('X-Request-URL') } = xhr;
-      // resolve(new Response(response || responseText, { headers, status, statusText, url }));
-    };
-    xhr.onerror = () => reject(new TypeError('Network request failed'));
-    xhr.ontimeout = () => reject(new TypeError('Network request failed'));
-
-    xhr.open(request.method, url, true);
-
-    if (request.credentials === 'include') {
-      xhr.withCredentials = true;
-    } else if (request.credentials === 'omit') {
-      xhr.withCredentials = false;
-    }
-    if (xhr.upload && onProgress) xhr.upload.onprogress = onProgress;
-    if (xhr.responseType) xhr.responseType = 'blob';
-
-    // request.headers.forEach((value, name) => xhr.setRequestHeader(name, value));
-
-    xhr.send(data.body);
-  });
-}
-
-export function getMalyanStatus(ip) {
-  return fetch(`http://${ip}/inquiry`, { method: 'GET' })
-    .then(response => response.text())
-    .then(statusText => {
-      const [nozzleTemperature, nozzleTargetTemperature, bedTemperature, bedTargetTemperature, progress] = statusText.match(/\d+/g);
-      const status = { nozzleTemperature, nozzleTargetTemperature, bedTemperature, bedTargetTemperature, progress };
-
-      switch (statusText.charAt(statusText.length - 1)) {
-        case 'I':
-          status.state = 'idle';
-          break;
-        case 'P':
-          status.state = 'printing';
-          break;
-        default:
-          status.state = 'unknown';
-          break;
-      }
-      return status;
-    });
-}
-
 export function sleep(time) {
   return new Promise(resolve => setTimeout(resolve, time));
 }
 
-const GCODE_SERVER_URL = 'https://gcodeserver.doodle3d.com';
-
-export async function slice(action, name, mesh, settings, updateProgress) {
-  let steps;
+export async function slice(mesh, settings, updateProgress) {
+  let steps = 1;
   let currentStep = 0;
-  let wifiBox;
-  switch (action.target) {
-    case 'DOWNLOAD':
-      steps = 1;
-      break;
-    case 'WIFI_PRINT':
-      if (settings.printer === 'doodle3d_printer') {
-        // const { state } = await getMalyanStatus(settings.ip);
-        // if (state !== 'idle') throw { message: 'printer is busy', code: 0 };
-      } else {
-        wifiBox = new Doodle3DBox(settings.ip);
-        if (! await wifiBox.checkAlive()) throw { message: `can't connect to printer`, code: 4 };
-
-        const { state } = await wifiBox.info.status();
-        if (state !== 'idle') throw { message: 'printer is busy', code: 0 };
-      }
-      steps = 2;
-      break;
-    case 'CUSTOM_UPLOAD':
-      steps = 2;
-      break;
-    default:
-      throw { message: 'unknown target', code: 1 };
-  }
 
   const { dimensions } = settings;
   const centerX = dimensions.x / 2;
@@ -178,9 +98,8 @@ export async function slice(action, name, mesh, settings, updateProgress) {
     .multiply(new THREE.Matrix4().makeRotationY(-Math.PI / 2.0))
     .multiply(mesh.matrix);
 
-  const { gcode } = await sliceGeometry({
+  const sliceResult = await sliceGeometry({
     ...settings,
-    name: `${name}.gcode`,
     printer: { type: settings.printers, title: printerSettings[settings.printer].title },
     material: { type: settings.material, title: materialSettings[settings.material].title },
     quality: { type: settings.quality, title: qualitySettings[settings.quality].title }
@@ -194,80 +113,7 @@ export async function slice(action, name, mesh, settings, updateProgress) {
   });
   currentStep ++;
 
-  switch (action.target) {
-    case 'DOWNLOAD': {
-      fileSaver.saveAs(gcode, `${name}.gcode`);
-      break;
-    }
-
-    case 'WIFI_PRINT': {
-      if (settings.printer === 'doodle3d_printer') {
-        const body = new FormData();
-        body.append('file', gcode, 'doodle.gcode');
-
-        // because fetch has no way of retrieving progress we fake progress
-        let loaded = 0;
-        const interval = setInterval(() => {
-          loaded += 15 * 1024;
-          updateProgress({
-            action: 'Uploading to printer',
-            percentage: (currentStep + loaded / gcode.size) / steps
-          });
-        }, 1000);
-
-        // await fetchProgress(`http://${settings.ip}/set?code=M563 S4`, { method: 'GET' });
-        await fetch(`http://${settings.ip}/upload`, { method: 'POST', body, mode: 'no-cors' }, (progress) => {
-          updateProgress({
-            action: 'Uploading to printer',
-            percentage: (currentStep + progress.loaded / progress.total) / steps
-          });
-        });
-        clearInterval(interval);
-        await fetch(`http://${settings.ip}/set?code=M566 ${name}.gcode`, { method: 'GET', mode: 'no-cors' });
-        await fetch(`http://${settings.ip}/set?code=M565`, { method: 'GET', mode: 'no-cors' });
-
-        currentStep ++;
-      } else {
-        // upload G-code file to AWS S3
-        const { data: { reservation: { fields, url }, id } } = await fetch(`${GCODE_SERVER_URL}/upload`, { method: 'POST' })
-          .then(response => response.json());
-
-        const body = new FormData();
-        for (const key in fields) {
-          body.append(key, fields[key]);
-        }
-
-        body.append('file', gcode, 'doodle.gcode');
-
-        await fetchProgress(url, { method: 'POST', body }, progress => {
-          updateProgress({
-            action: 'Uploading',
-            percentage: (currentStep + progress.loaded / progress.total) / steps
-          });
-        });
-        currentStep ++;
-
-        await wifiBox.printer.fetch(id);
-      }
-      break;
-    }
-    case 'CUSTOM_UPLOAD': {
-      const body = new FormData();
-      body.append('file', gcode, 'doodle.gcode');
-
-      await fetchProgress(action.url, { method: 'POST', body }, progress => {
-        updateProgress({
-          action: 'Uploading',
-          percentage: (currentStep + progress.loaded / progress.total) / steps
-        });
-      });
-      currentStep ++;
-      break;
-    }
-
-    default:
-      throw { message: 'unknown target', code: 1 };
-  }
+  return sliceResult;
 }
 
 export const TabTemplate = ({ children, selected, style }) => {

@@ -29,16 +29,6 @@ module.exports = {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist')
   },
-  resolve: {
-    alias: {
-      'doodle3d-slicer': path.resolve(__dirname, 'src/'),
-      'clipper-lib': '@doodle3d/clipper-lib',
-      'clipper-js': '@doodle3d/clipper-js',
-      'doodle3d-core': `@doodle3d/doodle3d-core/${devMode ? 'module' : 'lib'}`,
-      'doodle3d-api': `@doodle3d/doodle3d-api/${devMode ? 'module' : 'lib'}`,
-      'cal': '@doodle3d/cal'
-    }
-  },
   module: {
     rules: [
       {
@@ -75,7 +65,7 @@ module.exports = {
           }
         }] : [])]
       }, {
-        test: /\.(woff)$/,
+        test: /\.stl$/,
         use: {
           loader: 'file-loader'
         }

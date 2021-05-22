@@ -1,5 +1,5 @@
 import getFillTemplate from './getFillTemplate.js';
-import Shape from 'clipper-js';
+import Shape from '@doodle3d/clipper-js';
 import { PRECISION } from '../constants.js';
 
 const PRECISION_SQUARED = Math.pow(PRECISION, 2);

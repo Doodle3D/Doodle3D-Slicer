@@ -12,9 +12,6 @@ import MenuItem from 'material-ui/MenuItem';
 import { Tabs, Tab } from 'material-ui/Tabs';
 import Settings from './Settings.js';
 import ReactResizeDetector from 'react-resize-detector';
-import JSONToSketchData from 'doodle3d-core/shape/JSONToSketchData';
-import createSceneData from 'doodle3d-core/d3/createSceneData.js';
-import { generateExportMesh } from 'doodle3d-core/utils/exportUtils.js';
 import muiThemeable from 'material-ui/styles/muiThemeable';
 import logo from '../../img/logo.png';
 
@@ -99,29 +96,17 @@ const styles = {
 
 class Interface extends React.Component {
   static propTypes = {
-    fileUrl: PropTypes.string,
     selectedPrinter: PropTypes.string,
     mesh: PropTypes.shape({ isMesh: PropTypes.oneOf([true]) }),
     classes: PropTypes.objectOf(PropTypes.string),
     pixelRatio: PropTypes.number.isRequired,
     onCancel: PropTypes.func,
-    name: PropTypes.string.isRequired,
-    muiTheme: PropTypes.object.isRequired,
-    allowDragDrop: PropTypes.bool.isRequired,
-    actions: PropTypes.arrayOf(PropTypes.shape({ target: PropTypes.string }))
+    onSliceSucces: PropTypes.func.isRequired,
+    muiTheme: PropTypes.object.isRequired
   };
 
   static defaultProps = {
-    actions: [{
-      target: 'WIFI_PRINT',
-      title: 'Print over WiFi'
-    }, {
-      target: 'DOWNLOAD',
-      title: 'Download GCode'
-    }],
-    pixelRatio: 1,
-    name: 'Doodle3D',
-    allowDragDrop: true
+    pixelRatio: 1
   };
 
   constructor(props) {
@@ -145,26 +130,11 @@ class Interface extends React.Component {
     const { scene } = this.state;
     scene.updateCanvas(canvas);
 
-    const { mesh, fileUrl } = this.props;
+    const { mesh } = this.props;
     if (mesh) {
       this.updateMesh(mesh, scene);
-    } else if (fileUrl) {
-      this.loadFile(fileUrl);
     }
   }
-
-  loadFile = (fileUrl) => {
-    const { origin, pathname, password, username, port } = new URL(fileUrl);
-    const headers = {};
-    if (password && username) headers.Authorization = `Basic ${btoa(`${username}:${password}`)}`;
-
-    fetch(`${origin}${port}${pathname}`, { headers })
-      .then(resonse => resonse.json())
-      .then(JSONToSketchData)
-      .then(createSceneData)
-      .then(sketch => generateExportMesh(sketch, { offsetSingleWalls: false, matrix: new THREE.Matrix4() }))
-      .then(mesh => this.updateMesh(mesh));
-  };
 
   updateMesh(mesh, scene = this.state.scene) {
     scene.mesh.geometry = mesh.geometry;
@@ -225,17 +195,13 @@ class Interface extends React.Component {
     }
   };
 
-  slice = async (action) => {
+  slice = async () => {
     const { isSlicing, settings, mesh, scene: { mesh: { matrix } } } = this.state;
-    const { name } = this.props;
+    const { onSliceSucces } = this.props;
 
     if (isSlicing) return;
     if (!settings) {
       this.setState({ error: 'please select a printer first' });
-      return;
-    }
-    if (action.target === 'WIFI_PRINT' && !settings.ip) {
-      this.setState({ error: 'no Doodle3D WiFi-Box selected' });
       return;
     }
     if (!mesh) {
@@ -251,7 +217,8 @@ class Interface extends React.Component {
 
     try {
       const updateProgres = progress => this.setState({ progress: { ...this.state.progress, ...progress } });
-      await slice(action, name, exportMesh, settings, updateProgres);
+      const sliceResults = await slice(exportMesh, settings, updateProgres);
+      onSliceSucces(sliceResults);
     } catch (error) {
       this.setState({ error: error.message });
       throw error;
@@ -317,25 +284,8 @@ class Interface extends React.Component {
     this.setState({ objectDimensions: `${Math.round(y)}x${Math.round(z)}x${Math.round(x)}mm` });
   };
 
-  onDrop = (event) => {
-    event.preventDefault();
-    if (!this.props.allowDragDrop) return;
-
-    for (const file of event.dataTransfer.files) {
-      const extentions = file.name.split('.').pop();
-
-      switch (extentions.toUpperCase()) {
-        case 'D3SKETCH':
-          this.loadFile(URL.createObjectURL(file));
-          break;
-        default:
-          break;
-      }
-    }
-  }
-
   render() {
-    const { classes, onCancel, selectedPrinter, actions } = this.props;
+    const { classes, onCancel, selectedPrinter } = this.props;
     const { isSlicing, settings, progress, showFullScreen, error, objectDimensions } = this.state;
 
     const style = { ...(showFullScreen ? {} : { maxWidth: 'inherit', width: '100%', height: '100%' }) };
@@ -359,37 +309,14 @@ class Interface extends React.Component {
               className={`${classes.button}`}
               onClick={onCancel}
             />}
-            {actions.length === 1 ? (
-              <RaisedButton
-                primary
-                label={actions[0].title}
-                onClick={() => this.slice(actions[0])}
-                className={`${classes.button}`}
-                disabled={isSlicing}
-              />
-            ) : (
-              <span>
-
-                <RaisedButton
-                  label="Download GCODE"
-                  ref="button"
-                  primary
-                  className={`${classes.button}`}
-                  disabled={isSlicing}
-                  onClick={() => this.slice({target: 'DOWNLOAD'})}
-                />
-
-                <RaisedButton
-                  label="Print"
-                  ref="button"
-                  primary
-                  className={`${classes.button}`}
-                  disabled={settings && settings.ip==""}
-                  onClick={() => this.slice({target:'WIFI_PRINT'})}
-                />
-
-              </span>
-            )}
+            <RaisedButton
+              label="Download GCODE"
+              ref="button"
+              primary
+              className={`${classes.button}`}
+              disabled={isSlicing}
+              onClick={() => this.slice()}
+            />
           </div>
         </div>
       </div>
@@ -415,15 +342,7 @@ class Interface extends React.Component {
 
     if (showFullScreen) {
       return (
-        <div
-          className={classes.container}
-          ref={(container) => {
-            if (container) {
-              container.addEventListener('dragover', event => event.preventDefault());
-              container.addEventListener('drop', this.onDrop);
-            }
-          }}
-        >
+        <div className={classes.container}>
           <ReactResizeDetector handleWidth handleHeight onResize={this.onResizeContainer} />
           <img src={logo} className={classes.logo} />
           {d3Panel}
@@ -432,15 +351,7 @@ class Interface extends React.Component {
       );
     } else {
       return (
-        <div
-          className={classes.container}
-          ref={(container) => {
-            if (container) {
-              container.addEventListener('dragover', event => event.preventDefault());
-              container.addEventListener('drop', this.onDrop);
-            }
-          }}
-        >
+        <div className={classes.container}>
           <ReactResizeDetector handleWidth handleHeight onResize={this.onResizeContainer} />
           <Tabs
             style={{ width: '100%', display: 'flex', flexDirection: 'column' }}

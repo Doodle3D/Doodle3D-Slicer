@@ -21,13 +21,7 @@ import update from 'react-addons-update';
 import SettingsIcon from 'material-ui-icons/Settings';
 import ExitToAppIcon from 'material-ui-icons/ExitToApp';
 import validateIp from 'validate-ip';
-import { Doodle3DManager } from 'doodle3d-api';
 import Accordion from './Accordion.js';
-
-const DOODLE_3D_MANAGER = new Doodle3DManager();
-DOODLE_3D_MANAGER.checkNonServerBoxes = false;
-
-const CONNECT_URL = 'http://connect.doodle3d.com/';
 
 const styles = {
   textFieldRow: {
@@ -91,7 +85,6 @@ class Settings extends React.Component {
 
   state = {
     localStorage: getLocalStorage(),
-    wifiBoxes: [],
     addPrinter: {
       open: false,
       name: '',
@@ -125,15 +118,6 @@ class Settings extends React.Component {
     } else if (!selectedPrinter && !localStorage.active) {
       this.openAddPrinterDialog();
     }
-
-    const eventListener = ({ boxes }) => this.setState({ wifiBoxes: boxes });
-    DOODLE_3D_MANAGER.addEventListener('boxeschanged', eventListener);
-    this.setState({ eventListener });
-  }
-
-  componentWillUnmount() {
-    const { eventListener } = this.state;
-    DOODLE_3D_MANAGER.removeEventListener('boxeschanged', eventListener);
   }
 
   changeSettings = (fieldName, value) => {
@@ -362,11 +346,6 @@ class Settings extends React.Component {
   closeAddPrinterDialog = (override) => this.setAddPrinterDialog(false, override);
   openAddPrinterDialog = (override) => this.setAddPrinterDialog(true, override);
   setAddPrinterDialog = (open, override = {}) => {
-    if (open) {
-      DOODLE_3D_MANAGER.setAutoUpdate(true, 10000);
-    } else {
-      DOODLE_3D_MANAGER.setAutoUpdate(false);
-    }
     this.setState({
       addPrinter: {
         ip: '',
@@ -383,16 +362,7 @@ class Settings extends React.Component {
   openManagePrinterDialog = () => this.setManagePrinterDialog(true);
   setManagePrinterDialog = (open) => {
     const { localStorage: { active, printers } } = this.state;
-    if (!active) {
-      DOODLE_3D_MANAGER.setAutoUpdate(false);
-      return this.setState({ managePrinter: { open: false } });
-    }
 
-    if (open) {
-      DOODLE_3D_MANAGER.setAutoUpdate(true, 10000);
-    } else {
-      DOODLE_3D_MANAGER.setAutoUpdate(false);
-    }
     this.setState({
       managePrinter: {
         open,
@@ -558,7 +528,6 @@ class Settings extends React.Component {
 
 function printDialog(props, state, title, form, submitText, data, closeDialog, removeActivePrinter, save) {
   const { classes } = props;
-  const { wifiBoxes } = state;
 
   return (
     <Dialog
@@ -588,19 +557,6 @@ function printDialog(props, state, title, form, submitText, data, closeDialog, r
           <MenuItem key={value} value={value} primaryText={title} />
         ))}
       </SelectField>
-      <TextField name={`${form}.name`} floatingLabelText="Name" fullWidth />
-      {(data.printer === 'doodle3d_printer') ?
-        <TextField name={`${form}.ip`} floatingLabelText="IP Adress" fullWidth /> :
-        <div className={classes.textFieldRow}>
-          <SelectField name={`${form}.ip`} floatingLabelText="Doodle3D WiFi-Box" fullWidth>
-            {wifiBoxes.map(({ localip, id, wifiboxid }) => (<MenuItem key={id} value={localip} primaryText={wifiboxid} />))}
-          </SelectField>
-          {data.ip && <ExitToAppIcon
-            onClick={() => window.open(`${CONNECT_URL}/?uuid=0#control?localip=${data.ip}`, '_blank')}
-            style={{ fill: grey800, marginLeft: '10px', cursor: 'pointer' }}
-          />}
-        </div>
-      }
       {data.error && <p className={classes.error}>{data.error}</p>}
     </Dialog>
   );

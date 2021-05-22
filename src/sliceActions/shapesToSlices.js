@@ -1,4 +1,4 @@
-import Shape from 'clipper-js';
+import Shape from '@doodle3d/clipper-js';
 import Slice from './helpers/Slice.js';
 
 import { PRECISION, MIN_AREA } from '../constants.js';
@@ -14,7 +14,7 @@ export default function shapesToSlices(shapes) {
       .simplify('pftNonZero')
       .clean(1)
       .thresholdArea(MIN_AREA / Math.pow(PRECISION, 2))
-      .seperateShapes();
+      .separateShapes();
 
     lineShapesClosed = new Shape(lineShapesClosed, true, true, true, true)
       .clean(1);

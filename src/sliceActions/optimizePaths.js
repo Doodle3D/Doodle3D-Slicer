@@ -1,5 +1,5 @@
 import { distanceTo } from './helpers/vector2.js';
-import Shape from 'clipper-js';
+import Shape from '@doodle3d/clipper-js';
 
 export default function optimizePaths(slices) {
   let start = { x: 0, y: 0 };
