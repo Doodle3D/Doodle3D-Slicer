@@ -112,6 +112,8 @@ class Interface extends React.Component {
   constructor(props) {
     super(props);
 
+    this.canvasElement = React.createRef();
+
     const scene = createScene(this.props);
     this.state = {
       scene,
@@ -126,9 +128,8 @@ class Interface extends React.Component {
   }
 
   componentDidMount() {
-    const { canvas } = this.refs;
     const { scene } = this.state;
-    scene.updateCanvas(canvas);
+    scene.updateCanvas(this.canvasElement.current);
 
     const { mesh } = this.props;
     if (mesh) {
@@ -248,8 +249,7 @@ class Interface extends React.Component {
 
   componentDidUpdate() {
     const { scene: { updateCanvas } } = this.state;
-    const { canvas } = this.refs;
-    if (updateCanvas && canvas) updateCanvas(canvas);
+    if (updateCanvas && this.canvasElement.current) updateCanvas(this.canvasElement.current);
   }
 
   onResize3dView = (width, height) => {
@@ -325,7 +325,7 @@ class Interface extends React.Component {
     const d3Panel = (
       <div className={classes.d3View}>
         <ReactResizeDetector handleWidth handleHeight onResize={this.onResize3dView} />
-        <canvas className={classes.canvas} ref="canvas" />
+        <canvas className={classes.canvas} ref={this.canvasElement} />
         <div className={classes.controlBar}>
           <div className={classes.detail}>
             <p>Dimensions: {objectDimensions}</p>
