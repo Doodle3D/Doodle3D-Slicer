@@ -46,6 +46,7 @@ const styles = {
     boxSizing: 'border-box',
     padding: '10px 20px',
     backgroundColor: 'white',
+    overflowY: 'auto',
     borderLeft: `1px solid ${grey300}`
   },
   sliceActions: {
