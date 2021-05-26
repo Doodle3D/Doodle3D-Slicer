@@ -1,7 +1,7 @@
 {
   "name": "@doodle3d/doodle3d-slicer",
   "version": "0.0.18",
-  "description": "JavaScript gcode slicer, Intended to use with the Doodle3D WiFi-Box # Usage",
+  "description": "JavaScript gcode slicer for Doodle3D Transform",
   "main": "lib/index.js",
   "module": "module/index.js",
   "esnext": "src/index.js",
@@ -71,9 +71,9 @@
     "type": "git",
     "url": "git+https://github.com/Doodle3D/Doodle3D-Slicer.git"
   },
-  "author": "",
-  "license": "UNLICENSED",
-  "private": true,
+  "author": "Casper @Doodle3D",
+  "license": "MIT",
+  "private": false,
   "bugs": {
     "url": "https://github.com/Doodle3D/Doodle3D-Slicer/issues"
   },
